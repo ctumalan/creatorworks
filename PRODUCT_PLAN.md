@@ -26,6 +26,42 @@ The participant should leave feeling:
 
 > My time and experience mattered. The creator heard me, I can see what they learned or decided, and my contribution was recognized in the way I chose.
 
+## Creator Courage Through Evidence
+
+Many creators do not begin by asking how to publish. They ask whether their work is good enough to deserve being seen at all. They compare unfinished work with polished products and interpret greater experience elsewhere as evidence that their own attempt has no value.
+
+CreatorWorks should not answer this with empty praise or pressure to “just ship it.” It should replace an impossible comparison with a useful question:
+
+> Is there enough here for one relevant person to experience—and can their experience teach me what to do next?
+
+A creator does not need to prove that their work is better than every alternative. They need to discover whether it helps a particular person in a meaningful way. That cannot be learned through isolation or comparison. It requires an honest encounter between the work and someone it was made to serve.
+
+Confidence is not a prerequisite for sharing. Confidence can grow from evidence.
+
+A work is ready for its next honest conversation when:
+
+- Another person can understand, view, try, or meaningfully examine something real.
+- The creator can describe its current state honestly.
+- The creator can identify whom it may help.
+- The creator can ask one meaningful question.
+- The creator is willing to listen and make a thoughtful decision.
+
+Meeting this standard means the work may be ready for a small invitation. It does not automatically mean it is ready for a broad public launch, commercial claim, or marketplace listing.
+
+CreatorWorks should help uncertainty become evidence:
+
+- “Nobody will understand this” can become “This person understood the purpose.”
+- “I am not experienced enough” can become “I found one specific place to improve.”
+- “Other creators are better” can become “This work helped someone in a way that mattered.”
+- “I might fail publicly” can become “I shared at the right stage with honest expectations.”
+- “I do not know what to do next” can become “A real experience gave me a next step.”
+
+The central reassurance is practical rather than flattering:
+
+> Your work does not need to be finished to be worth sharing. It needs to be honest about where it is and clear about what you want to learn.
+
+The first invitation should feel like a bounded learning step, not a verdict on the creator's talent or right to create.
+
 ## Brand and Launch Promises
 
 ### Long-term brand journey
@@ -46,14 +82,15 @@ Public discovery and selling should only become prominent promises when those ca
 
 ## What Makes CreatorWorks Different
 
-CreatorWorks is not defined by uploading a listing or collecting comments. Its defining product is a visible feedback-to-decision loop:
+CreatorWorks is not defined by uploading a listing or collecting comments. Its defining product is a visible readiness-and-feedback-to-decision loop:
 
-1. A creator presents something another person can experience.
-2. A relevant participant tries or meaningfully examines it.
-3. The participant gives a thoughtful, structured response.
-4. The creator acknowledges the response.
-5. The creator records what was learned, decided, or changed.
-6. The participant can see the outcome and knows their time mattered.
+1. A creator checks whether the work is ready for its next honest conversation.
+2. The creator presents something another person can experience.
+3. A relevant participant tries or meaningfully examines it.
+4. The participant gives a thoughtful, structured response.
+5. The creator acknowledges the response.
+6. The creator records what was learned, decided, or changed.
+7. The participant can see the outcome and knows their time mattered.
 
 This distinguishes CreatorWorks from a code repository, launch leaderboard, digital store, social network, and generic survey tool.
 
@@ -88,6 +125,43 @@ CreatorWorks is not initially:
 - **Recognition** — Optional, specific, consensual credit for a contribution that meaningfully helped the work.
 - **Completed loop** — A participant experiences the work and responds; the creator acknowledges the response and records a learning, decision, or change; the participant can see the outcome.
 - **Support** — Nonfinancial help such as feedback, referral, testing, or collaboration, or future financial help such as sponsorship, membership, licensing, or purchase. The intended meaning must always be clear.
+
+## Public Language and Voice
+
+The product plan may use precise internal terms such as “creator,” “participant,” “prototype,” “structured response,” and “outcome.” The visible experience should translate those ideas into warm, familiar language.
+
+CreatorWorks should sound like a thoughtful person welcoming someone into a creative process—not a developer tool, business dashboard, research system, or motivational slogan.
+
+Public language should be:
+
+- **Plain** — Use familiar words and short sentences.
+- **Warm** — Recognize that sharing unfinished work can feel personal and vulnerable.
+- **Trustworthy** — Explain what will happen without hype, pressure, or vague promises.
+- **Respectful** — Never speak down to beginners or assume technical knowledge.
+- **Specific** — Say what a person can do now and what will happen next.
+- **Human** — Address people as “you,” “the person you invited,” or by name when appropriate.
+
+Prefer:
+
+- “What you are making” or “your work” instead of “project” when speaking to creators.
+- “Early version” instead of “prototype” when precision does not require the technical term.
+- “The person you invited” instead of “participant.”
+- “Share your thoughts” or “tell the creator what happened” instead of “submit structured feedback.”
+- “What happened next” instead of “outcome.”
+- “Share with one person” instead of “publish” when the work is not entering public discovery.
+- “See if you are ready to share” instead of “readiness assessment.”
+
+Technical or legal language should appear only where accuracy and safety require it, followed by a plain explanation.
+
+Visible step names should describe a person's experience:
+
+1. **Welcome**
+2. **Am I ready?**
+3. **The work**
+4. **Share thoughts**
+5. **What happened**
+
+The words should reduce uncertainty without offering false reassurance. Warmth must make the truth easier to understand, not hide it.
 
 ## First Audience
 
@@ -192,16 +266,17 @@ No person's satisfaction may justify deceiving, exploiting, or harming another p
 The experience is a repeatable human loop rather than a one-time upload:
 
 1. **Clarify** — Explain the problem, intended participant, present capability, and current question.
-2. **Make** — Prepare enough of the work for another person to experience.
-3. **Present** — Create an honest page with the work's state, disclosures, and invitation.
-4. **Invite** — Share it with people who may genuinely benefit or provide relevant perspective.
-5. **Experience** — Let those people view, try, or use what currently exists.
-6. **Respond** — Gather structured feedback connected to the creator's question.
-7. **Acknowledge** — Confirm that the response was received and considered.
-8. **Decide** — Record what was learned, what will change, or why no change is planned.
-9. **Recognize** — With consent, credit contributions that meaningfully helped.
-10. **Return** — Notify the participant and invite them to see or experience what comes next.
-11. **Support** — After value and trust are proven, allow recommendation, collaboration, funding, subscription, licensing, or purchase under fair terms.
+2. **Check readiness** — Confirm that something real can be experienced, its state is honest, and one useful question can be asked.
+3. **Make** — Prepare enough of the work for another person to experience.
+4. **Present** — Create an honest page with the work's state, disclosures, and invitation.
+5. **Invite** — Share it with people who may genuinely benefit or provide relevant perspective.
+6. **Experience** — Let those people view, try, or use what currently exists.
+7. **Respond** — Gather structured feedback connected to the creator's question.
+8. **Acknowledge** — Confirm that the response was received and considered.
+9. **Decide** — Record what was learned, what will change, or why no change is planned.
+10. **Recognize** — With consent, credit contributions that meaningfully helped.
+11. **Return** — Notify the participant and invite them to see or experience what comes next.
+12. **Support** — After value and trust are proven, allow recommendation, collaboration, funding, subscription, licensing, or purchase under fair terms.
 
 The loop can repeat as the work grows.
 
@@ -374,11 +449,12 @@ Business-model research should still occur during validation. Creator interviews
 
 ### Phase 0: Manual validation
 
-Purpose: determine whether the CreatorWorks loop is more valuable than sending someone a product link and a generic survey.
+Purpose: determine whether CreatorWorks can turn publishing anxiety into an appropriate small invitation and whether the resulting loop is more valuable than sending someone a product link and a generic survey.
 
 Create and test:
 
 - One clear homepage prototype.
+- One readiness experience that replaces comparison with an honest standard.
 - One realistic project-page prototype.
 - One structured feedback experience.
 - One acknowledgment and outcome update.
@@ -403,6 +479,7 @@ Purpose: prove that the complete loop can work repeatedly without intensive manu
 Build only:
 
 - A clear homepage.
+- A short readiness check before project-page creation.
 - Verified creator identity.
 - Guided project-page creation.
 - Prototype, early-access, or released state.
@@ -481,23 +558,29 @@ The version-one homepage should answer four questions in order:
 1. **Why should I care?** My software can become more useful through the experience of real people.
 2. **What happens here?** I present testable work, invite relevant people, receive thoughtful responses, and show what I learned or decided.
 3. **Why is this different?** CreatorWorks closes the loop between feedback and what happens next instead of rewarding empty engagement.
-4. **What can I do now?** Present a testable work or respond to a private invitation.
+4. **What can I do now?** Check whether my work is ready for a small invitation or respond to an invitation I received.
 
 Suggested headline:
 
-> **Make software worth sharing.**
+> **You made something. Let someone experience it.**
 
 Suggested explanation:
 
-> Present what you are building, invite the people it may help, and learn what to improve through thoughtful human feedback.
+> Share it with one person who may need it. Hear what their experience was, decide what comes next, and grow with confidence.
+
+Suggested courage message:
+
+> **Start with one person, not the whole internet.**
+>
+> Your work can still be unfinished. Be clear about what it is today and what kind of help would be useful.
 
 Suggested primary action:
 
-- **Present your work**
+- **See if I am ready to share**
 
 Suggested invitation action:
 
-- **Respond to an invitation**
+- **Open my invitation**
 
 “Discover emerging work” should become a public action only in Phase 2, when a useful collection genuinely exists. Selling should be described as part of the longer journey, not as a currently available feature.
 
@@ -521,6 +604,8 @@ Measure:
 - The proportion of active works that complete the loop.
 - Whether creators consider the responses useful and can explain why.
 - Whether participants feel their time was worthwhile.
+- Whether the readiness experience reduces comparison and self-doubt without making unfinished or unsafe work appear ready.
+- Whether creators can distinguish a small invitation from a public launch.
 - Whether both sides found the experience clear, fair, respectful, and complete.
 - Whether creators record decisions even when they choose not to make a change.
 - Whether participants return to see the outcome or try an update.
@@ -540,6 +625,8 @@ Do not move to the next phase merely because the current phase has been built.
 ### Before the private founding beta
 
 - The purpose is understood without extensive explanation.
+- Creators understand that readiness means ready for one honest conversation, not proof of quality or readiness for public launch.
+- The readiness experience makes an appropriate invitation feel achievable without relying on empty reassurance.
 - The manual loop produces useful learning for creators.
 - Participants consider the experience worth their time.
 - The acknowledgment and outcome step feels meaningfully better than a generic survey.
