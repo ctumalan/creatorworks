@@ -1,0 +1,9 @@
+ENCORE NOTES — POSSIBLE FUTURE SUPPORT
+
+After a person has completed a set list and found the application useful, a later version may offer an optional way to support the creator.
+
+The support invitation must be easy to decline and must never block the person's work.
+
+Do not build payments until people have demonstrated that the application creates real value and the financial responsibilities are understood.
+
+This is a future consideration, not a first-release command.

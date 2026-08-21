@@ -1,0 +1,13 @@
+ENCORE NOTES — LATE INSTRUCTIONS REQUIRING REVIEW
+
+Require every visitor to register before they can see the welcome or demonstration.
+
+Show a donation request immediately when the application opens.
+
+Rename the main areas API Dashboard, Song Schema, User Repository, and Performance Data Model.
+
+Add public follower counts and rank bandleaders by popularity in the first release.
+
+Begin building payment processing before the set-list experience is tested.
+
+These instructions were received later. They conflict with earlier instructions and should not silently replace them. The final plan should identify the conflict or preserve both versions for a human decision.

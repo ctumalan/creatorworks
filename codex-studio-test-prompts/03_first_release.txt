@@ -1,0 +1,13 @@
+ENCORE NOTES — FIRST RELEASE
+
+Allow a person to view the welcome and demonstration without creating an account.
+
+The first release should let a bandleader:
+
+1. Create one show.
+2. Add songs to the show.
+3. Reorder songs by dragging them.
+4. Record the key, tempo, starting musician, and performance notes for each song.
+5. Print or export a clean set list.
+
+Do not add payments, public profiles, follower counts, advertising, or a marketplace to the first release.

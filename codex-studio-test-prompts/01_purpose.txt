@@ -1,0 +1,9 @@
+ENCORE NOTES — PURPOSE
+
+Create a simple web application called Encore Notes for working bandleaders.
+
+The application should help a bandleader prepare a performance without searching through scattered messages, notebooks, and documents.
+
+The first release should focus on one useful result: a clear set list containing the information musicians need during a show.
+
+Use plain, welcoming language. Do not assume that the bandleader understands software-development terminology.

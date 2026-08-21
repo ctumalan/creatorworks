@@ -1,0 +1,11 @@
+ENCORE NOTES — PEOPLE AND LANGUAGE
+
+The first user is a working musician who leads a small performing group.
+
+They may be comfortable with music but uncomfortable with technical software language.
+
+Use familiar labels such as My Shows, Set List, Songs, Musicians, and Notes.
+
+Avoid labels such as Dashboard, Schema, Repository, API, and Data Model in the visible experience.
+
+Use plain, welcoming language throughout the application.
