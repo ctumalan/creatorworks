@@ -95,7 +95,7 @@ Before the participant enters Codex Studio, explain in plain language:
 - **Access:** Codex Studio is inside Christian's private Producer Studio; access must be arranged before the session. Creating or signing into a WorkOS account does not by itself grant Studio access.
 - **Payment:** none is required for this session.
 - **Files:** the application accepts `.txt`, `.md`, `.rtf`, `.html`, and `.htm` text files ("CODEX files" is its product name for them; `.codex` is not a separate format). This session uses only the supplied fictional, non-sensitive `.txt` files.
-- **What happens to imported files:** Codex Studio reads the files the participant selects in the browser and may attempt to send the imported project state to a configured saving service. The live saving destination is controlled by deployment configuration and has not yet been confirmed. Until it is, use only the supplied fictional, non-sensitive `.txt` files. (See "Decisions.")
+- **What happens to imported files:** Codex Studio reads the files the participant selects in the browser and may attempt to send the imported project state to a saving service. A human check of the Vercel project settings found `PUBLIC_CODEX_PROJECT_API_BASE_URL` is not configured, so a new build would fall back to the code's default address on the visitor's own computer—where a normal visitor has no such service—so, based on these settings, server saving is expected to fail and a participant's work may not survive a page refresh or a closed tab. If online saving is not active, nothing imported would be stored by CreatorWorks, Producer Studio, or the hosting provider through this route. The *currently deployed* build has not yet been verified, so treat this as the expected behavior, confirmed at rehearsal rather than assumed. For this session, use only the supplied fictional, non-sensitive `.txt` files. (See "Decisions.")
 - **Artificial intelligence:** Master Codex generation is deterministic application logic; Codex Studio does not send the imported material to an AI service to produce the Master Codex. (The separate Co-Producer AI feature is not used by Codex Studio.)
 - **What CreatorWorks will learn:** only the session states above and the feedback the participant chooses to give—not their file contents.
 - **Supported use:** a current web browser.
@@ -163,11 +163,23 @@ These were confirmed by a read-only audit of the application code and no longer 
 - **Fictional TXT compatibility.** The supplied fictional `.txt` collection passes the application's static import checks.
 - **No existing CreatorWorks return.** Codex Studio has no CreatorWorks return link or connection, so the Phase 0 return must be manual.
 
+### Confirmed by a human check of Vercel settings
+
+A human checked the Vercel project's Environment Variables and confirmed that `PUBLIC_CODEX_PROJECT_API_BASE_URL` is **not** listed there. What follows from that:
+
+- A new build would fall back to the code's default, `http://127.0.0.1:4330` (an address on the visitor's own computer).
+- A normal website visitor has no saving service running at that address, so—based on these settings—server-side persistence is expected to fail.
+- The first session can still be run, but a participant's work may not survive a page refresh or a closed browser tab.
+- With online saving inactive under these settings, nothing imported would be stored by CreatorWorks, Producer Studio, or the hosting provider through this saving route.
+- This is a settings finding only. It does not by itself prove what the *currently deployed* build does; verifying the deployed build's actual behavior is a small rehearsal check (below), not an open question about the Vercel settings.
+
+Do not expose environment values or claim which live configuration is active beyond this confirmed absence.
+
 ### Still to confirm before inviting a participant
 
 - **Who the first relevant participant will be.** Choose one person who genuinely works with AI prompts and would benefit from an organized Master Codex.
 - **Session date and expected duration.**
-- **The live saving destination and storage behavior.** Confirm where imported project state actually goes on the live site, and the real storage and retention behavior there. *(Internal note: the saving destination is set through `PUBLIC_CODEX_PROJECT_API_BASE_URL`. The code's default points to the visitor's own `127.0.0.1:4330`; if no saving service is available there, persistence simply fails and nothing is stored; if the deployment variable points to another server, imported project state may be sent there. Do not expose environment values or claim which live configuration is active.)*
+- **Verify the deployed build's saving behavior in rehearsal.** During the handoff rehearsal, confirm what the *currently deployed* page actually does when a Master Codex is generated—for example, whether work persists after a page refresh. This is a quick rehearsal check, not an open question about the Vercel settings (which were confirmed above).
 - **Which access method Christian will arrange.** Choose and test one before inviting: add the participant's WorkOS identity to the authorized list, or provide the approved shared access code. Do not place a real access code, identity, email, or secret in this document.
 - **The exact manual feedback link or page.** Decide it and keep it available in the invitation as a recovery path; test it first.
 - **A complete rehearsal of the handoff.** Walk the whole path once before inviting the participant.

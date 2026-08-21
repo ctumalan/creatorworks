@@ -30,16 +30,18 @@ Before inviting a participant, complete every item marked **Confirm before sessi
 - [x] The fictional `.txt` collection passes the application's static import checks.
 - [x] Codex Studio has no CreatorWorks return link — the Phase 0 return stays manual.
 
+**Human-confirmed Vercel finding:** `PUBLIC_CODEX_PROJECT_API_BASE_URL` is **not** set in the Vercel project settings, so a new build would use the code's default (an address on the visitor's own computer). A normal visitor has no saving service there, so with these settings server saving is expected to fail and a participant's work may not survive a refresh or a closed tab. With online saving inactive, nothing imported would be stored by CreatorWorks, Producer Studio, or the hosting provider through this route. This is a settings finding; the *currently deployed* build's behavior is verified at rehearsal (below), not assumed.
+
 ### Still required before inviting a participant
 
 - [ ] Name one participant who regularly works with AI prompts.
 - [ ] Confirm the session date and expected duration.
-- [ ] Confirm the live saving destination and the actual live storage and retention behavior. *(Internal: the destination is set through `PUBLIC_CODEX_PROJECT_API_BASE_URL`; the code defaults to the visitor's own `127.0.0.1:4330`; if no saving service runs there, persistence fails and nothing is stored; if the variable points to another server, imported project state may be sent there. Do not expose environment values or claim which live configuration is active.)*
+- [ ] During rehearsal, verify what the *currently deployed* build actually does when a Master Codex is generated (for example, whether work survives a page refresh). This is a rehearsal check of live behavior, not an open question about the Vercel settings (already confirmed above).
 - [ ] Choose and test **one** access method: add the participant's WorkOS identity to the authorized list, **or** provide the approved shared access code. *(Do not place a real access code, identity, email address, or secret in this document.)*
 - [ ] Decide the exact manual feedback link or page, and keep it in the invitation as a recovery path.
 - [ ] Rehearse the complete handoff once before inviting.
 
-For this first session, use only the supplied fictional, non-sensitive `.txt` files. Because the live saving destination is not yet confirmed, do not ask a participant to import personal, professional, confidential, copyrighted, or client material.
+For this first session, use only the supplied fictional, non-sensitive `.txt` files. Because online saving is not expected to work with the current settings—and because a participant's work may not survive a refresh—do not ask a participant to import personal, professional, confidential, copyrighted, or client material.
 
 ## Session Purpose
 
@@ -117,7 +119,7 @@ That means the application works, but this is the first test of whether a new pe
 - **Access:** Codex Studio is inside Christian's private Producer Studio. Access must be arranged before the session. Creating or signing into a WorkOS account does not automatically provide Studio access.
 - **Payment:** No payment is required for this session.
 - **Files:** Codex Studio accepts several plain-text formats (`.txt`, `.md`, `.rtf`, `.html`, `.htm`). For this session, use only the fictional `.txt` files supplied for the test.
-- **File handling:** Codex Studio reads the files you select in your browser and may attempt to send the imported project state to a configured saving service. The live saving destination is controlled by how the site is set up and has not yet been confirmed—so for this session you will use only the supplied fictional, non-sensitive files.
+- **File handling:** Codex Studio reads the files you select in your browser and may try to send your work to a saving service. Based on the site's current settings, online saving is not expected to work, and your work may disappear if you refresh or close the tab. We will verify the live behavior before the session. If online saving is not active, nothing you import would be stored by CreatorWorks, Producer Studio, or the hosting provider through this step. Until then, use only the supplied fictional, non-sensitive files.
 - **AI processing:** Codex Studio builds the Master Codex with its own logic; it does not send your imported files to an AI service to create it.
 - **What CreatorWorks records:** For this manual test, record only whether you understood, started, reached the Master Codex, returned, and chose to respond. Do not record your file contents or private activity.
 - **Known limitation:** early access for new participants. The app accepts several text formats; this session intentionally uses only `.txt`.
