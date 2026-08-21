@@ -18,7 +18,7 @@ Several decisions still need answers before the first participant is invited (se
 - **Creator:** Christian Tumalán
 - **Where it runs today:** <https://christian-tumalan-website.vercel.app/studio-admin/codex-studio/>
 - **How it fits:** Codex Studio operates within Producer Studio.
-- **What it accepts today:** TXT files described within the application as CODEX files. It has not been confirmed whether `.codex` is a separate supported file extension. Do not claim support for any other file format—including DOCX, PDF, Markdown, or exported AI conversations—until that format, and its exact file extension, has actually been tested and confirmed.
+- **What it accepts today:** the audited code accepts `.txt`, `.md`, `.rtf`, `.html`, and `.htm` files, plus the matching text MIME types found in the code. "CODEX files" is the application's product language for these text files; `.codex` is **not** a separate supported extension. This first session intentionally uses only the fictional `.txt` files for simplicity and safety, even though additional text formats are accepted. Do not claim support for formats beyond these five (for example DOCX, PDF, or exported AI conversations) until each has actually been tested.
 
 ## Current State: Early Access for New Participants
 
@@ -39,7 +39,7 @@ On their own, the participant should be able to:
 - Receive the invitation and understand what Codex Studio is.
 - Understand why it may matter to them and who made it.
 - Recognize that it is an early-access experience for new participants.
-- See, before they begin, that signing in is currently required.
+- Understand, before they begin, that Codex Studio is private and their access must be arranged in advance—signing in or signing up does not by itself grant access.
 - Reach Codex Studio and start using it.
 - Import an appropriate, non-sensitive collection of prompt files.
 - Generate a Master Codex.
@@ -92,14 +92,14 @@ Before the participant enters Codex Studio, explain in plain language:
 
 - **The exact destination:** the Codex Studio address within Producer Studio.
 - **Where it opens:** Codex Studio opens outside CreatorWorks, in the participant's browser.
-- **Registration:** signing in is currently required before use. Say this before they begin.
+- **Access:** Codex Studio is inside Christian's private Producer Studio; access must be arranged before the session. Creating or signing into a WorkOS account does not by itself grant Studio access.
 - **Payment:** none is required for this session.
-- **Files:** the participant will import TXT prompt files (the application refers to these as CODEX files). Use only non-sensitive test material.
-- **What happens to imported files:** to be confirmed before the session (see "Unresolved Decisions").
-- **Artificial intelligence:** Codex Studio helps organize prompt instructions; confirm and disclose how it processes them before the session.
+- **Files:** the application accepts `.txt`, `.md`, `.rtf`, `.html`, and `.htm` text files ("CODEX files" is its product name for them; `.codex` is not a separate format). This session uses only the supplied fictional, non-sensitive `.txt` files.
+- **What happens to imported files:** Codex Studio reads the files the participant selects in the browser and may attempt to send the imported project state to a configured saving service. The live saving destination is controlled by deployment configuration and has not yet been confirmed. Until it is, use only the supplied fictional, non-sensitive `.txt` files. (See "Decisions.")
+- **Artificial intelligence:** Master Codex generation is deterministic application logic; Codex Studio does not send the imported material to an AI service to produce the Master Codex. (The separate Co-Producer AI feature is not used by Codex Studio.)
 - **What CreatorWorks will learn:** only the session states above and the feedback the participant chooses to give—not their file contents.
 - **Supported use:** a current web browser.
-- **Known limitation:** early access for new participants; accepts TXT files (described in the application as CODEX files) today.
+- **Known limitation:** early access for new participants. The app accepts several text formats (see Files); this session intentionally uses only `.txt`.
 - **How to report a problem and how to leave:** the facilitator remains available, and the participant may stop at any time.
 
 ## Manual Session Flow
@@ -109,7 +109,7 @@ Let the participant move through this on their own wherever possible. Watch quie
 1. **Personal invitation** — Send a warm, personal invitation in the creator's voice.
 2. **CreatorWorks-style introduction** — Present the short CreatorWorks introduction to what the work is, who made it, and why it may matter.
 3. **Trust summary** — Show the trust summary above before the participant enters the work.
-4. **Registration disclosure** — Make clear that signing in is currently required before use.
+4. **Access disclosure** — Make clear that Codex Studio is private and access must be arranged in advance; signing in or signing up does not by itself grant access.
 5. **Begin the external experience** — Let the participant reach and open Codex Studio.
 6. **Import a test collection** — Have the participant import an appropriate, non-sensitive collection of TXT prompt files (the application refers to these as CODEX files).
 7. **Generate the Master Codex** — Let the participant generate the Master Codex (the meaningful point).
@@ -151,18 +151,28 @@ The first session provides promising evidence if:
 
 A weak result is still useful Phase 0 evidence if the experience makes the limitation clear and produces a specific next decision.
 
-## Unresolved Decisions
+## Decisions
 
-Resolve these before inviting the first participant:
+### Resolved by the code audit
+
+These were confirmed by a read-only audit of the application code and no longer block preparation:
+
+- **Exact supported extensions.** `.txt`, `.md`, `.rtf`, `.html`, `.htm` (plus matching text MIME types).
+- **`.codex` clarification.** `.codex` is not a separate supported extension; "CODEX files" is product language for text files.
+- **No AI service for Master generation.** Master Codex generation is deterministic application logic; imported material is not sent to an AI service to produce it. The separate Co-Producer AI feature is not used by Codex Studio.
+- **Fictional TXT compatibility.** The supplied fictional `.txt` collection passes the application's static import checks.
+- **No existing CreatorWorks return.** Codex Studio has no CreatorWorks return link or connection, so the Phase 0 return must be manual.
+
+### Still to confirm before inviting a participant
 
 - **Who the first relevant participant will be.** Choose one person who genuinely works with AI prompts and would benefit from an organized Master Codex.
-- **What prompt collection will be used.** Choose an appropriate, non-sensitive collection of TXT prompt files.
-- **The exact supported file extensions.** Confirm which file extensions Codex Studio actually accepts—in particular, whether `.codex` is a separate supported extension or whether "CODEX files" is only the application's product language for TXT files. Do not claim support for any other format until it has been tested.
-- **What happens to imported files.** Confirm whether files are uploaded or stored, where, for how long, who can see them, and whether they can be deleted.
-- **AI-processing disclosures.** Confirm and state plainly how Codex Studio processes the imported instructions.
-- **Whether the participant may safely use non-sensitive test material.** Confirm that only non-sensitive material is used, and that this is enough to make the test meaningful.
-- **How the manual return will work.** Decide the exact manual way the participant comes back to CreatorWorks to give feedback, and test it first.
-- **Whether the current registration requirement causes abandonment.** Watch closely for whether being required to sign in before use discourages a new participant, and record it.
+- **Session date and expected duration.**
+- **The live saving destination and storage behavior.** Confirm where imported project state actually goes on the live site, and the real storage and retention behavior there. *(Internal note: the saving destination is set through `PUBLIC_CODEX_PROJECT_API_BASE_URL`. The code's default points to the visitor's own `127.0.0.1:4330`; if no saving service is available there, persistence simply fails and nothing is stored; if the deployment variable points to another server, imported project state may be sent there. Do not expose environment values or claim which live configuration is active.)*
+- **Which access method Christian will arrange.** Choose and test one before inviting: add the participant's WorkOS identity to the authorized list, or provide the approved shared access code. Do not place a real access code, identity, email, or secret in this document.
+- **The exact manual feedback link or page.** Decide it and keep it available in the invitation as a recovery path; test it first.
+- **A complete rehearsal of the handoff.** Walk the whole path once before inviting the participant.
+
+Also observe during the session (not a pre-invite blocker): whether the access step discourages a new participant.
 
 ## Boundaries
 

@@ -16,23 +16,30 @@ Before inviting a participant, complete every item marked **Confirm before sessi
 - **State for a new participant:** Early access
 - **Experience mode:** Guided external link with a manual return
 - **Meaningful point:** A Master Codex is generated and available to examine
-- **Current known input:** TXT files described inside the application as CODEX files
+- **Accepted input:** `.txt`, `.md`, `.rtf`, `.html`, `.htm` text files ("CODEX files" is the app's product name for them; `.codex` is not a separate format). This session uses only the fictional `.txt` files.
 - **First participant:** **Confirm before session**
-- **Session date:** **Confirm before session**
+- **Session date and duration:** **Confirm before session**
 
-## Do Not Invite Yet Unless These Are Answered
+## Preparation Checklist
+
+### Resolved by the code audit
+
+- [x] Exact supported extensions — `.txt`, `.md`, `.rtf`, `.html`, `.htm` (plus matching text MIME types).
+- [x] `.codex` is product language, not a separate file format.
+- [x] No AI service is used for Master Codex generation (deterministic app logic; Co-Producer AI is not used by Codex Studio).
+- [x] The fictional `.txt` collection passes the application's static import checks.
+- [x] Codex Studio has no CreatorWorks return link — the Phase 0 return stays manual.
+
+### Still required before inviting a participant
 
 - [ ] Name one participant who regularly works with AI prompts.
-- [ ] Confirm the exact file extensions Codex Studio accepts.
-- [ ] Confirm whether imported files leave the participant's device.
-- [ ] Confirm whether imported files are stored, where, for how long, who can see them, and how they can be deleted.
-- [ ] Confirm whether an AI service reads or processes the imported material.
-- [ ] Write the resulting file and AI disclosures in plain language.
-- [ ] Confirm that a new participant must sign in before using Codex Studio.
-- [ ] Decide the exact manual return method and test it once.
-- [ ] Confirm that the fictional TXT collection included with this packet is safe and compatible.
+- [ ] Confirm the session date and expected duration.
+- [ ] Confirm the live saving destination and the actual live storage and retention behavior. *(Internal: the destination is set through `PUBLIC_CODEX_PROJECT_API_BASE_URL`; the code defaults to the visitor's own `127.0.0.1:4330`; if no saving service runs there, persistence fails and nothing is stored; if the variable points to another server, imported project state may be sent there. Do not expose environment values or claim which live configuration is active.)*
+- [ ] Choose and test **one** access method: add the participant's WorkOS identity to the authorized list, **or** provide the approved shared access code. *(Do not place a real access code, identity, email address, or secret in this document.)*
+- [ ] Decide the exact manual feedback link or page, and keep it in the invitation as a recovery path.
+- [ ] Rehearse the complete handoff once before inviting.
 
-If the file-handling or AI-processing answers remain unknown, do not ask a participant to upload personal, professional, confidential, copyrighted, or client material.
+For this first session, use only the supplied fictional, non-sensitive `.txt` files. Because the live saving destination is not yet confirmed, do not ask a participant to import personal, professional, confidential, copyrighted, or client material.
 
 ## Session Purpose
 
@@ -75,6 +82,8 @@ Replace the bracketed text before sending.
 > There is no payment, and you may stop at any time.
 >
 > [Open the CreatorWorks introduction]
+>
+> If you ever get lost, you can come straight back here to tell me what happened: [CreatorWorks feedback link — confirm before sending]
 
 ## CreatorWorks Introduction
 
@@ -105,13 +114,13 @@ That means the application works, but this is the first test of whether a new pe
 ## Trust Summary Before You Begin
 
 - **Where you are going:** Codex Studio will open on Christian's Producer Studio website.
-- **Sign-in:** A new visitor is currently expected to sign in before use. **Confirm before session.**
+- **Access:** Codex Studio is inside Christian's private Producer Studio. Access must be arranged before the session. Creating or signing into a WorkOS account does not automatically provide Studio access.
 - **Payment:** No payment is required for this session.
-- **Files:** Use only the fictional TXT files supplied for this test.
-- **File handling:** **Confirm before session and replace this line with the verified explanation.**
-- **AI processing:** **Confirm before session and replace this line with the verified explanation.**
+- **Files:** Codex Studio accepts several plain-text formats (`.txt`, `.md`, `.rtf`, `.html`, `.htm`). For this session, use only the fictional `.txt` files supplied for the test.
+- **File handling:** Codex Studio reads the files you select in your browser and may attempt to send the imported project state to a configured saving service. The live saving destination is controlled by how the site is set up and has not yet been confirmed—so for this session you will use only the supplied fictional, non-sensitive files.
+- **AI processing:** Codex Studio builds the Master Codex with its own logic; it does not send your imported files to an AI service to create it.
 - **What CreatorWorks records:** For this manual test, record only whether you understood, started, reached the Master Codex, returned, and chose to respond. Do not record your file contents or private activity.
-- **Known limitation:** Only TXT support has been observed. Other formats must not be promised.
+- **Known limitation:** early access for new participants. The app accepts several text formats; this session intentionally uses only `.txt`.
 - **Leaving:** You may stop at any point without giving a reason.
 - **Problem reporting:** If something feels unsafe, misleading, or broken, stop and tell the facilitator.
 
@@ -122,7 +131,7 @@ Please work through these steps without asking Christian what to click unless yo
 1. Read the invitation and introduction.
 2. Explain in your own words what you believe Codex Studio will do.
 3. Open Codex Studio.
-4. Complete sign-in if you are comfortable doing so.
+4. Enter using the access Christian arranged for you (a sign-in or an access code).
 5. Import the supplied fictional TXT files.
 6. Examine how Codex Studio organizes the files.
 7. Generate the Master Codex.
@@ -134,17 +143,17 @@ You are not expected to fix the application or write a technical report. Describ
 
 ## Manual Return
 
-**Confirm before session:** Replace this section with the exact working return method.
+The recommended Phase 0 return is a simple two-tab arrangement (Codex Studio has no built-in CreatorWorks return, so the return stays manual):
 
-Recommended Phase 0 arrangement:
-
-1. Open Codex Studio in a separate browser tab.
-2. Keep the CreatorWorks introduction and return page open in the original tab.
+1. Keep the CreatorWorks introduction and feedback page open in the original tab.
+2. Open Codex Studio in a separate tab.
 3. After the Master Codex is generated, close or leave the Codex Studio tab.
 4. Return to the original CreatorWorks tab.
 5. Select **I finished — share what happened**.
 
-The session facilitator must test this sequence before inviting the participant. The participant should not have to search for the feedback page.
+The feedback link should also be included in the invitation message, so the participant has a recovery path if the original tab is lost.
+
+**Confirm before session:** the exact feedback link or page is still to be decided; the facilitator must set it and test this whole sequence once before inviting the participant. The participant should not have to search for the feedback page.
 
 ## Feedback Page
 
