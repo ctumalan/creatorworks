@@ -2,7 +2,7 @@
 
 ## Session Status
 
-**First real Phase 0 model — ready to prepare**
+**First real Phase 0 model — creator rehearsal completed; participant session still to prepare**
 
 Codex Studio is the first real work to be tested through CreatorWorks. This session is run as a **manual CreatorWorks Experience Session**: a facilitator stands in for everything CreatorWorks will later do on its own. No application is built, and nothing about Codex Studio or Producer Studio is changed. Codex Studio is used exactly as it already exists, at its current address.
 
@@ -95,7 +95,7 @@ Before the participant enters Codex Studio, explain in plain language:
 - **Access:** Codex Studio is inside Christian's private Producer Studio; access must be arranged before the session. Creating or signing into a WorkOS account does not by itself grant Studio access.
 - **Payment:** none is required for this session.
 - **Files:** the application accepts `.txt`, `.md`, `.rtf`, `.html`, and `.htm` text files ("CODEX files" is its product name for them; `.codex` is not a separate format). This session uses only the supplied fictional, non-sensitive `.txt` files.
-- **What happens to imported files:** Codex Studio reads the files the participant selects in the browser and may attempt to send the imported project state to a saving service. A human check of the Vercel project settings found `PUBLIC_CODEX_PROJECT_API_BASE_URL` is not configured, so a new build would fall back to the code's default address on the visitor's own computer—where a normal visitor has no such service—so, based on these settings, server saving is expected to fail and a participant's work may not survive a page refresh or a closed tab. If online saving is not active, nothing imported would be stored by CreatorWorks, Producer Studio, or the hosting provider through this route. The *currently deployed* build has not yet been verified, so treat this as the expected behavior, confirmed at rehearsal rather than assumed. For this session, use only the supplied fictional, non-sensitive `.txt` files. (See "Decisions.")
+- **What happens to imported files:** Codex Studio reads the files the participant selects in the browser and may attempt to send the imported project state to a saving service. A human check of the Vercel project settings found `PUBLIC_CODEX_PROJECT_API_BASE_URL` is not configured. The creator rehearsal then confirmed that refreshing the currently deployed page clears the imported and generated contents. The participant must therefore be told that the work is temporary and may disappear when the page is refreshed. For this session, use only the supplied fictional, non-sensitive `.txt` files. (See "Creator Rehearsal Evidence.")
 - **Artificial intelligence:** Master Codex generation is deterministic application logic; Codex Studio does not send the imported material to an AI service to produce the Master Codex. (The separate Co-Producer AI feature is not used by Codex Studio.)
 - **What CreatorWorks will learn:** only the session states above and the feedback the participant chooses to give—not their file contents.
 - **Supported use:** a current web browser.
@@ -151,6 +151,33 @@ The first session provides promising evidence if:
 
 A weak result is still useful Phase 0 evidence if the experience makes the limitation clear and produces a specific next decision.
 
+## Creator Rehearsal Evidence — August 20, 2026
+
+Christian completed a private rehearsal with the six supplied fictional `.txt` files and generated `MASTER_CODEX_20260820_210359.txt`.
+
+### What worked
+
+- All six source files appeared in the Master Codex.
+- All six sections were preserved; the output reported zero duplicate sections omitted.
+- The original instructions remained readable.
+- The deliberately conflicting late instructions remained present rather than silently replacing the earlier instructions.
+- Christian could return to the planned feedback path without getting lost.
+
+### What did not work well enough
+
+- Refreshing the live Codex Studio page cleared the imported and generated contents. The current experience does not provide reliable persistence across a refresh.
+- The Master Codex placed the product purpose last rather than first.
+- Five of the six sections appeared under the broad heading **Needs Review**, without explaining the individual decisions required.
+- The output preserved the contradictions but did not clearly compare or identify them.
+- It did not clearly separate first-release instructions, after-value feedback, future support, and later conflicting commands.
+- It therefore did not yet answer the creator's central questions clearly: whether instructions were missed, contradicted, submitted too early, or meant for a later stage.
+
+### Evidence-based decision
+
+The result proves that Codex Studio can consolidate and preserve this test collection, but not yet that it can turn the collection into a clear, correctly ordered decision guide. The next product question is whether Codex Studio should explicitly organize instructions into stages such as **Purpose**, **First Release**, **After Value**, **Future Ideas**, and **Decisions Needed**, while naming each conflict for human review.
+
+This was a creator rehearsal, not the first independent participant session. It closes the deployed refresh-behavior check and confirms that the manual return is understandable for Christian; it does not yet prove that a new participant can complete the entire handoff independently.
+
 ## Decisions
 
 ### Resolved by the code audit
@@ -171,7 +198,7 @@ A human checked the Vercel project's Environment Variables and confirmed that `P
 - A normal website visitor has no saving service running at that address, so—based on these settings—server-side persistence is expected to fail.
 - The first session can still be run, but a participant's work may not survive a page refresh or a closed browser tab.
 - With online saving inactive under these settings, nothing imported would be stored by CreatorWorks, Producer Studio, or the hosting provider through this saving route.
-- This is a settings finding only. It does not by itself prove what the *currently deployed* build does; verifying the deployed build's actual behavior is a small rehearsal check (below), not an open question about the Vercel settings.
+- The settings finding alone did not prove what the *currently deployed* build does. The later creator rehearsal confirmed that refreshing the deployed page clears the imported and generated contents. That visible behavior confirms the lack of reliable persistence for this session; it does not by itself prove every detail of server storage or retention.
 
 Do not expose environment values or claim which live configuration is active beyond this confirmed absence.
 
@@ -179,7 +206,6 @@ Do not expose environment values or claim which live configuration is active bey
 
 - **Who the first relevant participant will be.** Choose one person who genuinely works with AI prompts and would benefit from an organized Master Codex.
 - **Session date and expected duration.**
-- **Verify the deployed build's saving behavior in rehearsal.** During the handoff rehearsal, confirm what the *currently deployed* page actually does when a Master Codex is generated—for example, whether work persists after a page refresh. This is a quick rehearsal check, not an open question about the Vercel settings (which were confirmed above).
 - **Which access method Christian will arrange.** Choose and test one before inviting: add the participant's WorkOS identity to the authorized list, or provide the approved shared access code. Do not place a real access code, identity, email, or secret in this document.
 - **The exact manual feedback link or page.** Decide it and keep it available in the invitation as a recovery path; test it first.
 - **A complete rehearsal of the handoff.** Walk the whole path once before inviting the participant.

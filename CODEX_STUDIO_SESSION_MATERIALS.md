@@ -2,7 +2,7 @@
 
 ## Status
 
-**Draft session packet — ready for a final factual check, not yet ready to send**
+**Draft session packet — creator rehearsal completed; participant details still required**
 
 This packet prepares the first manual CreatorWorks Experience Session using Codex Studio. It does not build CreatorWorks, connect the two applications, or modify Producer Studio.
 
@@ -30,13 +30,13 @@ Before inviting a participant, complete every item marked **Confirm before sessi
 - [x] The fictional `.txt` collection passes the application's static import checks.
 - [x] Codex Studio has no CreatorWorks return link — the Phase 0 return stays manual.
 
-**Human-confirmed Vercel finding:** `PUBLIC_CODEX_PROJECT_API_BASE_URL` is **not** set in the Vercel project settings, so a new build would use the code's default (an address on the visitor's own computer). A normal visitor has no saving service there, so with these settings server saving is expected to fail and a participant's work may not survive a refresh or a closed tab. With online saving inactive, nothing imported would be stored by CreatorWorks, Producer Studio, or the hosting provider through this route. This is a settings finding; the *currently deployed* build's behavior is verified at rehearsal (below), not assumed.
+**Human-confirmed Vercel finding:** `PUBLIC_CODEX_PROJECT_API_BASE_URL` is **not** set in the Vercel project settings, so a new build would use the code's default (an address on the visitor's own computer). A normal visitor has no saving service there, so with these settings server saving is expected to fail. The later creator rehearsal confirmed that refreshing the currently deployed page clears the imported and generated contents. This proves the session lacks reliable persistence; it does not by itself prove every detail of server storage or retention.
 
 ### Still required before inviting a participant
 
 - [ ] Name one participant who regularly works with AI prompts.
 - [ ] Confirm the session date and expected duration.
-- [ ] During rehearsal, verify what the *currently deployed* build actually does when a Master Codex is generated (for example, whether work survives a page refresh). This is a rehearsal check of live behavior, not an open question about the Vercel settings (already confirmed above).
+- [x] Creator rehearsal confirmed that refreshing the currently deployed page clears the imported and generated contents.
 - [ ] Choose and test **one** access method: add the participant's WorkOS identity to the authorized list, **or** provide the approved shared access code. *(Do not place a real access code, identity, email address, or secret in this document.)*
 - [ ] Decide the exact manual feedback link or page, and keep it in the invitation as a recovery path.
 - [ ] Rehearse the complete handoff once before inviting.
@@ -119,7 +119,7 @@ That means the application works, but this is the first test of whether a new pe
 - **Access:** Codex Studio is inside Christian's private Producer Studio. Access must be arranged before the session. Creating or signing into a WorkOS account does not automatically provide Studio access.
 - **Payment:** No payment is required for this session.
 - **Files:** Codex Studio accepts several plain-text formats (`.txt`, `.md`, `.rtf`, `.html`, `.htm`). For this session, use only the fictional `.txt` files supplied for the test.
-- **File handling:** Codex Studio reads the files you select in your browser and may try to send your work to a saving service. Based on the site's current settings, online saving is not expected to work, and your work may disappear if you refresh or close the tab. We will verify the live behavior before the session. If online saving is not active, nothing you import would be stored by CreatorWorks, Producer Studio, or the hosting provider through this step. Until then, use only the supplied fictional, non-sensitive files.
+- **File handling:** Codex Studio reads the files you select in your browser. A creator rehearsal confirmed that refreshing the page clears the imported and generated contents. Treat the work as temporary: do not refresh during the session, and save the generated Master Codex before leaving the application. Use only the supplied fictional, non-sensitive files.
 - **AI processing:** Codex Studio builds the Master Codex with its own logic; it does not send your imported files to an AI service to create it.
 - **What CreatorWorks records:** For this manual test, record only whether you understood, started, reached the Master Codex, returned, and chose to respond. Do not record your file contents or private activity.
 - **Known limitation:** early access for new participants. The app accepts several text formats; this session intentionally uses only `.txt`.
@@ -224,6 +224,23 @@ Record every moment when Christian or the facilitator had to help.
 - **Response:** Did the question help them describe something useful?
 
 Do not treat clicks, time spent, or completion alone as proof that Codex Studio helped.
+
+## Creator Rehearsal Record — August 20, 2026
+
+This was Christian's private rehearsal, not the first independent participant session.
+
+| Check | Result | What happened |
+| --- | --- | --- |
+| Fictional files imported | Yes | All six supplied `.txt` files were included. |
+| Master Codex generated | Yes | Six sections were included and zero duplicate sections were omitted. |
+| Instructions preserved | Yes | The original instructions and deliberate conflicting commands remained present. |
+| Useful order created | No | The purpose appeared last, and five sections were grouped under **Needs Review**. |
+| Conflicts explained | No | Conflicting instructions remained visible but were not individually identified or compared. |
+| Timing and stages clarified | No | First release, after-value feedback, future support, and later commands were not clearly separated. |
+| Work survived refresh | No | Refreshing cleared the imported and generated contents. |
+| Manual return understandable | Yes | Christian returned to the planned feedback path without getting lost. |
+
+**Rehearsal conclusion:** Codex Studio consolidated all six files without losing their written instructions, but the Master Codex was not yet a clear, correctly ordered decision guide. This is the main result for the participant session to examine independently.
 
 ## Creator Acknowledgment
 
