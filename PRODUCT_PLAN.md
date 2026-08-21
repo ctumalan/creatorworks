@@ -94,6 +94,224 @@ CreatorWorks is not defined by uploading a listing or collecting comments. Its d
 
 This distinguishes CreatorWorks from a code repository, launch leaderboard, digital store, social network, and generic survey tool.
 
+## Sharing as a Core Product System
+
+CreatorWorks should treat sharing as a core product system, not as a simple share button.
+
+A creation has not truly been shared merely because a link was sent. Sharing is the complete handoff between a creator and another human being: the recipient understands why the work may matter, can experience it with minimal friction, and knows how to return with a response.
+
+Independent creators often depend on advertising or personal explanation to reach people. Advertising can buy targeted attention, but CreatorWorks should help a creator make a relevant, trustworthy introduction:
+
+> **Marketing gets attention. Sharing creates curiosity.**
+
+The creator should not need to be physically present, explain the work from the beginning, act as a salesperson, or guide every recipient through installation. A CreatorWorks project page should carry the creator's introduction when the creator is not there.
+
+A successful shared experience should immediately answer:
+
+- What is this?
+- Who made it?
+- Why might it help me?
+- What can I try right now?
+- Is it early, experimental, or mature?
+- What does the creator want me to notice?
+- How can I respond afterward?
+
+CreatorWorks should support the handoff through:
+
+- A simple, memorable link.
+- A QR code for sharing in person.
+- Ready-made personal invitations in the creator's voice.
+- Clear email and messaging formats.
+- Attractive and accurate social preview cards.
+- One clear **Try it** or **Get it** action.
+- Simple installation instructions when required.
+- A clear route back to feedback.
+- Optional financial support only after a meaningful experience and in a later phase.
+
+The central sharing loop is:
+
+> **Present → Share → Experience → Respond → Recognize**
+
+- **Present** — Help the creator explain the work honestly and clearly.
+- **Share** — Make it effortless to place the work in someone else's hands.
+- **Experience** — Make it easy for the recipient to access and understand the work.
+- **Respond** — Bring the participant back for useful feedback.
+- **Recognize** — Let both people know that their contribution mattered.
+
+CreatorWorks should distinguish two kinds of sharing:
+
+- **Personal sharing** — “I made this and think it may help you.” This creates trust through relevance and human context.
+- **Public discovery** — “Here is something that may help people with this particular problem.” This allows useful work to reach people the creator does not already know.
+
+Neither should become a popularity contest. Personal sharing is part of the founding beta. Public discovery begins only after the central loop works reliably and the Phase 2 safeguards are ready.
+
+Shareability should be designed for discovery, not merely distribution. Distribution says, “Here is a link.” Discovery says, “Here is why this may matter to you.” CreatorWorks should help people who know nothing about marketing create clear, compelling invitations without replacing their voice, exaggerating the work, or manufacturing urgency.
+
+From one project page, CreatorWorks should eventually be able to prepare several accurate forms of introduction:
+
+- A personal invitation.
+- A social preview.
+- A QR card.
+- An email introduction.
+- A short “why this matters” message.
+- A demo-first link.
+
+For example, instead of relying only on “Music Transcriber — AI-powered notation software,” CreatorWorks could help the creator say:
+
+> **Turn a printed score into editable notation in minutes.**
+>
+> Built by a working musician who needed a faster way to transcribe charts.
+>
+> **Try the first transcription.**
+
+The foundational philosophy is:
+
+> **CreatorWorks is not only a place where work is displayed. It is the bridge that helps a creation travel from the person who made it to the person who might value it.**
+
+The practical test is:
+
+> **The creator should not have to be present for the work to make a good first impression.**
+
+## The Connected Experience Model
+
+CreatorWorks does not initially host and operate every creator application. Instead, CreatorWorks is the **trusted relationship layer** between a creator, their work, and the people who experience it.
+
+The application may run on the creator's website, a hosting service, a mobile device, or as a download. The human relationship must not disappear when the participant leaves the CreatorWorks project page.
+
+The central promise is:
+
+> The application may run elsewhere, but the relationship begins, continues, and reaches a meaningful conclusion through CreatorWorks.
+
+CreatorWorks should control the **continuity and quality** of its own experience and the handoff—not control or trap the participant. CreatorWorks does not control or guarantee the quality of an externally hosted application. Participants must remain free to leave, decline feedback, dismiss reminders, and request export or removal of their information, subject to clearly explained safety, legal, fraud-prevention, and future transaction obligations.
+
+### The CreatorWorks Experience Session
+
+An experience session is a temporary, understandable relationship between:
+
+- One work.
+- One participant or guest session.
+- One creator question.
+- One intended experience.
+- One route back.
+- One eventual outcome.
+
+A session can move through these states:
+
+1. Invitation opened
+2. Experience understood
+3. Experience started
+4. Meaningful point reached
+5. Participant returned
+6. Response received
+7. Creator acknowledged
+8. Outcome shared
+
+These states describe where a relationship stands, not what a person did inside the application. They are not surveillance and not proof of usefulness. CreatorWorks must not collect every click, keystroke, uploaded file, prompt, document, or private action. Automated activity can show that something happened; only human feedback determines whether it mattered.
+
+### Responsibilities
+
+CreatorWorks and the creator's application own different things. Keeping this boundary clear protects both the participant and the creator.
+
+CreatorWorks owns:
+
+- Creator verification.
+- Verification that the creator controls or represents the application.
+- Project presentation.
+- Invitations.
+- Trust disclosures.
+- Experience sessions.
+- The creator's main feedback question.
+- The route back.
+- Feedback privacy.
+- Acknowledgment.
+- Outcomes.
+- Recognition.
+- Future optional support.
+- CreatorWorks reporting and moderation.
+
+The application ordinarily owns:
+
+- Its specialized functionality.
+- Its interface.
+- Computing and processing.
+- Application-specific files.
+- Its technical accounts.
+- Databases.
+- Operational security.
+- Uptime and backups.
+- Its own terms and privacy responsibilities.
+
+### Trust Summary Before Access
+
+Before someone enters an application, CreatorWorks should explain, in plain language:
+
+- The exact destination.
+- Whether the application opens inside or outside CreatorWorks.
+- Whether registration is required.
+- Whether payment is required.
+- Whether files must be uploaded.
+- What happens to uploaded files.
+- Whether artificial intelligence is involved.
+- What CreatorWorks will learn about the session.
+- Supported devices.
+- Known limitations.
+- How to report a problem.
+- How to leave.
+
+This trust summary extends the project page's Required Work Disclosures with the session-specific items a connected experience introduces.
+
+### Guest-First Participation
+
+Whenever practical, allow one meaningful experience before requiring a CreatorWorks account.
+
+Registration may be invited—never forced up front—for:
+
+- Saving participation history.
+- Receiving the creator's outcome.
+- Recognition.
+- Following future versions.
+- Returning for another experience.
+- Supporting the creator.
+
+If the external application requires its own separate account, CreatorWorks must disclose that before the participant begins.
+
+### Four Experience Modes
+
+CreatorWorks supports the handoff through four modes, chosen by what the work needs:
+
+1. **Guided external link** — Suitable for Phase 0. CreatorWorks stays available, explains what to do, and provides a manual return. The participant reaches the work through an ordinary link.
+2. **Connected application** — The preferred future model. A CreatorWorks Connection Kit provides a visible return, minimal session states, and the correct feedback question, so the relationship continues without trapping anyone.
+3. **Approved embedded experience** — Optional for compatible web applications that can run inside CreatorWorks. Use with care: watch for authentication, browser restrictions, accessibility, uploads, security, and payment limitations.
+4. **Optional managed hosting** — A separate future possibility, only if evidence shows that hosting is the principal barrier for creators. It must not be assumed and is not part of Version One.
+
+### The CreatorWorks Connection Kit
+
+The Connection Kit is a progressive way for a work to stay connected to CreatorWorks. It builds on the universal return link already provided in Phase 1 and grows only as evidence justifies it:
+
+- **Baseline (from Phase 1):** the universal return link, always available as the reliable fallback.
+- **First Kit addition (Phase 1.5):** a small, visible CreatorWorks return component inside a connected application, with minimal signed session communication.
+- **Later:** mobile connections, deep links, APIs, and verified webhooks.
+
+The participant must never need to use a command line or Terminal.
+
+Any future automated creator installation of the Connection Kit must disclose, before installing:
+
+- Files changed.
+- Permissions requested.
+- Information shared.
+- Events reported.
+- How to test it.
+- How to remove it.
+- How to restore the prior state.
+
+The first useful events should be minimal:
+
+- Experience started.
+- Meaningful point reached.
+- Participant returned.
+
+CreatorWorks should not transmit private application content by default.
+
 ## What CreatorWorks Is — and Is Not
 
 CreatorWorks is initially:
@@ -121,10 +339,14 @@ CreatorWorks is not initially:
 - **Creator** — The individual or small team responsible for the work.
 - **Participant** — A person with a relevant need, interest, or experience who examines or tries the work and may respond.
 - **Publish** — Make a CreatorWorks project page available by private invitation or publicly. It does not mean that CreatorWorks hosts or deploys the software itself.
+- **Share** — Complete the handoff from creator to participant so the recipient understands the work's relevance, can experience it, and knows how to respond. Sending a link alone does not prove that sharing succeeded.
 - **Acknowledgment** — Confirmation that the creator received and considered a response. It does not mean the creator agrees with it.
 - **Recognition** — Optional, specific, consensual credit for a contribution that meaningfully helped the work.
 - **Completed loop** — A participant experiences the work and responds; the creator acknowledges the response and records a learning, decision, or change; the participant can see the outcome.
 - **Support** — Nonfinancial help such as feedback, referral, testing, or collaboration, or future financial help such as sponsorship, membership, licensing, or purchase. The intended meaning must always be clear.
+- **Experience session** — A temporary, understandable relationship covering one work, one participant or guest session, one creator question, one intended experience, one route back, and one eventual outcome. It tracks where a relationship stands, not what a person does inside the application.
+- **Guest session** — A way for someone to have one meaningful experience before creating a CreatorWorks account.
+- **Connected experience** — A shared experience in which the application runs elsewhere while the relationship begins, continues, and concludes through CreatorWorks.
 
 ## Public Language and Voice
 
@@ -261,6 +483,12 @@ Satisfaction does not mean granting every request, accepting every work, publish
 
 No person's satisfaction may justify deceiving, exploiting, or harming another person.
 
+### 11. Sharing must complete the handoff
+
+A recipient should be able to understand the work, experience it, and respond without needing the creator standing beside them. Sharing should preserve the warmth and relevance of a human introduction while removing unnecessary technical, promotional, and installation friction.
+
+CreatorWorks should measure sharing by whether the right person could complete the intended experience—not by the number of links, impressions, or clicks produced.
+
 ## The CreatorWorks Loop
 
 The experience is a repeatable human loop rather than a one-time upload:
@@ -326,6 +554,8 @@ Before a participant follows an external link, the project page should clearly d
 
 These disclosures should use plain language. They must not be hidden in promotional copy.
 
+In a connected experience, these disclosures appear as the Trust Summary Before Access (see The Connected Experience Model), which adds session-specific items such as the exact destination, whether the application opens inside or outside CreatorWorks, what CreatorWorks will learn about the session, and how to leave.
+
 ## Meaningful Feedback
 
 A blank comment box is not enough. The creator should choose one main feedback goal and a small number of prompts appropriate to the work's state.
@@ -341,6 +571,15 @@ Possible prompts include:
 - Would you like to experience a future update?
 
 Feedback should be easy to complete and should not demand unnecessary work. Participants should know whether their response will be private, public, or eligible for creator-approved publication before submitting it.
+
+Feedback should stay connected to:
+
+- The current version.
+- The work's stage.
+- The creator's question.
+- What the participant attempted.
+- What happened.
+- What the creator decided afterward.
 
 The feedback outcome should distinguish:
 
@@ -394,6 +633,35 @@ To protect trust:
 - A clear removal, appeal, and correction process must exist.
 - CreatorWorks should never present a listing as an endorsement unless it has a separate, clearly explained review standard.
 
+## Failure and Recovery
+
+Because the work usually runs elsewhere, CreatorWorks must plan for the experience breaking in many places and help people recover with their trust intact. Safeguards should address:
+
+- Unclear invitations.
+- Registration walls.
+- Unknown external domains.
+- Broken applications.
+- Device incompatibility.
+- Installation problems.
+- Sensitive uploads.
+- Lost return paths.
+- Expired sessions.
+- Incorrect completion signals.
+- Excessive feedback requests.
+- Creator nonresponse.
+- Reminder spam.
+- Integration failures.
+- Abandoned works.
+- Copied or malicious applications.
+- CreatorWorks outages.
+- Platform lock-in.
+- Excessive tracking.
+- Payment disputes.
+- Store-policy conflicts.
+- Limited moderation capacity.
+
+In every case, the participant should be able to understand what happened, recover or leave cleanly, and keep control of their information.
+
 ## Discovery Without a Popularity Contest
 
 Open discovery has a cold-start problem: an empty collection disappoints visitors, while an uncurated collection invites spam and favors people who already have audiences.
@@ -426,6 +694,20 @@ A participant should never arrive at an empty category or be led to believe that
 
 CreatorWorks should demonstrate the first six levels before building native commerce for the seventh.
 
+## Value-First Support
+
+Support may appear only after a meaningful experience—never as an entrance fee or a condition of trying the work. It is a way to say thank you for value already received, not a gate placed in front of it.
+
+When support appears, it must be:
+
+- Optional.
+- Private by default.
+- Free from ranking influence.
+- Easy to decline.
+- Free from repeated pressure.
+- Deferred to Phase 3.
+- Subject to the payment rules of each distribution channel, such as app-store or web-platform policies.
+
 ## Future Business Model Constitution
 
 The exact business model is not decided, but it must follow these boundaries:
@@ -449,18 +731,25 @@ Business-model research should still occur during validation. Creator interviews
 
 ### Phase 0: Manual validation
 
-Purpose: determine whether CreatorWorks can turn publishing anxiety into an appropriate small invitation and whether the resulting loop is more valuable than sending someone a product link and a generic survey.
+Purpose: determine whether CreatorWorks can turn publishing anxiety into an appropriate small invitation, and whether a manually run CreatorWorks Experience Session is more valuable than sending someone a product link and a generic survey.
+
+Use a **manual CreatorWorks Experience Session**. No application code, integration kit, accounts, payments, hosting, or public discovery.
 
 Create and test:
 
 - One clear homepage prototype.
 - One readiness experience that replaces comparison with an honest standard.
 - One realistic project-page prototype.
+- One trust summary before access.
+- One complete sharing handoff and external experience, tested without the creator guiding the recipient.
+- Several invitation formats generated from the same project story, including a personal message and a QR or preview-card example.
+- One manual return to CreatorWorks.
 - One structured feedback experience.
 - One acknowledgment and outcome update.
+- A nonfunctional optional-support concept, used only for learning.
 - A manually coordinated experience with a small founding group.
 
-Do not build accounts, automated discovery, payments, or a marketplace during this phase.
+Do not build accounts, automated discovery, a connection kit, payments, or a marketplace during this phase.
 
 Initial learning sample:
 
@@ -474,26 +763,43 @@ Move forward only when people understand the purpose without extensive explanati
 
 ### Phase 1: Private founding beta — Version One
 
-Purpose: prove that the complete loop can work repeatedly without intensive manual guidance.
+Purpose: prove that the complete loop can work repeatedly without intensive manual guidance, using only the minimum connected beta.
 
 Build only:
 
 - A clear homepage.
 - A short readiness check before project-page creation.
 - Verified creator identity.
+- Verification that the creator controls or represents the application.
 - Guided project-page creation.
 - Prototype, early-access, or released state.
-- Required work and external-link disclosures.
-- Private invitation links.
+- Trust summaries and required disclosures before access.
+- Private invitation links with a clear, trustworthy preview, plus a basic sharing kit (personal invitation, short link, QR code, and message-ready preview) generated from the project page.
+- Guest sessions, so a participant can have one meaningful experience before being asked to register.
+- The external handoff through a guided external link, with simple installation guidance when needed.
+- Universal return links back to the requested feedback.
+- Basic experience-session states.
 - One specific feedback request per active round.
 - Lightweight verified participant responses.
 - Participant privacy and display choices.
 - Creator acknowledgment and bounded replies.
 - An outcome update describing what was learned, decided, or changed.
 - Participant notification of that outcome.
-- Basic blocking, reporting, moderation, export, and deletion controls.
+- Basic blocking, reporting, moderation, export, deletion, and recovery controls.
 
-Public discovery is not part of the private founding beta.
+Public discovery is not part of the private founding beta. The Connection Kit is not built yet.
+
+### Phase 1.5: First Connection Kit
+
+Purpose: reduce friction in the handoff, but only after Phase 1 proves the need.
+
+The universal return link already exists from Phase 1 as the minimum reliable way back. Phase 1.5 extends it; it does not introduce it. Only after Phase 1 shows that guided links and manual steps are the main thing holding the loop back, add the first in-application CreatorWorks Connection Kit component:
+
+- A small, visible CreatorWorks return component inside a connected application.
+- Minimal signed session communication.
+- The events: experience started, meaningful point reached, and participant returned.
+- A fallback to the Phase 1 universal return link whenever the connection fails.
+- No private application content transmitted by default.
 
 ### Phase 2: Curated public discovery
 
@@ -508,7 +814,7 @@ Begin only when:
 
 Add:
 
-- A small public collection.
+- A small public collection that prefers connected or reliably returnable works.
 - Need-based categories and filters.
 - Transparent selection and rotation.
 - Space for new and overlooked work.
@@ -520,13 +826,18 @@ Purpose: help proven value become sustainable without damaging trust.
 
 Before native payments:
 
-- Test whether creators and participants want external support or purchase links.
+- Test whether creators and participants want value-first support or purchase links.
 - Determine who pays CreatorWorks, for what outcome, and why.
 - Select one understandable revenue model.
 - Define fees, refunds, taxes, payouts, disputes, fraud controls, and transaction responsibilities.
 - Confirm that commerce will not distort feedback, recognition, or organic discovery.
+- Respect the payment rules of each distribution channel.
 
-Only then consider sponsorship, membership, licensing, sales, native payments, or a marketplace.
+Only then consider value-first support, sponsorship, membership, licensing, sales, native payments, or a marketplace.
+
+### Future: Optional managed hosting
+
+Consider hosting and operating creator applications only after strong evidence shows that hosting is the principal barrier for creators—and only as a separate safety, legal, financial, and operational decision. It must never be assumed or placed in Version One.
 
 ## Version-One Proof
 
@@ -601,6 +912,13 @@ A completed loop is evidence of value. A page view, registration, like, or comme
 Measure:
 
 - Time until a work receives its first relevant response.
+- Whether an invited person understands why the work may matter without the creator explaining it live.
+- Whether an invited person can reach, try, and return from the external work without avoidable assistance.
+- How much the participant trusted the handoff before entering the work.
+- Where the sharing handoff breaks between invitation, understanding, access, experience, and response.
+- Time from starting the experience to reaching a meaningful point.
+- How quickly the creator acknowledged a response.
+- Whether the session reached a shared outcome both people could see.
 - The proportion of active works that complete the loop.
 - Whether creators consider the responses useful and can explain why.
 - Whether participants feel their time was worthwhile.
@@ -613,10 +931,11 @@ Measure:
 - Where people encounter confusion, abandonment, or failure.
 - Whether recovery resolves a problem without damaging trust.
 - Reporting, moderation, privacy, and external-link safety incidents.
+- Privacy, safety, and integration failures, including connection-kit or return-path breakdowns.
 - The amount of effort required from CreatorWorks staff to complete each loop.
 - In Phase 2, whether creators without existing audiences receive relevant attention.
 
-Do not optimize mainly for registrations, page views, likes, follower counts, time spent, comment volume, or gross transaction value.
+Do not optimize for trapping people, time spent, clicks, page views, registrations, public ratings, likes, follower counts, comment volume, reminder volume, or gross payment value.
 
 ## Validation and Release Gates
 
@@ -630,6 +949,7 @@ Do not move to the next phase merely because the current phase has been built.
 - The manual loop produces useful learning for creators.
 - Participants consider the experience worth their time.
 - The acknowledgment and outcome step feels meaningfully better than a generic survey.
+- A relevant recipient can understand the invitation, experience the work, and return with a response without the creator being present.
 - Critical trust, ownership, consent, and safety questions have workable answers.
 
 ### Before public discovery
@@ -656,6 +976,11 @@ Do not move to the next phase merely because the current phase has been built.
 - **Patreon:** A free relationship and direct connection can exist before paid support. CreatorWorks should let belonging and trust form before asking for money.
 - **Kickstarter:** People can participate in bringing a project to life rather than acting only as customers, but expectations and project state must be explicit.
 - **Gumroad:** Simple selling and discovery can help creators, but marketplace discovery introduces distinct incentives and costs. CreatorWorks should separate organic relevance, editorial selection, paid promotion, and transaction fees if commerce is added.
+- **Apple TestFlight:** Staged, invitation-based beta testing shows that early software can be shared responsibly, with clear expectations, before any public release.
+- **Apple and Google in-app reviews:** Feedback works best when it is requested in context, after a meaningful moment—not demanded up front. CreatorWorks should keep feedback tied to a real experience without copying star ratings.
+- **Etsy off-platform transactions:** Platforms draw firm lines about where a relationship and a transaction may occur. CreatorWorks should be explicit about what it owns versus what the creator's application owns, and about each channel's payment rules.
+- **Vercel integration permissions:** Installing an integration should clearly disclose the permissions and access it requires. Any future Connection Kit must do the same, and let a creator test and remove it.
+- **Stripe embedded onboarding:** Trusted flows can be embedded when done carefully. CreatorWorks should treat embedded experiences as optional and handle authentication, security, and payments with caution.
 
 ## Research References
 
@@ -666,3 +991,9 @@ Do not move to the next phase merely because the current phase has been built.
 - [Patreon free membership and community](https://support.patreon.com/hc/en-us/articles/16433886029325-How-free-memberships-can-help-grow-your-community)
 - [Kickstarter's all-or-nothing rationale](https://help.kickstarter.com/hc/en-us/articles/115005047893-Why-is-funding-all-or-nothing)
 - [Gumroad fees and discovery](https://gumroad.com/help/article/66-gumroads-fees.html)
+- [Apple TestFlight overview](https://developer.apple.com/help/app-store-connect/test-a-beta-version/testflight-overview)
+- [Apple ratings and reviews](https://developer.apple.com/app-store/ratings-and-reviews/)
+- [Google Play In-App Reviews](https://developer.android.com/guide/playcore/in-app-review)
+- [Etsy off-platform transactions policy](https://www.etsy.com/legal/policy/off-platform-transactions/1254654515806)
+- [Vercel integration permissions](https://vercel.com/docs/integrations/install-an-integration/manage-integrations-reference)
+- [Stripe embedded onboarding](https://docs.stripe.com/connect/embedded-onboarding)
