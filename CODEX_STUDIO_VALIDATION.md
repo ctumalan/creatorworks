@@ -2,13 +2,13 @@
 
 ## Session Status
 
-**First real Phase 0 model — creator rehearsal completed; participant session still to prepare**
+**First real Phase 0 model — creator rehearsal and first independent participant session completed (August 21, 2026); Phase 0 decision: Revise and repeat**
 
 Codex Studio is the first real work to be tested through CreatorWorks. This session is run as a **manual CreatorWorks Experience Session**: a facilitator stands in for everything CreatorWorks will later do on its own. No application is built, and nothing about Codex Studio or Producer Studio is changed. Codex Studio is used exactly as it already exists, at its current address.
 
 For Phase 0 the experience mode is a **guided external link** (see the four experience modes in the product plan): CreatorWorks explains what to do, the participant reaches Codex Studio through an ordinary link, and the return to feedback is manual.
 
-Several decisions still need answers before the first participant is invited (see "Unresolved Decisions").
+The first independent participant session (Participant 1) is complete. See "First Independent Participant Session Evidence — August 21, 2026" for what was learned, and the updated "Decisions" for what remains before a second test.
 
 ## The Work
 
@@ -178,6 +178,70 @@ The result proves that Codex Studio can consolidate and preserve this test colle
 
 This was a creator rehearsal, not the first independent participant session. It closes the deployed refresh-behavior check and confirms that the manual return is understandable for Christian; it does not yet prove that a new participant can complete the entire handoff independently.
 
+## First Independent Participant Session Evidence — August 21, 2026
+
+The first independent participant is recorded here as **Participant 1**; no name, email, account, WorkOS identifier, or authentication detail is stored. Participant 1 completed the experience through return and response and generated `MASTER_CODEX_20260821_215825.txt`. The session was planned for approximately 30 minutes; the actual elapsed time was not recorded. Feedback below is paraphrased (public-quotation permission was not obtained).
+
+### Handoff and access
+
+- Participant 1 signed in successfully using email-based WorkOS authentication.
+- Participant-only authorization worked after preparation; Participant 1 could reach and use Codex Studio.
+- Access was correctly restricted: Participant 1 was denied entry to every other Producer Studio administration module (Codex Studio only).
+- Christian's founder access continued to work throughout.
+- The manual return to the original conversation worked; Participant 1 came back and gave feedback.
+- **Operational friction (not a participant failure):** arranging this access required significant creator/webmaster preparation before the session. Record this as a Phase 0 operational cost and a likely onboarding bottleneck to reduce before wider testing.
+- During setup a production authentication key was rotated and verified as a precaution; no secret values are recorded here.
+
+### Experience completed
+
+- Participant 1 imported all six supplied fictional `.txt` files, generated the Master Codex, reached the meaningful point, returned successfully, and provided feedback.
+- Participant 1 could imagine using the product again.
+
+### Generated-output evidence
+
+The participant's Master Codex was functionally identical to the creator-rehearsal result except for its generation time. Recorded accurately:
+
+- All six source files were included.
+- All six sections were preserved; zero duplicate sections were omitted.
+- No written instruction disappeared.
+- The purpose section appeared last instead of first.
+- Five of the six sections were grouped beneath the broad heading **Needs Review**.
+- The conflicting instructions remained present but were not individually identified or compared.
+- First-release instructions, after-value feedback, future support, and later conflicting commands were not clearly separated.
+- The output demonstrated reliable consolidation and preservation.
+- It did not yet demonstrate clear conflict explanation, stage separation, or useful decision ordering.
+
+This session therefore does **not** establish that the Master Codex answered whether prompts contradicted each other, were submitted too early, or belonged to a later stage. Those questions remain open.
+
+### Participant feedback (paraphrased; not quoted)
+
+- Participant 1 had not previously thought about organizing AI prompts this way.
+- Seeing the generated result helped them recognize the concept's value.
+- They could imagine using it more once familiar with it; their "getting the hang of it" phrasing points to a learning/onboarding curve.
+- The name **Codex Studio** felt confusing: because they use several AI products, they read "Codex" as tied to one particular AI rather than as a general prompt-organizing method.
+- The upload instruction **"Drop CODEX Files Here"** was unclear; they suggested ordinary language such as **"Drop Prompt Files Here,"** which states the action more directly.
+
+Keep three findings distinct, and do not let the positive reaction stand in for output quality: (1) the participant's perceived value of the *concept*; (2) the demonstrated success of *file consolidation and preservation*; and (3) the still-unresolved *output-quality* weaknesses (ordering, conflict explanation, stage separation). The positive reaction is not evidence that ordering or conflict detection succeeded.
+
+### Session decision — Revise and repeat
+
+- The sharing and access handoff succeeded once prepared.
+- Participant 1 discovered real potential value in the concept.
+- The return and feedback loop worked.
+- The experience revealed clear, actionable improvements rather than a reason to abandon the work.
+- The interface language and the Master Codex organization should be improved before broader testing.
+- A second participant test should follow the focused revision.
+
+### Proposed next improvements (not yet implemented)
+
+1. Replace internal "CODEX file" language at the upload action with ordinary language such as "Prompt files."
+2. Change the visible action to **"Drop Prompt Files Here"** (or an equally clear phrase).
+3. Review the name "Codex Studio" separately before wider public sharing; it is not renamed in this documentation pass.
+4. Improve Master Codex organization so it distinguishes **Purpose**, **First Release**, **After Value**, **Future Ideas**, and **Decisions Needed**.
+5. Name and compare conflicts explicitly for human review.
+6. Preserve every source instruction while making timing and dependencies easier to understand.
+7. Retain the known warning that refreshing clears the current work until reliable persistence exists.
+
 ## Decisions
 
 ### Resolved by the code audit
@@ -202,15 +266,21 @@ A human checked the Vercel project's Environment Variables and confirmed that `P
 
 Do not expose environment values or claim which live configuration is active beyond this confirmed absence.
 
-### Still to confirm before inviting a participant
+### Completed before and during the first participant session
 
-- **Who the first relevant participant will be.** Choose one person who genuinely works with AI prompts and would benefit from an organized Master Codex.
-- **Session date and expected duration.**
-- **Which access method Christian will arrange.** Choose and test one before inviting: add the participant's WorkOS identity to the authorized list, or provide the approved shared access code. Do not place a real access code, identity, email, or secret in this document.
-- **The exact manual feedback link or page.** Decide it and keep it available in the invitation as a recovery path; test it first.
-- **A complete rehearsal of the handoff.** Walk the whole path once before inviting the participant.
+- **First participant selected and session completed.** Participant 1 (identity not stored).
+- **Date and planned duration established.** August 21, 2026 — approximately 30 minutes planned; actual elapsed time not recorded.
+- **Access method tested.** Email-based WorkOS authentication with participant-only authorization, arranged in advance; no access code, identity, email, or secret is recorded here.
+- **Codex-only route restriction tested.** Participant 1 was blocked from every other Producer Studio administration module; Christian's founder access was unaffected.
+- **Manual feedback return tested.** Participant 1 returned to the original invitation conversation and replied there.
+- **Rehearsal and session completed.** Creator rehearsal (August 20) and the independent participant session (August 21) are both done.
 
-Also observe during the session (not a pre-invite blocker): whether the access step discourages a new participant.
+### Remaining open items
+
+- **Creator acknowledgment and outcome-sharing.** Confirm that Christian sent Participant 1 the acknowledgment and the "what changed / what's next" outcome (not yet confirmed here).
+- **Focused revision, then a second participant test.** Apply the proposed interface-language and Master Codex-organization improvements (see "Proposed next improvements"), then run another participant session.
+- **Reliable persistence.** Refreshing still clears the work; keep the warning until real persistence exists.
+- **Reduce access-setup burden.** The significant preparation needed to authorize one participant is an onboarding bottleneck to ease before wider testing.
 
 ## Boundaries
 

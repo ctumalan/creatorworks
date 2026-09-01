@@ -2,7 +2,7 @@
 
 ## Status
 
-**Draft session packet — creator rehearsal completed; participant details still required**
+**Session packet — creator rehearsal and first independent participant session completed (August 21, 2026); Phase 0 decision: Revise and repeat (focused revision, then a second participant test)**
 
 This packet prepares the first manual CreatorWorks Experience Session using Codex Studio. It does not build CreatorWorks, connect the two applications, or modify Producer Studio.
 
@@ -17,8 +17,8 @@ Before inviting a participant, complete every item marked **Confirm before sessi
 - **Experience mode:** Guided external link with a manual return
 - **Meaningful point:** A Master Codex is generated and available to examine
 - **Accepted input:** `.txt`, `.md`, `.rtf`, `.html`, `.htm` text files ("CODEX files" is the app's product name for them; `.codex` is not a separate format). This session uses only the fictional `.txt` files.
-- **First participant:** **Confirm before session**
-- **Session date and duration:** **Confirm before session**
+- **First participant:** Participant 1 (session completed August 21, 2026)
+- **Session date and duration:** August 21, 2026 — approximately 30 minutes planned; actual elapsed time not recorded
 
 ## Preparation Checklist
 
@@ -32,14 +32,17 @@ Before inviting a participant, complete every item marked **Confirm before sessi
 
 **Human-confirmed Vercel finding:** `PUBLIC_CODEX_PROJECT_API_BASE_URL` is **not** set in the Vercel project settings, so a new build would use the code's default (an address on the visitor's own computer). A normal visitor has no saving service there, so with these settings server saving is expected to fail. The later creator rehearsal confirmed that refreshing the currently deployed page clears the imported and generated contents. This proves the session lacks reliable persistence; it does not by itself prove every detail of server storage or retention.
 
-### Still required before inviting a participant
+### Status and remaining items
 
-- [ ] Name one participant who regularly works with AI prompts.
-- [ ] Confirm the session date and expected duration.
+- [x] First participant selected and session completed (Participant 1; identity not stored).
+- [x] Date and planned duration established: August 21, 2026 — approximately 30 minutes planned; actual elapsed time not recorded.
 - [x] Creator rehearsal confirmed that refreshing the currently deployed page clears the imported and generated contents.
-- [ ] Choose and test **one** access method: add the participant's WorkOS identity to the authorized list, **or** provide the approved shared access code. *(Do not place a real access code, identity, email address, or secret in this document.)*
-- [ ] Decide the exact manual feedback link or page, and keep it in the invitation as a recovery path.
-- [ ] Rehearse the complete handoff once before inviting.
+- [x] Access method tested: email-based WorkOS authentication with participant-only authorization (arranged in advance). *(No access code, identity, email address, or secret is recorded here.)*
+- [x] Codex-only route restriction tested: Participant 1 was blocked from all other Producer Studio admin modules; founder access unaffected.
+- [x] Manual feedback return tested: Participant 1 returned to the original invitation conversation and replied there.
+- [x] Creator rehearsal (Aug 20) and independent participant session (Aug 21) both completed.
+- [ ] Confirm the creator acknowledgment and outcome-sharing were sent to Participant 1.
+- [ ] Focused revision (interface language + Master Codex organization), then a second participant test.
 
 For this first session, use only the supplied fictional, non-sensitive `.txt` files. Because online saving is not expected to work with the current settings—and because a participant's work may not survive a refresh—do not ask a participant to import personal, professional, confidential, copyrighted, or client material.
 
@@ -67,25 +70,25 @@ Before inviting anyone, Christian confirms the work is ready for one honest conv
 
 Readiness here means ready for a small invitation, not ready for a public launch. A difficult or imperfect result is still useful evidence.
 
-## Personal Invitation
+## First Session Personal Invitation — Anonymized Record
 
-Replace the bracketed text before sending.
+This is an anonymized record of the invitation used for Participant 1. Adapt it before any future session.
 
-> Hi [Name],
+> Hi Participant 1,
 >
 > I made something called Codex Studio for people who gather useful instructions across several AI conversations and then struggle to keep everything organized.
 >
 > I would like to see whether it can turn a scattered collection of instructions into one clearer, correctly ordered Master Codex without losing anything important.
 >
-> I am inviting you because [plain, personal reason this experience is relevant to them]. This is an early-access experience for people using it outside my own workspace. It should take about [confirmed time].
+> I am inviting you because you enjoy exploring useful tools and finding better ways to work. This is an early-access experience for people using it outside my own workspace. It should take about 30 minutes.
 >
 > I will give you a fictional set of TXT files, so you will not need to share private material. I would like you to try it without me guiding each step, then return and tell me what happened.
 >
 > There is no payment, and you may stop at any time.
 >
-> [Open the CreatorWorks introduction]
+> Open Codex Studio here after Christian confirms your access: <https://christian-tumalan-website.vercel.app/studio-admin/codex-studio/>
 >
-> If you ever get lost, you can come straight back here to tell me what happened: [CreatorWorks feedback link — confirm before sending]
+> If you get lost or finish the experience, return to this conversation and tell me what happened.
 
 ## CreatorWorks Introduction
 
@@ -155,7 +158,7 @@ The recommended Phase 0 return is a simple two-tab arrangement (Codex Studio has
 
 The feedback link should also be included in the invitation message, so the participant has a recovery path if the original tab is lost.
 
-**Confirm before session:** the exact feedback link or page is still to be decided; the facilitator must set it and test this whole sequence once before inviting the participant. The participant should not have to search for the feedback page.
+In the first session (Aug 21, 2026) the manual return worked: Participant 1 returned to the original invitation conversation and replied there, which served as the feedback path. **Before the next test:** decide whether to keep the conversation-reply return or introduce a dedicated feedback page, and test that sequence once so the participant never has to search for where to respond.
 
 ## Feedback Page
 
@@ -242,6 +245,30 @@ This was Christian's private rehearsal, not the first independent participant se
 
 **Rehearsal conclusion:** Codex Studio consolidated all six files without losing their written instructions, but the Master Codex was not yet a clear, correctly ordered decision guide. This is the main result for the participant session to examine independently.
 
+## First Independent Participant Session Record — August 21, 2026
+
+The first independent participant is recorded here as **Participant 1**; no name, email, account, or authentication detail is stored. Feedback is paraphrased (public-quotation permission was not obtained).
+
+| Check | Result | What happened |
+| --- | --- | --- |
+| Access arranged and used | Yes | Email-based WorkOS authentication; participant-only authorization worked after preparation. |
+| Access correctly restricted | Yes | Blocked from all other Producer Studio admin modules (Codex Studio only); founder access unaffected. |
+| Fictional files imported | Yes | All six supplied `.txt` files were included. |
+| Master Codex generated | Yes | Six sections included, zero duplicate sections omitted; functionally identical to the rehearsal output. |
+| Instructions preserved | Yes | No written instruction disappeared; conflicting commands remained present. |
+| Useful order created | No | Purpose appeared last; five sections were grouped under **Needs Review**. |
+| Conflicts explained | No | Conflicts remained visible but were not individually identified or compared. |
+| Timing and stages clarified | No | First release, after-value, future support, and later commands were not clearly separated. |
+| Meaningful point reached | Yes | Participant 1 generated and saved the Master Codex. |
+| Manual return worked | Yes | Participant 1 returned to the conversation and gave feedback. |
+| Could imagine using again | Yes | After becoming familiar with it (an onboarding/learning curve). |
+
+**Operational friction (not a participant failure):** arranging access took significant creator/webmaster preparation beforehand — a likely onboarding bottleneck to reduce before wider testing. During setup a production authentication key was rotated and verified as a precaution; no secret values are recorded.
+
+**Paraphrased feedback:** Participant 1 had not thought about organizing AI prompts this way and, on seeing the result, recognized the concept's value. The name "Codex Studio" read as tied to one particular AI rather than a general prompt-organizing method. The upload action "Drop CODEX Files Here" was unclear; plainer wording such as "Drop Prompt Files Here" was suggested. Keep three findings separate — perceived concept value, successful file consolidation, and the unresolved output-quality weaknesses (ordering, conflict explanation, stage separation); the positive reaction is not evidence that ordering or conflict detection succeeded.
+
+**Session decision: Revise and repeat.** The handoff, value discovery, and feedback loop worked; the interface language and Master Codex organization should improve before a second participant test. See CODEX_STUDIO_VALIDATION.md ("Proposed next improvements") for the full list.
+
 ## Creator Acknowledgment
 
 Send this after receiving the response. Adjust it so it truthfully reflects what happened.
@@ -288,10 +315,12 @@ Ask:
 
 ## Session Decision
 
-After the session, choose one:
+**Recorded decision (August 21, 2026): Revise and repeat.** The sharing/access handoff, the participant's discovery of real value, and the return-and-feedback loop all worked; the interface language and the Master Codex organization should be improved before a second participant test. Evidence is in "First Independent Participant Session Record — August 21, 2026" above.
+
+For reference, the Phase 0 options are:
 
 - **Continue:** The participant understood, reached, experienced, returned, and provided useful evidence with acceptable friction.
-- **Revise and repeat:** A specific part of the handoff failed but has a reasonable correction.
+- **Revise and repeat:** A specific part of the handoff failed but has a reasonable correction. *(Selected.)*
 - **Pause:** Trust, privacy, access, or safety remains unresolved.
 
 Record the decision and the evidence behind it. Do not move forward merely because the session occurred.
