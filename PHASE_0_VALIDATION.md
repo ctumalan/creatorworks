@@ -395,6 +395,24 @@ Move forward only when:
 
 ## Decision After Phase 0
 
+### Current evidence — first completed loop
+
+The first real CreatorWorks Experience Session was completed with Codex Studio and Participant 1. It demonstrated that:
+
+- A creator could present working software through a clear, personal invitation.
+- A relevant participant could receive limited access, reach the work, and experience it without the creator standing beside them.
+- The participant understood enough of the idea to discover value they had not expected beforehand.
+- The participant returned to the planned conversation and gave specific, useful feedback.
+- The creator learned both what worked and what needed improvement.
+- Access preparation created substantial creator/webmaster work, showing that trust and access must become much simpler in CreatorWorks.
+- The manual return worked, but CreatorWorks did not yet provide its own persistent project page, feedback destination, acknowledgment, or outcome update.
+
+This is meaningful evidence for the complete handoff, but it is one loop with one creator, one work, and one participant. It does not satisfy the initial learning threshold and does not yet justify starting the private founding beta.
+
+**Current CreatorWorks decision: continue Phase 0 with a focused CreatorWorks prototype and additional manual sessions.** Codex Studio remains the first validated example. Further Codex Studio product development is outside this plan unless a future CreatorWorks session reveals a handoff problem that must be tested there.
+
+The next milestone is defined in [CREATORWORKS_PHASE_0_NEXT_MILESTONE.md](CREATORWORKS_PHASE_0_NEXT_MILESTONE.md).
+
 Choose one outcome:
 
 - **Proceed** — The loop creates clear value and is ready for a private founding beta.
