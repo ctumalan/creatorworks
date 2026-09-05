@@ -379,3 +379,10 @@ img { display: block; max-width: 100%; }
   .share-evidence .share-evidence-source { font-size: .78rem; }
   .share-reassurance { font-size: .95rem; }
 }
+
+.share-start-actions { flex-direction: column; align-items: center; gap: 10px; }
+.share-start-actions .primary-button { width: auto; min-width: 170px; padding-inline: 32px; }
+.share-start-actions .share-browse-link { width: auto; padding: 6px 8px; border: 0; border-radius: 4px; background: transparent; color: var(--muted); font: inherit; font-size: .85rem; cursor: pointer; }
+.share-browse-link:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.share-browse-link:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
+.share-layout-intro .privacy-note { text-align: center; }
