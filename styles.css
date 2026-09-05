@@ -352,3 +352,30 @@ img { display: block; max-width: 100%; }
   .row-copy { padding: 5px 6px; }
   .row-actions { grid-column: 1; padding: 0 6px 6px; }
 }
+
+
+/* First sharing step: an idea, evidence, and a personal invitation. */
+.share-layout-intro { grid-template-columns: 1fr 1fr; }
+.share-visual-intro { gap: 20px; padding: clamp(24px, 3vw, 44px); }
+.share-visual-intro .share-visual-copy h2 { font-size: clamp(2.5rem, 3.7vw, 3.8rem); line-height: 1.02; }
+.share-evidence { padding: 16px 18px; border: 1px solid rgba(255,255,255,.2); border-radius: 16px; background: rgba(255,255,255,.07); color: #fff; }
+.share-evidence p { margin: 0; font-size: 1.05rem; line-height: 1.45; }
+.share-evidence .share-evidence-source { margin-top: 9px; color: #d6e5de; font-size: .8rem; }
+.share-evidence a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.share-evidence a:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+.share-visual-intro img { display: block; height: auto; aspect-ratio: 3 / 2; object-fit: contain; border-radius: 20px; }
+.share-reassurance { margin: 0; color: #e6eee9; font-size: 1rem; line-height: 1.55; }
+.share-reassurance strong { color: #fff; }
+@media (max-width: 1000px) {
+  .share-layout-intro { grid-template-columns: 1fr; }
+  .share-visual-intro { display: flex; align-items: stretch; max-width: none; }
+  .share-visual-intro img { max-height: 300px; object-fit: contain; background: #fcf1dd; }
+}
+@media (max-width: 680px) {
+  .share-visual-intro { gap: 16px; padding: 24px; }
+  .share-visual-intro .share-visual-copy h2 { font-size: 2.25rem; }
+  .share-visual-intro img { max-height: 240px; }
+  .share-evidence p { font-size: .95rem; }
+  .share-evidence .share-evidence-source { font-size: .78rem; }
+  .share-reassurance { font-size: .95rem; }
+}
