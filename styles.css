@@ -444,7 +444,7 @@ img { display: block; max-width: 100%; }
 
 
 /* Signature violet connects the CreatorWorks wordmark and project names. */
-:root { --brand-violet: #8017ff; --brand-violet-hover: #6810d5; }
+:root { --brand-violet: #7652a3; --brand-violet-hover: #624188; }
 .brand-name, .footer-brand { color: var(--brand-violet); }
 .brand-mark i { background: var(--brand-violet); }
 .row-title, .product-card-main > strong, .mealmap-wordmark,
@@ -452,3 +452,6 @@ img { display: block; max-width: 100%; }
 .listing-preview-card .listing-preview-content h2 { color: var(--brand-violet); }
 .row-title:hover, .community-rail-new > button:hover strong,
 .brand:hover .brand-name, .footer-brand:hover { color: var(--brand-violet-hover); }
+
+/* Keep the second half of the wordmark in the original forest green. */
+.brand-name-works { color: var(--ink); }
