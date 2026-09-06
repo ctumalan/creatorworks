@@ -125,7 +125,7 @@ function detailDrawer(product) {
       <div class="detail-scroll">
         <header class="detail-product-header">
           <div class="detail-heading-copy"><div class="product-meta"><span>${product.category}</span><span>${product.stage}</span></div><h2 id="detail-title-${product.slug}">${product.name}</h2><p>${product.summary}</p></div>
-          <div class="detail-header-controls"><button class="detail-save ${saved ? "is-saved" : ""}" data-save="${product.slug}">${saved ? "♥ Saved" : "♡ Save"}</button><button class="detail-close" data-detail-close aria-label="Close ${product.name} details">×</button></div>
+          <div class="detail-header-controls"><button class="detail-save ${saved ? "is-saved" : ""}" data-save="${product.slug}">${saved ? "♥ Saved" : "♡ Save"}</button><button type="button" class="detail-share" data-share-product="${product.slug}" aria-label="Share ${esc(product.name)}">Share</button><span class="detail-share-status" data-share-status role="status"></span><button class="detail-close" data-detail-close aria-label="Close ${product.name} details">×</button></div>
         </header>
         <figure class="detail-preview"><img src="${product.preview}" alt="Preview of the ${product.name} website" /><figcaption>Actual product preview</figcaption></figure>
         <div class="detail-try-bar"><a class="primary-button" href="${product.url}" target="_blank" rel="noopener">Try ${product.name} <span>↗</span></a><div><strong>${product.price}</strong><span>Opens the creator’s site</span></div></div>
@@ -304,3 +304,43 @@ menu.addEventListener("click", () => {
 });
 
 render();
+
+
+// Share a link to this listing rather than the external tool.
+function productShareUrl(slug) {
+  const url = new URL('/', location.origin);
+  url.searchParams.set('project', slug);
+  return url.href;
+}
+document.addEventListener('click', async event => {
+  const button = event.target.closest('[data-share-product]');
+  if (!button) return;
+  const product = projects.find(item => item.slug === button.dataset.shareProduct);
+  if (!product) return;
+  const url = productShareUrl(product.slug);
+  const status = button.parentElement.querySelector('[data-share-status]');
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: product.name, text: product.summary, url });
+      return;
+    }
+    await navigator.clipboard.writeText(url);
+    status.textContent = 'Link copied';
+  } catch (error) {
+    if (error.name === 'AbortError') return;
+    status.textContent = 'Copy this project link:';
+    let input = button.parentElement.querySelector('[data-share-url]');
+    if (!input) {
+      input = document.createElement('input');
+      input.dataset.shareUrl = '';
+      input.readOnly = true;
+      input.setAttribute('aria-label', 'Project link to copy');
+      button.parentElement.append(input);
+    }
+    input.value = url;
+    input.focus();
+    input.select();
+  }
+});
+const linkedProject = projects.find(item => item.slug === new URLSearchParams(location.search).get('project'));
+if (linkedProject) openProductDetail(linkedProject);

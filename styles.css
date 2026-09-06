@@ -411,3 +411,13 @@ img { display: block; max-width: 100%; }
 .benefit-choices .choice-button:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
 .benefit-other { margin-top: 18px; }
 .share-work:has(.benefit-choices) h1 { font-size: clamp(2.6rem, 4vw, 4rem); line-height: 1; }
+
+
+/* Share is adjacent to Save in the product header. */
+.detail-share { min-height: 42px; padding: 0 15px; border: 1px solid var(--line); border-radius: 999px; background: white; color: var(--ink); font-size: .77rem; font-weight: 700; cursor: pointer; }
+.detail-share:hover { background: var(--mint); }
+.detail-share:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
+.detail-header-controls { flex-wrap: wrap; justify-content: flex-end; }
+.detail-share-status { width: 100%; text-align: right; font-size: .75rem; color: var(--muted); }
+.detail-share-status:empty { display: none; }
+.detail-header-controls [data-share-url] { width: 100%; max-width: 280px; font-size: .8rem; }
