@@ -421,3 +421,23 @@ img { display: block; max-width: 100%; }
 .detail-share-status { width: 100%; text-align: right; font-size: .75rem; color: var(--muted); }
 .detail-share-status:empty { display: none; }
 .detail-header-controls [data-share-url] { width: 100%; max-width: 280px; font-size: .8rem; }
+
+
+/* Three-step listing setup and the fourth-screen preview. */
+.listing-flow .share-work h1 { font-size: clamp(2.6rem,4vw,4rem); line-height: 1; }
+.listing-field { display: grid; gap: 8px; margin: 0 0 20px; font-weight: 700; font-size: .9rem; }
+.listing-field input, .listing-field textarea, .listing-field select { width: 100%; min-width: 0; border: 1px solid var(--line); border-radius: 12px; padding: 13px 15px; background: #faf9f5; color: var(--ink); font: inherit; font-weight: 400; }
+.listing-field textarea { min-height: 95px; resize: vertical; }
+.listing-review { max-width: 850px; margin-inline: auto; }
+.listing-review > h1 { font-size: clamp(2.6rem,5vw,4.5rem); line-height: 1; }
+.listing-review > p { color: var(--muted); line-height: 1.5; }
+.listing-review form { margin-top: 30px; }
+.listing-preview-card { margin-top: 30px; border: 1px solid var(--line); border-radius: 24px; overflow: hidden; background: var(--white); }
+.listing-preview-card > img { width: 100%; max-height: 320px; object-fit: contain; }
+.listing-preview-placeholder { min-height: 180px; display: grid; place-content: center; text-align: center; gap: 12px; background: var(--mint); padding: 24px; }
+.listing-preview-placeholder strong { font-family: Newsreader,serif; font-size: 2.5rem; }
+.listing-preview-content { padding: 28px; overflow-wrap: anywhere; }
+.listing-preview-content h2 { font-size: 2.4rem; margin: 10px 0 24px; }
+.listing-preview-content dt { font-weight: 700; margin-top: 20px; }
+.listing-preview-content dd { margin: 6px 0 0; color: var(--muted); line-height: 1.5; white-space: pre-wrap; }
+.listing-preview-content > a { margin-top: 20px; display: inline-flex; }

@@ -171,10 +171,92 @@ function feedbackPage() {
   return `<section class="page-shell feedback-page"><div class="feedback-card"><span class="product-icon ${product.color}">${categoryIcon(product.category)}</span><p class="eyebrow">Your experience with ${product.name}</p><h1>What happened when you tried it?</h1><p>Honest observations help more than compliments. This prototype keeps your response in this browser only.</p><div class="feedback-choices"><button>It helped me finish the task</button><button>I understood how it worked</button><button>I got stuck somewhere</button><button>I would use it again</button></div><label>What should the creator understand?<textarea placeholder="Tell them what worked or what got in your way."></textarea></label><div class="form-actions"><button class="secondary-button" data-product="${product.slug}">Not now</button><button class="primary-button" data-feedback-submit>Save my response</button></div></div></section>`;
 }
 
-function sharePage() {
-  const steps = [shareStart, shareStage, shareAudience, shareBenefit, shareInvitation, shareComplete];
-  return `<section class="share-page page-shell">${steps[state.creatorStep]()}</section>`;
+function readListingDraft() {
+  const defaults = { title: '', url: '', does: '', helps: '', firstTry: '', stage: 'Ready for a first try', category: 'Technology', visibility: 'draft', image: '' };
+  try {
+    const saved = JSON.parse(localStorage.getItem('creatorworks-listing-draft-v1') || '{}');
+    for (const key of Object.keys(defaults)) if (typeof saved[key] === 'string') defaults[key] = saved[key].slice(0, 2000);
+  } catch {}
+  return defaults;
 }
+const listingDraft = readListingDraft();
+let listingStep = 0;
+let listingSettings = new URLSearchParams(location.search).get('listing') === 'settings';
+function saveListingDraft() {
+  try { localStorage.setItem('creatorworks-listing-draft-v1', JSON.stringify(listingDraft)); return true; }
+  catch { return false; }
+}
+function listingUrl(value) {
+  try { const url = new URL(value); return ['http:', 'https:'].includes(url.protocol) && !url.username && !url.password ? url.href : ''; } catch { return ''; }
+}
+function listingField(key, label, placeholder, multiline = false) {
+  const control = multiline
+    ? `<textarea data-listing-field="${key}" maxlength="500" required placeholder="${placeholder}">${esc(listingDraft[key])}</textarea>`
+    : `<input data-listing-field="${key}" value="${esc(listingDraft[key])}" maxlength="${key === 'url' ? 2000 : 80}" type="${key === 'url' ? 'url' : 'text'}" required placeholder="${placeholder}" />`;
+  return `<label class="listing-field">${label}${control}</label>`;
+}
+function listingPreview() {
+  const url = listingUrl(listingDraft.url);
+  const image = listingUrl(listingDraft.image);
+  return `<article class="listing-preview-card">${image ? `<img src="${esc(image)}" alt="Preview of ${esc(listingDraft.title)}" referrerpolicy="no-referrer" />` : `<div class="listing-preview-placeholder"><strong>${esc(listingDraft.title || 'Your project')}</strong><small>${esc(url ? new URL(url).hostname : 'Your project link')}</small></div>`}<div class="listing-preview-content"><p class="eyebrow">${esc(listingDraft.category)} · ${esc(listingDraft.stage)}</p><h2>${esc(listingDraft.title || 'Your project')}</h2><dl><dt>What does it do?</dt><dd>${esc(listingDraft.does)}</dd><dt>How does it help people?</dt><dd>${esc(listingDraft.helps)}</dd><dt>What should I try first?</dt><dd>${esc(listingDraft.firstTry)}</dd></dl>${url ? `<a class="primary-button" href="${esc(url)}" target="_blank" rel="noopener noreferrer">Open project ↗</a>` : ''}</div></article>`;
+}
+function listingSettingsPage() {
+  if (!window.CW_SERVER && !state.session) return listingAccountPage();
+  if (!state.session) return `<section class="page-shell listing-review"><h1>Loading your account…</h1></section>`;
+  if (!state.session.authenticated) return listingAccountPage();
+  return `<section class="page-shell listing-review"><p class="eyebrow">Your project · Settings</p><h1>Make it yours.</h1><p>Signed in as ${esc(state.session.user?.displayName || 'a CreatorWorks member')}. Your listing is still a draft.</p><form data-listing-settings>${listingField('title', 'Project name', 'Your project name')}${listingField('url', 'Project link', 'https://your-project.com')}<label class="listing-field">Category<select data-listing-field="category">${categories.map(c => `<option ${c.name === listingDraft.category ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select></label><label class="listing-field">Preview image link · Optional<input type="url" data-listing-field="image" value="${esc(listingDraft.image)}" placeholder="https://your-site.com/preview.png" /></label><label class="listing-field">Who would you like to see it?<select data-listing-field="visibility"><option value="draft" ${listingDraft.visibility === 'draft' ? 'selected' : ''}>Only me — draft</option><option value="private-link" ${listingDraft.visibility === 'private-link' ? 'selected' : ''}>Anyone with my link — unlisted</option><option value="public" ${listingDraft.visibility === 'public' ? 'selected' : ''}>Everyone — public listing</option></select></label><p class="share-name-hint">This saves your preference. Public listing submission is not available yet; your project stays a draft on this device.</p><div class="form-actions share-start-actions"><button class="primary-button" type="submit">Save draft settings</button><button class="share-browse-link" type="button" data-listing-review>Back to preview</button></div><p data-listing-status role="status"></p></form></section>`;
+}
+function listingAccountPage() {
+  return `<section class="page-shell listing-review"><p class="eyebrow">Keep your project yours</p><h1>Create your creator account.</h1><p>Your draft is ready. Sign up or sign in to continue to project settings.</p><div class="form-actions share-start-actions"><a class="primary-button" href="/auth/sign-in?signup=1&next=listing">Create my account</a><a class="share-browse-link" href="/auth/sign-in?next=listing">Already have an account? Sign in</a><button class="share-browse-link" data-listing-review>Back to preview</button></div><p class="privacy-note">Your draft stays on this device through sign-in. Nothing is public yet.</p></section>`;
+}
+function sharePage() {
+  if (listingSettings) return listingSettingsPage();
+  if (listingStep === 4) return listingAccountPage();
+  if (listingStep === 3) return `<section class="page-shell listing-review"><p class="eyebrow">4 · Preview your listing</p><h1>Here’s how your project will look.</h1><p>Check the three things visitors need to know before they try it.</p>${listingPreview()}<div class="form-actions share-start-actions"><button class="primary-button" data-listing-share>Share now</button><button class="share-browse-link" data-listing-back>Edit my answers</button></div><p class="privacy-note">Next: sign up or sign in, then choose your project settings. Nothing is published yet.</p><p data-listing-status role="status"></p></section>`;
+  const content = [
+    { headline: 'You have an idea. How do you know if it’s good?', note: 'Start with a link. You’ll preview the listing before creating your account.', image: 'creatorworks-idea-v1.png', title: 'What are you building?', copy: 'Add a name and a link people can open.', fields: listingField('title','Project name','For example: MealMap') + listingField('url','Project link','https://your-project.com') },
+    { headline: 'Help people see what’s possible.', note: 'A clear description and one small first task give visitors a reason to try your project.', image: 'creatorworks-small-difference-v1.png', title: 'Three things to know.', copy: 'Use everyday language. A sentence for each is enough.', fields: listingField('does','What does your project do?','For example: Turns ingredients into meal ideas.',true) + listingField('helps','How does it help people?','For example: Makes dinner decisions easier and reduces food waste.',true) + listingField('firstTry','What should someone try first?','For example: Enter three ingredients from your fridge.',true) },
+    { headline: 'There’s room for work in progress.', note: 'Let visitors know what to expect. Your project can be useful before it is finished.', image: 'creatorworks-first-user-v1.png', title: 'What stage is it at?', copy: 'Choose the closest match. You can change it later.', fields: `<div class="choice-grid" role="group" aria-label="Project stage">${['Still taking shape','Ready for a first try','Being tested by early users','Finished and launched'].map(stage => `<button type="button" class="choice-button ${stage === listingDraft.stage ? 'is-selected' : ''}" aria-pressed="${stage === listingDraft.stage}" data-listing-stage="${stage}"><span aria-hidden="true">${stage === listingDraft.stage ? '✓' : ''}</span>${stage}</button>`).join('')}</div>` }
+  ][listingStep];
+  const evidence = [
+    '<p><strong>42% cited a lack of market need as a reason they failed.</strong></p><p class="share-evidence-source">Among 101 failed startups studied by CB Insights. <a href="https://s3-us-west-2.amazonaws.com/cbi-content/research-reports/The-20-Reasons-Startups-Fail.pdf" target="_blank" rel="noopener noreferrer">Source</a></p>',
+    '<p>“Focus on the user’s problem rather than possible solutions.”</p><p class="share-evidence-source">— GOV.UK Service Manual. <a href="https://www.gov.uk/service-manual/user-research/start-by-learning-user-needs" target="_blank" rel="noopener noreferrer">Source</a></p>',
+    '<p>“The feedback you get from engaging directly with your earliest users will be the best you ever get.”</p><p class="share-evidence-source">— Paul Graham, <a href="https://paulgraham.com/ds.html" target="_blank" rel="noopener noreferrer">Do Things That Don’t Scale</a>, 2013.</p>'
+  ][listingStep];
+  return `<section class="share-page page-shell"><div class="share-layout share-layout-intro listing-flow"><aside class="share-visual share-visual-intro"><div class="share-visual-copy"><p class="eyebrow">For people who make things</p><h2>${content.headline}</h2></div><div class="share-evidence">${evidence}</div><img src="assets/illustrations/${content.image}" alt="A creator developing a useful project." width="1536" height="1024" /><p class="share-reassurance">${content.note}</p></aside><div class="share-work"><div class="share-progress"><span style="width:${(listingStep+1)/4*100}%"></span></div><p class="eyebrow">Create your listing · ${listingStep+1} of 3</p><h1>${content.title}</h1><p class="share-copy">${content.copy}</p><form data-listing-step>${content.fields}<div class="form-actions share-start-actions"><button class="primary-button" type="submit">${listingStep === 2 ? 'Preview my listing' : 'Continue'}</button>${listingStep ? '<button class="share-browse-link" type="button" data-listing-back>Back</button>' : '<button class="share-browse-link" type="button" data-route="discover">Browse other projects</button>'}</div><p data-listing-status role="status"></p></form><p class="privacy-note">Your draft stays on this device. Nothing is public yet.</p></div></div></section>`;
+}
+document.addEventListener('input', event => {
+  const field = event.target.closest('[data-listing-field]');
+  if (field) { listingDraft[field.dataset.listingField] = field.value; saveListingDraft(); }
+});
+document.addEventListener('change', event => {
+  const field = event.target.closest('[data-listing-field]');
+  if (field) { listingDraft[field.dataset.listingField] = field.value; saveListingDraft(); }
+});
+document.addEventListener('submit', event => {
+  const form = event.target.closest('[data-listing-step], [data-listing-settings]');
+  if (!form) return;
+  event.preventDefault();
+  const status = form.querySelector('[data-listing-status]');
+  const fields = form.hasAttribute('data-listing-settings') || listingStep === 0 ? ['title','url'] : listingStep === 1 ? ['does','helps','firstTry'] : [];
+  if (fields.some(key => !listingDraft[key].trim())) { status.textContent = 'Please add a short answer to each field.'; return; }
+  if (!listingUrl(listingDraft.url)) { status.textContent = 'Enter a complete http or https project link.'; return; }
+  if (form.hasAttribute('data-listing-settings') && listingDraft.image && !listingUrl(listingDraft.image)) { status.textContent = 'Enter a complete http or https image link, or leave it blank.'; return; }
+  if (!saveListingDraft()) { status.textContent = 'Your browser could not save this draft. Please enable site storage before continuing.'; return; }
+  if (form.hasAttribute('data-listing-settings')) { status.textContent = 'Draft settings saved on this device. Your project has not been published.'; return; }
+  listingStep = Math.min(3,listingStep+1); render();
+});
+document.addEventListener('click', event => {
+  const stage = event.target.closest('[data-listing-stage]');
+  if (stage) { listingDraft.stage = stage.dataset.listingStage; saveListingDraft(); render(); }
+  if (event.target.closest('[data-listing-back]')) { listingStep = Math.max(0,listingStep-1); render(); }
+  if (event.target.closest('[data-listing-review]')) { listingSettings = false; listingStep = 3; state.route = 'share'; render(); }
+  if (event.target.closest('[data-listing-share]')) {
+    if (!saveListingDraft()) { document.querySelector('[data-listing-status]').textContent = 'Your browser could not save this draft. Please enable site storage before signing in.'; return; }
+    if (state.session?.authenticated) listingSettings = true; else listingStep = 4;
+    render();
+  }
+});
 
 function shareFrame(title, copy, body, nextLabel = "Continue") {
   const progress = ((state.creatorStep + 1) / 6) * 100;
@@ -235,7 +317,7 @@ function render() {
 document.addEventListener("click", event => {
   if (event.target.closest("[data-detail-close]")) { closeProductDetail(); return; }
   const route = event.target.closest("[data-route]");
-  if (route) { state.route = route.dataset.route; if (state.route === "share" && route.dataset.route === "share") state.creatorStep = 0; render(); return; }
+  if (route) { state.route = route.dataset.route; if (state.route === "share" && route.dataset.route === "share") { state.creatorStep = 0; listingStep = 0; listingSettings = false; } render(); return; }
   const productButton = event.target.closest("[data-product]");
   if (productButton) {
     const product = projects.find(item => item.slug === productButton.dataset.product);
