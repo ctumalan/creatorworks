@@ -441,3 +441,14 @@ img { display: block; max-width: 100%; }
 .listing-preview-content dt { font-weight: 700; margin-top: 20px; }
 .listing-preview-content dd { margin: 6px 0 0; color: var(--muted); line-height: 1.5; white-space: pre-wrap; }
 .listing-preview-content > a { margin-top: 20px; display: inline-flex; }
+
+
+/* Signature violet connects the CreatorWorks wordmark and project names. */
+:root { --brand-violet: #8017ff; --brand-violet-hover: #6810d5; }
+.brand-name, .footer-brand { color: var(--brand-violet); }
+.brand-mark i { background: var(--brand-violet); }
+.row-title, .product-card-main > strong, .mealmap-wordmark,
+.community-rail-new > button strong,
+.listing-preview-card .listing-preview-content h2 { color: var(--brand-violet); }
+.row-title:hover, .community-rail-new > button:hover strong,
+.brand:hover .brand-name, .footer-brand:hover { color: var(--brand-violet-hover); }
