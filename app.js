@@ -210,6 +210,21 @@ function catalogStatusPanel() {
   if (catalogState === 'loading') return `<section class="page-shell discover-page"><div class="page-intro"><p class="eyebrow">Discover</p><h1>Loading projects…</h1></div><div class="empty-state"><p>Fetching the latest published listings.</p></div></section>`;
   return `<section class="page-shell discover-page"><div class="page-intro"><p class="eyebrow">Discover</p><h1>Projects are temporarily unavailable.</h1></div><div class="empty-state"><h2>We couldn’t load the catalog.</h2><p>This is a temporary problem reaching our servers. Nothing is wrong with your account.</p><button class="primary-button" data-catalog-retry>Try again</button></div></section>`;
 }
+// Calendar dates keep a tip stable throughout the visitor's local day.
+const creatorTips = [
+  "The cheapest time to catch a flawed idea is before you build it. The most expensive is after you’ve built a system to prove it doesn’t work.",
+  "Before adding another feature, watch someone try the one you already built. Their hesitation can show you what to improve next.",
+  "Describe your project through the problem it solves. Give someone a clear reason to try it in one short sentence.",
+  "Ask testers what they tried, where they got stuck, and what they expected. Specific questions make feedback easier to act on.",
+  "Give your first visitor one useful thing to do. A clear first step makes a new project easier to explore.",
+  "Test your shared link while signed out. Your first impression starts with what a new visitor can actually open.",
+  "Choose one assumption to test today. A small experiment can teach you more than another week of polishing."
+];
+function dailyCreatorTip(now = new Date()) {
+  const day = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  const elapsed = Math.max(0, Math.floor((day - Date.UTC(2026, 8, 7)) / 86400000));
+  return `<aside class="creator-daily-tip" aria-labelledby="daily-tip-title"><div><h2 id="daily-tip-title">Tip of the day</h2><span>For people who make things</span></div><p>${esc(creatorTips[elapsed % creatorTips.length])}</p></aside>`;
+}
 function discover(communityFocused = false) {
   // Never fall back to the built-in catalog on the server; show loading/unavailable instead.
   if (window.CW_SERVER && catalogState !== 'ready') return catalogStatusPanel();
@@ -222,6 +237,7 @@ function discover(communityFocused = false) {
   }).sort((a, b) => state.sort === "reviewed" ? experienceCount(b) - experienceCount(a) || b.recentOrder - a.recentOrder : b.recentOrder - a.recentOrder);
   return `<section class="page-shell discover-page">
     <div class="page-intro"><p class="eyebrow">Discover</p><h1>Find solutions others have already made.</h1></div>
+    ${dailyCreatorTip()}
     <div class="catalog-controls">
       <label class="catalog-search"><span aria-hidden="true">⌕</span><input data-catalog-search value="${esc(state.query)}" aria-label="Search by problem or tool" placeholder="Search for a tool to solve an everyday problem" /></label>
       <label class="sort-control">Price <select data-price-select><option value="all" ${state.price === 'all' ? 'selected' : ''}>All prices</option><option value="free" ${state.price === 'free' ? 'selected' : ''}>Free</option><option value="paid" ${state.price === 'paid' ? 'selected' : ''}>Paid</option></select></label>
