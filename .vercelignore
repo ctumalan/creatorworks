@@ -1,0 +1,9 @@
+.git
+.env*
+CLAUDE_*.txt
+codex-studio-test-prompts
+node_modules
+.astro
+.cw-public
+dist
+*.md

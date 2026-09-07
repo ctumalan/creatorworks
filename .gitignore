@@ -1,4 +1,8 @@
 .DS_Store
 .env*
 node_modules/
-
+.astro/
+.cw-public/
+.vercel/
+dist/
+.vercel

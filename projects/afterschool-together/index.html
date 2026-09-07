@@ -1,0 +1,2741 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>AfterSchool Together — let’s work out the rides</title>
+    <meta
+      name="description"
+      content="Swimming, piano and pickups at the same time? Plan your family’s after-school rides and spot where you need a little help. Works offline in your browser."
+    />
+    <style>
+/* AfterSchool Together — warm, calm, readable on a phone in a school car park. */
+
+:root {
+  --paper: #fbf6f0;
+  --card: #fffdfb;
+  --ink: #2b2521;
+  --ink-soft: #6b6058;
+  --ink-faint: #8c8078;
+  --line: #e8dcd0;
+  --line-strong: #d8c8b8;
+  --clay: #b0512b;
+  --clay-dark: #8d3f20;
+  --clay-wash: #fbeee7;
+  --leaf: #2f6b4f;
+  --leaf-wash: #e8f2ec;
+  --alert: #a83428;
+  --alert-wash: #fceceb;
+  --caution: #8a5605;
+  --caution-wash: #fbf1de;
+
+  --child-rose: #c8447a;
+  --child-teal: #0f7268;
+  --child-amber: #a06a06;
+  --child-violet: #6f4fb0;
+  --child-sky: #10648a;
+  --child-moss: #4a7526;
+
+  --radius: 14px;
+  --radius-lg: 20px;
+  --shadow: 0 1px 2px rgba(66, 46, 32, 0.06), 0 8px 24px rgba(66, 46, 32, 0.06);
+  --shadow-lift: 0 2px 6px rgba(66, 46, 32, 0.08), 0 18px 44px rgba(66, 46, 32, 0.13);
+  --sans: ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  --text: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--text);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+h1, h2, h3, h4 { font-family: var(--sans); line-height: 1.25; margin: 0; letter-spacing: -0.01em; }
+p { margin: 0; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+
+button, input, select, textarea { font: inherit; color: inherit; }
+
+/* Inline icons have no intrinsic size; give them one before anything else. */
+svg { width: 18px; height: 18px; flex: none; }
+
+:focus-visible {
+  outline: 3px solid var(--clay);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--ink);
+  color: #fff;
+  padding: 12px 18px;
+  z-index: 60;
+  border-radius: 0 0 var(--radius) 0;
+  text-decoration: none;
+}
+.skip-link:focus { left: 0; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0);
+  white-space: nowrap; border: 0;
+}
+
+/* --- buttons ------------------------------------------------------------ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 11px 18px;
+  border-radius: 999px;
+  border: 1.5px solid transparent;
+  background: var(--card);
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+
+.btn-primary { background: var(--clay); color: #fff; }
+.btn-primary:hover { background: var(--clay-dark); }
+
+.btn-quiet { background: var(--card); border-color: var(--line-strong); color: var(--ink); }
+.btn-quiet:hover { background: #fff; border-color: var(--clay); }
+
+.btn-plain {
+  min-height: 0;
+  padding: 4px 2px;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  color: var(--clay-dark);
+  font-family: var(--sans);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.btn-plain:hover { color: var(--ink); }
+
+.btn-small { min-height: 38px; padding: 7px 14px; font-size: 0.875rem; }
+
+.btn-danger { color: var(--alert); border-color: #e6c4c0; background: var(--card); }
+.btn-danger:hover { background: var(--alert-wash); border-color: var(--alert); }
+
+/* --- header ------------------------------------------------------------- */
+
+.masthead {
+  background: linear-gradient(178deg, #fdf3e9 0%, var(--paper) 100%);
+  border-bottom: 1px solid var(--line);
+}
+
+.masthead-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 22px 20px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 16px 28px;
+  justify-content: space-between;
+}
+
+.wordmark { display: flex; align-items: center; gap: 12px; }
+
+.wordmark-mark {
+  width: 42px; height: 42px;
+  border-radius: 13px;
+  background: var(--clay);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.wordmark-mark svg { width: 24px; height: 24px; }
+
+.wordmark h1 { font-size: 1.3rem; }
+.wordmark p { color: var(--ink-soft); font-size: 0.875rem; }
+
+.masthead-note {
+  max-width: 30rem;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.masthead-note svg { width: 16px; height: 16px; flex: none; margin-top: 3px; }
+
+/* --- shell -------------------------------------------------------------- */
+
+.shell { max-width: 1180px; margin: 0 auto; padding: 0 20px 72px; }
+
+.banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  margin-top: 18px;
+  padding: 14px 18px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--line-strong);
+  background: var(--card);
+  font-size: 0.92rem;
+}
+.banner strong { font-family: var(--sans); }
+.banner p { color: var(--ink-soft); flex: 1 1 18rem; }
+.banner-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.banner.is-example { background: var(--caution-wash); border-color: #e6cfa6; }
+.banner.is-alert { background: var(--alert-wash); border-color: #eec6c2; }
+.banner-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--sans); font-weight: 700; font-size: 0.78rem;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  padding: 4px 10px; border-radius: 999px;
+  background: #fff; border: 1.5px solid currentColor;
+}
+.banner-tag svg { width: 14px; height: 14px; }
+.banner.is-example .banner-tag { color: var(--caution); }
+.banner.is-alert .banner-tag { color: var(--alert); }
+
+/* --- day picker --------------------------------------------------------- */
+
+.daybar { margin: 22px 0 6px; }
+.daybar-label {
+  font-family: var(--sans); font-weight: 700; font-size: 0.78rem;
+  text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-faint);
+  margin-bottom: 8px;
+}
+.daybar-list { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
+
+.day-chip {
+  flex: 1 0 auto;
+  min-width: 84px;
+  min-height: 62px;
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--line-strong);
+  background: var(--card);
+  cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  font-family: var(--sans);
+}
+.day-chip span:first-child { font-weight: 700; font-size: 0.98rem; }
+.day-chip small { color: var(--ink-faint); font-size: 0.75rem; font-family: var(--text); }
+.day-chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+.day-chip[aria-pressed="true"] small { color: #e5d9cd; }
+.day-chip:hover { border-color: var(--clay); }
+.day-chip .chip-flag { color: var(--alert); font-weight: 700; font-size: 0.75rem; font-family: var(--text); display: inline-flex; align-items: center; gap: 4px; }
+.day-chip .chip-flag svg { width: 14px; height: 14px; }
+.day-chip[aria-pressed="true"] .chip-flag { color: #ffbaa8; }
+
+/* --- layout ------------------------------------------------------------- */
+
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+  margin-top: 18px;
+}
+@media (max-width: 900px) { .columns { grid-template-columns: minmax(0, 1fr); } }
+
+.panel {
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 20px;
+}
+.panel + .panel { margin-top: 18px; }
+
+.panel-head {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 10px 14px; margin-bottom: 14px;
+}
+.panel-head .btn { white-space: nowrap; flex: none; }
+.panel-head h2 { font-size: 1.12rem; }
+.panel-head p { color: var(--ink-soft); font-size: 0.87rem; }
+
+/* --- agenda ------------------------------------------------------------- */
+
+.agenda { display: flex; flex-direction: column; gap: 12px; }
+
+.agenda-item {
+  border: 1.5px solid var(--line);
+  border-left: 5px solid var(--child-line, var(--line-strong));
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  background: #fff;
+}
+.agenda-item.has-conflict { border-color: #eec6c2; background: #fffbfa; }
+
+.agenda-top { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; }
+
+.child-tag {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--sans); font-weight: 700; font-size: 0.9rem;
+  color: var(--child-line, var(--ink));
+}
+.child-tag .marker {
+  display: inline-grid; place-items: center;
+  width: 22px; height: 22px; border-radius: 7px;
+  background: var(--child-wash, #f1e7dc);
+  font-size: 0.7rem; line-height: 1;
+}
+
+.agenda-time { font-family: var(--sans); font-weight: 700; font-size: 0.95rem; white-space: nowrap; }
+.agenda-item h3 { font-size: 1.05rem; margin-top: 6px; }
+.agenda-where { color: var(--ink-soft); font-size: 0.9rem; margin-top: 2px; }
+
+.trip-row {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-top: 10px;
+}
+.trip-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 12px 5px 8px;
+  border-radius: 999px;
+  border: 1.5px solid var(--line-strong);
+  background: var(--paper);
+  font-size: 0.85rem;
+}
+.trip-pill svg { width: 15px; height: 15px; flex: none; color: var(--ink-soft); }
+.trip-pill b { font-family: var(--sans); font-weight: 700; }
+.trip-pill.is-open { border-color: var(--alert); background: var(--alert-wash); color: var(--alert); }
+.trip-pill.is-open svg { color: var(--alert); }
+.trip-pill.is-stay { border-color: #cbb69c; background: var(--caution-wash); color: var(--caution); }
+.trip-pill.is-stay svg { color: var(--caution); }
+
+.agenda-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+
+.agenda-flag {
+  display: flex; gap: 8px; align-items: flex-start;
+  margin-top: 11px; padding: 9px 12px;
+  border-radius: 10px; background: var(--alert-wash);
+  color: var(--alert); font-size: 0.85rem;
+}
+.agenda-flag svg { width: 16px; height: 16px; flex: none; margin-top: 2px; }
+
+/* --- conflicts ---------------------------------------------------------- */
+
+.tally { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: 10px; margin-bottom: 16px; }
+.tally-item {
+  border-radius: var(--radius);
+  border: 1.5px solid var(--line);
+  padding: 10px 14px;
+  background: var(--paper);
+}
+.tally-item b { display: block; font-family: var(--sans); font-size: 1.5rem; line-height: 1.1; }
+.tally-item span { font-size: 0.8rem; color: var(--ink-soft); }
+.tally-item.is-clear { background: var(--leaf-wash); border-color: #bcd7c8; }
+.tally-item.is-clear b { color: var(--leaf); }
+.tally-item.is-alert { background: var(--alert-wash); border-color: #eec6c2; }
+.tally-item.is-alert b { color: var(--alert); }
+.tally-item.is-caution { background: var(--caution-wash); border-color: #e6cfa6; }
+.tally-item.is-caution b { color: var(--caution); }
+
+.conflict-card {
+  border: 1.5px solid #eec6c2;
+  border-radius: var(--radius);
+  background: #fffbfa;
+  padding: 15px 16px;
+}
+.conflict-card + .conflict-card { margin-top: 12px; }
+.conflict-card.is-child { border-color: #cbb69c; background: #fffdf7; }
+
+.conflict-head { display: flex; gap: 9px; align-items: flex-start; }
+.conflict-head svg { width: 19px; height: 19px; flex: none; margin-top: 2px; color: var(--alert); }
+.conflict-card.is-child .conflict-head svg { color: var(--caution); }
+.conflict-head h3 { font-size: 1rem; }
+.conflict-day { font-size: 0.8rem; color: var(--ink-soft); }
+.conflict-why { margin-top: 8px; font-size: 0.92rem; color: var(--ink); }
+
+.conflict-estimate {
+  margin-top: 9px; padding: 8px 11px;
+  border-radius: 9px; background: var(--caution-wash);
+  color: var(--caution); font-size: 0.83rem;
+  display: flex; gap: 7px; align-items: flex-start;
+}
+.conflict-estimate svg { width: 15px; height: 15px; flex: none; margin-top: 2px; }
+
+.choices { margin-top: 12px; }
+.choices-label {
+  font-family: var(--sans); font-weight: 700; font-size: 0.76rem;
+  text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-faint);
+  margin-bottom: 7px;
+}
+.choices-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.choices-none { font-size: 0.86rem; color: var(--ink-soft); font-style: italic; }
+
+.empty-note {
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--radius);
+  padding: 22px 18px;
+  text-align: center;
+  color: var(--ink-soft);
+}
+.empty-note h3 { font-size: 1.05rem; color: var(--ink); margin-bottom: 6px; }
+.empty-note .empty-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 14px; }
+
+.all-clear {
+  display: flex; gap: 11px; align-items: flex-start;
+  border: 1.5px solid #bcd7c8; background: var(--leaf-wash);
+  border-radius: var(--radius); padding: 15px 16px;
+}
+.all-clear svg { width: 20px; height: 20px; flex: none; color: var(--leaf); margin-top: 2px; }
+.all-clear h3 { font-size: 1rem; color: var(--leaf); }
+.all-clear p { font-size: 0.88rem; color: var(--ink-soft); margin-top: 3px; }
+
+/* --- setup -------------------------------------------------------------- */
+
+.section-toggle {
+  width: 100%;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 16px 20px;
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  text-align: left;
+  margin-top: 18px;
+}
+.section-toggle h2 { font-size: 1.05rem; }
+.section-toggle p { font-size: 0.85rem; color: var(--ink-soft); }
+.section-toggle .chev { transition: transform 0.18s ease; width: 18px; height: 18px; flex: none; }
+.section-toggle[aria-expanded="true"] .chev { transform: rotate(180deg); }
+
+.setup-body { margin-top: -4px; }
+.setup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 18px; }
+
+.setup-block h3 { font-size: 0.95rem; margin-bottom: 3px; display: flex; align-items: center; gap: 7px; }
+.setup-block h3 svg { width: 17px; height: 17px; color: var(--clay); }
+.setup-block > p { font-size: 0.82rem; color: var(--ink-soft); margin-bottom: 10px; }
+
+.chip-list { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }
+.entity-chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 6px 5px 11px;
+  border-radius: 999px;
+  border: 1.5px solid var(--line-strong);
+  background: var(--paper);
+  font-size: 0.88rem;
+}
+.entity-chip .marker {
+  display: inline-grid; place-items: center;
+  width: 20px; height: 20px; border-radius: 6px;
+  background: var(--child-wash, #f1e7dc); color: var(--child-line, var(--ink));
+  font-size: 0.66rem;
+}
+.entity-chip button {
+  width: 24px; height: 24px;
+  border-radius: 50%; border: none;
+  background: transparent; color: var(--ink-faint);
+  cursor: pointer; display: grid; place-items: center;
+}
+.entity-chip button:hover { background: var(--alert-wash); color: var(--alert); }
+.entity-chip button svg { width: 13px; height: 13px; }
+
+.inline-add { display: flex; gap: 7px; }
+.inline-add input { flex: 1 1 auto; min-width: 0; }
+
+.field { display: block; margin-bottom: 12px; }
+.field > span {
+  display: block;
+  font-family: var(--sans); font-weight: 600; font-size: 0.85rem;
+  margin-bottom: 5px;
+}
+.field small { display: block; color: var(--ink-soft); font-size: 0.79rem; font-weight: 400; margin-top: 2px; }
+
+input[type="text"], input[type="time"], input[type="number"], select, textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1.5px solid var(--line-strong);
+  background: #fff;
+}
+input:hover, select:hover { border-color: var(--clay); }
+select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--ink-soft) 50%), linear-gradient(135deg, var(--ink-soft) 50%, transparent 50%); background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; padding-right: 34px; }
+
+.route-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.route-table th {
+  text-align: left; font-family: var(--sans); font-size: 0.76rem;
+  text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint);
+  padding: 0 8px 7px 0; font-weight: 700;
+}
+.route-table td { padding: 5px 8px 5px 0; border-top: 1px solid var(--line); vertical-align: middle; }
+.route-table td:last-child, .route-table th:last-child { padding-right: 0; width: 6.5rem; }
+.route-table input { min-height: 40px; text-align: right; }
+.route-estimated { font-size: 0.78rem; color: var(--caution); font-family: var(--sans); font-weight: 600; }
+.route-known { font-size: 0.78rem; color: var(--leaf); font-family: var(--sans); font-weight: 600; }
+
+.settings-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 14px; }
+
+/* --- data actions ------------------------------------------------------- */
+
+.action-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.fineprint {
+  margin-top: 14px;
+  font-size: 0.83rem;
+  color: var(--ink-soft);
+}
+.fineprint li { padding-left: 18px; position: relative; margin-top: 6px; }
+.fineprint li::before { content: "•"; position: absolute; left: 5px; color: var(--ink-faint); }
+
+/* --- dialogs ------------------------------------------------------------ */
+
+dialog {
+  width: min(560px, calc(100vw - 28px));
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: 0;
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--shadow-lift);
+}
+dialog::backdrop { background: rgba(43, 37, 33, 0.42); }
+
+.dialog-inner { padding: 22px; max-height: min(84vh, 780px); overflow-y: auto; }
+.dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 16px; }
+.dialog-head h2 { font-size: 1.15rem; }
+.dialog-head p { font-size: 0.86rem; color: var(--ink-soft); margin-top: 3px; }
+.dialog-close {
+  width: 38px; height: 38px; flex: none;
+  border-radius: 50%; border: 1.5px solid var(--line-strong);
+  background: var(--card); cursor: pointer;
+  display: grid; place-items: center;
+}
+.dialog-close:hover { background: var(--alert-wash); border-color: var(--alert); color: var(--alert); }
+.dialog-close svg { width: 15px; height: 15px; }
+
+.field-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 460px) { .field-pair { grid-template-columns: 1fr; } }
+
+.check-field {
+  display: flex; gap: 11px; align-items: flex-start;
+  padding: 13px 14px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--paper);
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+.check-field input { width: 22px; height: 22px; min-height: 0; flex: none; margin-top: 1px; accent-color: var(--clay); }
+.check-field b { font-family: var(--sans); font-size: 0.92rem; }
+.check-field small { display: block; color: var(--ink-soft); font-size: 0.82rem; margin-top: 2px; }
+
+.form-error {
+  display: flex; gap: 8px; align-items: flex-start;
+  padding: 11px 13px; margin-bottom: 14px;
+  border-radius: 10px;
+  background: var(--alert-wash); color: var(--alert);
+  border: 1.5px solid #eec6c2;
+  font-size: 0.87rem;
+}
+.form-error svg { width: 16px; height: 16px; flex: none; margin-top: 2px; }
+
+.dialog-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+.dialog-actions .spacer { margin-right: auto; }
+
+.plan-text {
+  width: 100%;
+  min-height: 15rem;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+}
+
+/* --- toast -------------------------------------------------------------- */
+
+.toast-anchor {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  z-index: 50;
+  width: min(30rem, calc(100vw - 24px));
+  pointer-events: none;
+}
+.toast {
+  pointer-events: auto;
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 13px 16px;
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: #fff;
+  box-shadow: var(--shadow-lift);
+  font-size: 0.9rem;
+}
+.toast svg { width: 17px; height: 17px; flex: none; margin-top: 2px; }
+.toast.is-error { background: var(--alert); }
+.toast.is-good { background: var(--leaf); }
+.toast button {
+  margin-left: auto; flex: none;
+  background: none; border: none; color: inherit;
+  cursor: pointer; opacity: 0.75; padding: 0 2px;
+}
+.toast button:hover { opacity: 1; }
+
+/* --- footer ------------------------------------------------------------- */
+
+.colophon {
+  border-top: 1px solid var(--line);
+  padding: 22px 20px 40px;
+  color: var(--ink-soft);
+  font-size: 0.84rem;
+}
+.colophon-inner { max-width: 1180px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
+
+/* --- print -------------------------------------------------------------- */
+
+/* Printing gives the plain driver sheet for the current day, nothing else. */
+.print-sheet { display: none; }
+
+@media print {
+  body { background: #fff; }
+  #root > *:not(.print-sheet) { display: none !important; }
+  .skip-link { display: none !important; }
+  .print-sheet { display: block !important; }
+  .print-sheet pre {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11pt;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    margin: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+  .btn:hover { transform: none; }
+}
+    </style>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23b0512b'/%3E%3Cg fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round'%3E%3Crect x='7.5' y='9' width='17' height='15' rx='3'/%3E%3Cpath d='M12 6.5v4M20 6.5v4M7.5 14.5h17'/%3E%3C/g%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to the plan</a>
+    <div id="root"></div>
+    <noscript>
+      <div style="max-width: 40rem; margin: 4rem auto; padding: 0 1.25rem; font-family: system-ui, sans-serif">
+        <h1>AfterSchool Together</h1>
+        <p>
+          This tool works out whether one adult can actually make every after-school drop-off and pickup. It does all of
+          that in your browser, so it needs JavaScript switched on. Nothing is sent to a server either way.
+        </p>
+      </div>
+    </noscript>
+    <script>
+"use strict";
+(function () {
+/* ---- src/lib/time.js ---- */
+// Time helpers. Pure functions, no DOM, safe to unit test.
+
+const DAYS = [
+  { id: "mon", label: "Monday", short: "Mon" },
+  { id: "tue", label: "Tuesday", short: "Tue" },
+  { id: "wed", label: "Wednesday", short: "Wed" },
+  { id: "thu", label: "Thursday", short: "Thu" },
+  { id: "fri", label: "Friday", short: "Fri" },
+  { id: "sat", label: "Saturday", short: "Sat" },
+  { id: "sun", label: "Sunday", short: "Sun" },
+];
+
+const DAY_IDS = DAYS.map(day => day.id);
+
+function dayLabel(dayId) {
+  return DAYS.find(day => day.id === dayId)?.label || "Unknown day";
+}
+
+// "15:30" -> 930. Returns null for anything that is not a real clock time.
+function parseTime(value) {
+  if (typeof value !== "string") return null;
+  const match = /^(\d{1,2}):(\d{2})$/.exec(value.trim());
+  if (!match) return null;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (!Number.isInteger(hours) || !Number.isInteger(minutes)) return null;
+  if (hours > 23 || minutes > 59) return null;
+  return hours * 60 + minutes;
+}
+
+// 930 -> "15:30" (the value shape an <input type="time"> expects).
+function toTimeValue(minutes) {
+  if (!Number.isFinite(minutes)) return "";
+  const total = ((Math.round(minutes) % 1440) + 1440) % 1440;
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+}
+
+// 930 -> "3:30 PM"
+function formatTime(minutes) {
+  if (!Number.isFinite(minutes)) return "—";
+  const total = ((Math.round(minutes) % 1440) + 1440) % 1440;
+  const hours24 = Math.floor(total / 60);
+  const mins = total % 60;
+  const suffix = hours24 < 12 ? "AM" : "PM";
+  const hours12 = hours24 % 12 === 0 ? 12 : hours24 % 12;
+  return `${hours12}:${String(mins).padStart(2, "0")} ${suffix}`;
+}
+
+// 75 -> "1 hr 15 min"
+function formatMinutes(minutes) {
+  if (!Number.isFinite(minutes)) return "—";
+  const value = Math.max(0, Math.round(minutes));
+  if (value < 60) return `${value} min`;
+  const hours = Math.floor(value / 60);
+  const rest = value % 60;
+  return rest ? `${hours} hr ${rest} min` : `${hours} hr`;
+}
+
+// Non-negative integers only. Used for travel times and the handoff buffer.
+function parseMinutesInput(value) {
+  if (typeof value === "number") return Number.isFinite(value) && value >= 0 ? Math.round(value) : null;
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (trimmed === "" || !/^\d+$/.test(trimmed)) return null;
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+}
+
+/* ---- src/lib/model.js ---- */
+// Plan shape, defaults, and the labelled example week.
+
+const PLAN_VERSION = 1;
+const BACKUP_FORMAT = "afterschool-together.plan";
+
+// Child markers are colour + a distinct shape word, never colour alone.
+const CHILD_COLORS = [
+  { id: "rose", label: "Rose", shape: "●" },
+  { id: "teal", label: "Teal", shape: "■" },
+  { id: "amber", label: "Amber", shape: "▲" },
+  { id: "violet", label: "Violet", shape: "◆" },
+  { id: "sky", label: "Sky", shape: "★" },
+  { id: "moss", label: "Moss", shape: "⬟" },
+];
+
+const DEFAULT_SETTINGS = {
+  bufferMinutes: 10,
+  defaultTravelMinutes: 20,
+};
+
+let idCounter = 0;
+
+// Deterministic-ish local ids. Uniqueness only has to hold inside one browser plan.
+function makeId(prefix) {
+  idCounter += 1;
+  const random = Math.random().toString(36).slice(2, 8);
+  return `${prefix}_${Date.now().toString(36)}${idCounter.toString(36)}${random}`;
+}
+
+function emptyPlan() {
+  return {
+    version: PLAN_VERSION,
+    isExample: false,
+    children: [],
+    caregivers: [],
+    venues: [],
+    activities: [],
+    routes: [],
+    settings: { ...DEFAULT_SETTINGS },
+  };
+}
+
+function childColor(child) {
+  return CHILD_COLORS.find(color => color.id === child?.color) || CHILD_COLORS[0];
+}
+
+function findById(list, id) {
+  return (list || []).find(item => item.id === id) || null;
+}
+
+function childName(plan, id) {
+  return findById(plan.children, id)?.name || "Unknown child";
+}
+
+function caregiverName(plan, id) {
+  return findById(plan.caregivers, id)?.name || "Nobody yet";
+}
+
+function venueName(plan, id) {
+  return findById(plan.venues, id)?.name || "Unknown place";
+}
+
+// The sample week shown on first open. Every screen labels it as example data.
+function examplePlan() {
+  const ada = "child_ada";
+  const milo = "child_milo";
+  const nia = "child_nia";
+  const jess = "care_jess";
+  const ray = "care_ray";
+  const dee = "care_dee";
+  const pool = "venue_pool";
+  const school = "venue_school";
+  const gym = "venue_gym";
+  const studio = "venue_studio";
+
+  return {
+    version: PLAN_VERSION,
+    isExample: true,
+    children: [
+      { id: ada, name: "Ada", color: "rose" },
+      { id: milo, name: "Milo", color: "teal" },
+      { id: nia, name: "Nia", color: "amber" },
+    ],
+    caregivers: [
+      { id: jess, name: "Jess" },
+      { id: ray, name: "Ray" },
+      { id: dee, name: "Aunt Dee" },
+    ],
+    venues: [
+      { id: school, name: "Oakline School" },
+      { id: pool, name: "Riverside Pool" },
+      { id: gym, name: "Little Gym" },
+      { id: studio, name: "Studio 9" },
+    ],
+    routes: [
+      { id: "route_1", fromVenueId: school, toVenueId: pool, minutes: 12 },
+      { id: "route_2", fromVenueId: school, toVenueId: gym, minutes: 15 },
+      { id: "route_3", fromVenueId: pool, toVenueId: gym, minutes: 14 },
+      { id: "route_4", fromVenueId: school, toVenueId: studio, minutes: 9 },
+    ],
+    activities: [
+      {
+        id: "act_1", childId: milo, name: "Chess club", venueId: school, day: "mon",
+        start: "15:30", end: "17:00", dropoffCaregiverId: jess, pickupCaregiverId: ray, adultStays: false,
+      },
+      {
+        id: "act_2", childId: ada, name: "Swim practice", venueId: pool, day: "mon",
+        start: "15:45", end: "17:00", dropoffCaregiverId: jess, pickupCaregiverId: jess, adultStays: false,
+      },
+      {
+        id: "act_3", childId: nia, name: "Gymnastics", venueId: gym, day: "mon",
+        start: "16:15", end: "17:15", dropoffCaregiverId: ray, pickupCaregiverId: ray, adultStays: true,
+      },
+      {
+        id: "act_4", childId: milo, name: "Soccer", venueId: school, day: "tue",
+        start: "15:30", end: "16:30", dropoffCaregiverId: jess, pickupCaregiverId: jess, adultStays: false,
+      },
+      {
+        id: "act_5", childId: ada, name: "Art studio", venueId: studio, day: "tue",
+        start: "16:00", end: "17:00", dropoffCaregiverId: ray, pickupCaregiverId: null, adultStays: false,
+      },
+      {
+        id: "act_6", childId: milo, name: "Art studio", venueId: studio, day: "wed",
+        start: "15:45", end: "16:45", dropoffCaregiverId: jess, pickupCaregiverId: jess, adultStays: false,
+      },
+      {
+        id: "act_7", childId: nia, name: "Gymnastics", venueId: gym, day: "wed",
+        start: "16:30", end: "17:30", dropoffCaregiverId: jess, pickupCaregiverId: ray, adultStays: false,
+      },
+      {
+        id: "act_8", childId: nia, name: "Swim lesson", venueId: pool, day: "thu",
+        start: "16:00", end: "17:00", dropoffCaregiverId: dee, pickupCaregiverId: dee, adultStays: false,
+      },
+      {
+        id: "act_9", childId: ada, name: "Chess club", venueId: school, day: "thu",
+        start: "16:30", end: "17:30", dropoffCaregiverId: dee, pickupCaregiverId: jess, adultStays: false,
+      },
+    ],
+    settings: { ...DEFAULT_SETTINGS },
+  };
+}
+
+function isDayId(value) {
+  return DAY_IDS.includes(value);
+}
+
+/* ---- src/lib/conflicts.js ---- */
+// Transport feasibility engine.
+//
+// The question this answers is not "do two events overlap?" but "can one adult
+// physically make every trip they have been given?".
+//
+// Every activity produces trips (obligations) that put a named adult at a named
+// place at a named time. Two trips for the same adult on the same day are
+// compared using the travel time the family entered between those places, plus a
+// visible arrival/handoff buffer. Children are checked separately, because a
+// child can be double-booked even when two different adults are driving.
+//
+// Pure module: no DOM, no storage, no clock. Deterministic for tests.
+
+
+const ROLE_LABEL = { dropoff: "Drop-off", pickup: "Pickup", stay: "Stay for the whole session" };
+
+// ---------------------------------------------------------------------------
+// Settings and routes
+// ---------------------------------------------------------------------------
+
+function readSettings(plan) {
+  const issues = [];
+  const raw = plan?.settings || {};
+  let bufferMinutes = parseMinutesInput(raw.bufferMinutes);
+  if (bufferMinutes === null) {
+    if (raw.bufferMinutes !== undefined) {
+      issues.push({ type: "invalid-buffer", message: "The handoff buffer must be a whole number of minutes, so 10 minutes is being used instead." });
+    }
+    bufferMinutes = DEFAULT_SETTINGS.bufferMinutes;
+  }
+  let defaultTravelMinutes = parseMinutesInput(raw.defaultTravelMinutes);
+  if (defaultTravelMinutes === null) {
+    if (raw.defaultTravelMinutes !== undefined) {
+      issues.push({ type: "invalid-default-travel", message: "The estimated travel time must be a whole number of minutes, so 20 minutes is being used instead." });
+    }
+    defaultTravelMinutes = DEFAULT_SETTINGS.defaultTravelMinutes;
+  }
+  return { bufferMinutes, defaultTravelMinutes, issues };
+}
+
+// Travel between two places. Same place is genuinely zero. A missing route is
+// never treated as "fine" — it is returned as an explicit estimate.
+function travelBetween(plan, fromVenueId, toVenueId, settings) {
+  const config = settings || readSettings(plan);
+  if (fromVenueId === toVenueId) {
+    return { minutes: 0, estimated: false, sameVenue: true };
+  }
+  for (const route of plan?.routes || []) {
+    const matches =
+      (route.fromVenueId === fromVenueId && route.toVenueId === toVenueId) ||
+      (route.fromVenueId === toVenueId && route.toVenueId === fromVenueId);
+    if (!matches) continue;
+    const minutes = parseMinutesInput(route.minutes);
+    if (minutes === null) break; // invalid entry: fall through to the estimate
+    return { minutes, estimated: false, sameVenue: false };
+  }
+  return { minutes: config.defaultTravelMinutes, estimated: true, sameVenue: false };
+}
+
+// Minutes one adult needs between finishing at one place and being due at another.
+// Same place needs nothing: the adult is already standing there.
+function requiredGap(plan, fromVenueId, toVenueId, settings) {
+  const config = settings || readSettings(plan);
+  const travel = travelBetween(plan, fromVenueId, toVenueId, config);
+  if (travel.sameVenue) {
+    return { minutes: 0, travelMinutes: 0, bufferMinutes: 0, estimated: false, sameVenue: true };
+  }
+  return {
+    minutes: travel.minutes + config.bufferMinutes,
+    travelMinutes: travel.minutes,
+    bufferMinutes: config.bufferMinutes,
+    estimated: travel.estimated,
+    sameVenue: false,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Trips
+// ---------------------------------------------------------------------------
+
+// Turns activities into the trips adults actually have to make.
+// Returns { obligations, unassigned, issues, valid }.
+function buildObligations(plan) {
+  const obligations = [];
+  const unassigned = [];
+  const issues = [];
+  const valid = [];
+  const childIds = new Set((plan?.children || []).map(child => child.id));
+  const venueIds = new Set((plan?.venues || []).map(venue => venue.id));
+  const caregiverIds = new Set((plan?.caregivers || []).map(caregiver => caregiver.id));
+
+  for (const activity of plan?.activities || []) {
+    const start = parseTime(activity.start);
+    const end = parseTime(activity.end);
+    if (start === null || end === null) {
+      issues.push({ type: "invalid-time", activityId: activity.id, dayId: activity.day, message: `“${activity.name || "Untitled activity"}” has a start or end time that is not a real clock time, so it is not being checked.` });
+      continue;
+    }
+    if (end <= start) {
+      issues.push({ type: "invalid-time", activityId: activity.id, dayId: activity.day, message: `“${activity.name || "Untitled activity"}” ends at or before it starts, so it is not being checked.` });
+      continue;
+    }
+    if (!DAY_IDS.includes(activity.day)) {
+      issues.push({ type: "invalid-day", activityId: activity.id, message: `“${activity.name || "Untitled activity"}” is not on a recognised weekday, so it is not being checked.` });
+      continue;
+    }
+    if (!childIds.has(activity.childId)) {
+      issues.push({ type: "unknown-child", activityId: activity.id, dayId: activity.day, message: `“${activity.name || "Untitled activity"}” is not linked to a child yet.` });
+      continue;
+    }
+    if (!venueIds.has(activity.venueId)) {
+      issues.push({ type: "unknown-venue", activityId: activity.id, dayId: activity.day, message: `“${activity.name || "Untitled activity"}” does not have a place yet, so travel cannot be checked.` });
+      continue;
+    }
+
+    const resolved = { ...activity, startMinutes: start, endMinutes: end };
+    valid.push(resolved);
+
+    const dropoffId = caregiverIds.has(activity.dropoffCaregiverId) ? activity.dropoffCaregiverId : null;
+    const pickupId = caregiverIds.has(activity.pickupCaregiverId) ? activity.pickupCaregiverId : null;
+    const base = {
+      activityId: activity.id,
+      activityName: activity.name || "Untitled activity",
+      childId: activity.childId,
+      venueId: activity.venueId,
+      dayId: activity.day,
+      adultStays: Boolean(activity.adultStays),
+    };
+
+    if (activity.adultStays) {
+      // The adult is held at the venue for the entire session.
+      const stay = { ...base, key: `${activity.id}:stay`, role: "stay", caregiverId: dropoffId, from: start, to: end };
+      if (dropoffId) obligations.push(stay);
+      else {
+        unassigned.push(stay);
+        issues.push({ type: "unassigned", activityId: activity.id, dayId: activity.day, role: "stay", message: `“${base.activityName}” needs an adult to stay for the whole session, and nobody is assigned yet.` });
+      }
+      // A different adult may take over at the end; the staying adult hands off in person.
+      if (pickupId && pickupId !== dropoffId) {
+        obligations.push({ ...base, key: `${activity.id}:pickup`, role: "pickup", caregiverId: pickupId, from: end, to: end });
+      }
+      continue;
+    }
+
+    const dropoff = { ...base, key: `${activity.id}:dropoff`, role: "dropoff", caregiverId: dropoffId, from: start, to: start };
+    if (dropoffId) obligations.push(dropoff);
+    else {
+      unassigned.push(dropoff);
+      issues.push({ type: "unassigned", activityId: activity.id, dayId: activity.day, role: "dropoff", message: `“${base.activityName}” has no drop-off driver yet.` });
+    }
+
+    const pickup = { ...base, key: `${activity.id}:pickup`, role: "pickup", caregiverId: pickupId, from: end, to: end };
+    if (pickupId) obligations.push(pickup);
+    else {
+      unassigned.push(pickup);
+      issues.push({ type: "unassigned", activityId: activity.id, dayId: activity.day, role: "pickup", message: `“${base.activityName}” has no pickup driver yet.` });
+    }
+  }
+
+  return { obligations, unassigned, issues, valid };
+}
+
+// ---------------------------------------------------------------------------
+// Conflicts
+// ---------------------------------------------------------------------------
+
+function sortByStart(a, b) {
+  return a.from - b.from || a.to - b.to || a.key.localeCompare(b.key);
+}
+
+function groupBy(items, keyFn) {
+  const map = new Map();
+  for (const item of items) {
+    const key = keyFn(item);
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(item);
+  }
+  return map;
+}
+
+// Every pair of trips one adult has on one day, not just neighbours: a long
+// "stay" can collide with a trip two slots later.
+function findDriverConflicts(plan, obligations, settings) {
+  const config = settings || readSettings(plan);
+  const conflicts = [];
+  const byDriverDay = groupBy(obligations, item => `${item.caregiverId}|${item.dayId}`);
+
+  for (const [, group] of byDriverDay) {
+    const sorted = [...group].sort(sortByStart);
+    for (let i = 0; i < sorted.length; i += 1) {
+      for (let j = i + 1; j < sorted.length; j += 1) {
+        const earlier = sorted[i];
+        const later = sorted[j];
+        if (earlier.activityId === later.activityId) continue; // same session, already consistent
+        const need = requiredGap(plan, earlier.venueId, later.venueId, config);
+        const gap = later.from - earlier.to;
+        if (gap >= need.minutes) continue; // exactly meeting the requirement is feasible
+        conflicts.push({
+          id: `driver|${earlier.caregiverId}|${earlier.dayId}|${earlier.key}|${later.key}`,
+          kind: "driver",
+          dayId: earlier.dayId,
+          caregiverId: earlier.caregiverId,
+          first: earlier,
+          second: later,
+          gapMinutes: gap,
+          requiredMinutes: need.minutes,
+          shortfallMinutes: need.minutes - gap,
+          travelMinutes: need.travelMinutes,
+          bufferMinutes: need.bufferMinutes,
+          estimated: need.estimated,
+          sameVenue: need.sameVenue,
+        });
+      }
+    }
+  }
+  return conflicts;
+}
+
+// A child cannot be in two places at once, whoever is driving.
+function findChildConflicts(plan, activities, settings) {
+  const config = settings || readSettings(plan);
+  const conflicts = [];
+  const byChildDay = groupBy(activities, item => `${item.childId}|${item.day}`);
+
+  for (const [, group] of byChildDay) {
+    const sorted = [...group].sort((a, b) => a.startMinutes - b.startMinutes || a.endMinutes - b.endMinutes || a.id.localeCompare(b.id));
+    for (let i = 0; i < sorted.length; i += 1) {
+      for (let j = i + 1; j < sorted.length; j += 1) {
+        const earlier = sorted[i];
+        const later = sorted[j];
+        const overlaps = earlier.startMinutes < later.endMinutes && later.startMinutes < earlier.endMinutes;
+        const need = requiredGap(plan, earlier.venueId, later.venueId, config);
+        const gap = later.startMinutes - earlier.endMinutes;
+        if (!overlaps && gap >= need.minutes) continue;
+        conflicts.push({
+          id: `${overlaps ? "child-overlap" : "child-travel"}|${earlier.childId}|${earlier.day}|${earlier.id}|${later.id}`,
+          kind: overlaps ? "child-overlap" : "child-travel",
+          dayId: earlier.day,
+          childId: earlier.childId,
+          first: earlier,
+          second: later,
+          gapMinutes: gap,
+          requiredMinutes: need.minutes,
+          shortfallMinutes: need.minutes - gap,
+          travelMinutes: need.travelMinutes,
+          bufferMinutes: need.bufferMinutes,
+          estimated: need.estimated,
+          sameVenue: need.sameVenue,
+        });
+      }
+    }
+  }
+  return conflicts;
+}
+
+function analyzePlan(plan) {
+  const settings = readSettings(plan);
+  const { obligations, unassigned, issues, valid } = buildObligations(plan);
+  const driverConflicts = findDriverConflicts(plan, obligations, settings);
+  const childConflicts = findChildConflicts(plan, valid, settings);
+  const conflicts = [...driverConflicts, ...childConflicts];
+
+  // Venue pairs where no real travel time exists, so the answer is an estimate.
+  const estimatedPairs = new Map();
+  const noteEstimate = (fromVenueId, toVenueId) => {
+    if (fromVenueId === toVenueId) return;
+    const need = requiredGap(plan, fromVenueId, toVenueId, settings);
+    if (!need.estimated) return;
+    const key = [fromVenueId, toVenueId].sort().join("|");
+    if (!estimatedPairs.has(key)) estimatedPairs.set(key, { fromVenueId, toVenueId, minutes: need.travelMinutes });
+  };
+  for (const [, group] of groupBy(obligations, item => `${item.caregiverId}|${item.dayId}`)) {
+    const sorted = [...group].sort(sortByStart);
+    for (let i = 0; i < sorted.length; i += 1) {
+      for (let j = i + 1; j < sorted.length; j += 1) noteEstimate(sorted[i].venueId, sorted[j].venueId);
+    }
+  }
+  for (const [, group] of groupBy(valid, item => `${item.childId}|${item.day}`)) {
+    for (let i = 0; i < group.length; i += 1) {
+      for (let j = i + 1; j < group.length; j += 1) noteEstimate(group[i].venueId, group[j].venueId);
+    }
+  }
+
+  const allIssues = [...settings.issues, ...issues];
+  const byDay = {};
+  for (const dayId of DAY_IDS) {
+    byDay[dayId] = {
+      activities: valid.filter(activity => activity.day === dayId),
+      obligations: obligations.filter(item => item.dayId === dayId),
+      unassigned: unassigned.filter(item => item.dayId === dayId),
+      conflicts: conflicts.filter(item => item.dayId === dayId),
+      issues: allIssues.filter(item => item.dayId === dayId),
+    };
+  }
+
+  return {
+    settings,
+    obligations,
+    unassigned,
+    activities: valid,
+    conflicts,
+    driverConflicts,
+    childConflicts,
+    issues: allIssues,
+    estimatedRoutes: [...estimatedPairs.values()],
+    byDay,
+    counts: {
+      conflicts: conflicts.length,
+      driverConflicts: driverConflicts.length,
+      childConflicts: childConflicts.length,
+      issues: allIssues.length,
+      unassigned: unassigned.length,
+      estimatedRoutes: estimatedPairs.size,
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Suggestions
+// ---------------------------------------------------------------------------
+
+// Returns a copy of the plan with one trip handed to a different adult.
+function reassignTrip(plan, trip, caregiverId) {
+  return {
+    ...plan,
+    activities: (plan.activities || []).map(activity => {
+      if (activity.id !== trip.activityId) return activity;
+      if (trip.role === "pickup") return { ...activity, pickupCaregiverId: caregiverId };
+      const next = { ...activity, dropoffCaregiverId: caregiverId };
+      // When one adult stays for the whole session, whoever stays also collects
+      // the child unless a different adult was named for pickup.
+      if (trip.role === "stay" && activity.pickupCaregiverId === activity.dropoffCaregiverId) {
+        next.pickupCaregiverId = caregiverId;
+      }
+      return next;
+    }),
+  };
+}
+
+// Alternate adults are only offered when that adult's whole day still works.
+// Nothing here contacts anyone or treats a ride as agreed — it is a suggestion
+// the parent has to click.
+function suggestAlternateDrivers(plan, conflict) {
+  if (!conflict || conflict.kind !== "driver") return [];
+  const baseline = analyzePlan(plan).counts.conflicts;
+  const suggestions = [];
+
+  for (const trip of [conflict.first, conflict.second]) {
+    for (const caregiver of plan.caregivers || []) {
+      if (caregiver.id === conflict.caregiverId) continue;
+      const candidatePlan = reassignTrip(plan, trip, caregiver.id);
+      const result = analyzePlan(candidatePlan);
+      if (result.conflicts.some(item => item.id === conflict.id)) continue;
+      if (result.counts.conflicts >= baseline) continue;
+      const theirTrouble = result.conflicts.filter(
+        item => item.kind === "driver" && item.caregiverId === caregiver.id,
+      );
+      if (theirTrouble.length) continue; // their own schedule would stop working
+      suggestions.push({
+        caregiverId: caregiver.id,
+        trip,
+        remainingConflicts: result.counts.conflicts,
+        resolvedCount: baseline - result.counts.conflicts,
+      });
+    }
+  }
+  return suggestions;
+}
+
+/* ---- src/lib/storage.js ---- */
+// Local persistence and versioned backup files.
+//
+// Everything lives in this browser. Nothing is sent anywhere. If the stored
+// data is unreadable it is kept aside rather than thrown away, and the app
+// starts from the example week instead of a blank screen.
+
+
+const STORAGE_KEY = "afterschool-together.plan.v1";
+const CORRUPT_BACKUP_KEY = "afterschool-together.unreadable-backup.v1";
+
+const isPlainObject = value => Boolean(value) && typeof value === "object" && !Array.isArray(value);
+const cleanText = (value, fallback = "") => {
+  if (typeof value !== "string") return fallback;
+  const trimmed = value.trim().replace(/\s+/g, " ");
+  return trimmed.slice(0, 60) || fallback;
+};
+
+function normalizePeople(list, prefix, errors, colored = false) {
+  const out = [];
+  const seen = new Set();
+  if (list !== undefined && !Array.isArray(list)) {
+    errors.push(`The "${prefix}" section is not a list, so it was skipped.`);
+    return out;
+  }
+  for (const entry of list || []) {
+    if (!isPlainObject(entry) || typeof entry.id !== "string" || !entry.id.trim()) {
+      errors.push(`One ${prefix} entry was missing an id and was skipped.`);
+      continue;
+    }
+    if (seen.has(entry.id)) {
+      errors.push(`Two ${prefix} entries shared the id "${entry.id}"; the second was skipped.`);
+      continue;
+    }
+    const name = cleanText(entry.name);
+    if (!name) {
+      errors.push(`One ${prefix} entry had no name and was skipped.`);
+      continue;
+    }
+    seen.add(entry.id);
+    const person = { id: entry.id, name };
+    if (colored) {
+      person.color = CHILD_COLORS.some(color => color.id === entry.color) ? entry.color : CHILD_COLORS[out.length % CHILD_COLORS.length].id;
+    }
+    out.push(person);
+  }
+  return out;
+}
+
+// Turns unknown data into a plan we can safely render, collecting every repair.
+function normalizePlan(raw) {
+  const errors = [];
+  if (!isPlainObject(raw)) {
+    return { ok: false, plan: emptyPlan(), errors: ["The file did not contain a plan object."] };
+  }
+  if (raw.version !== undefined && (typeof raw.version !== "number" || !Number.isInteger(raw.version) || raw.version < 1)) {
+    return { ok: false, plan: emptyPlan(), errors: ["The plan version is not a whole number, so the file was not opened."] };
+  }
+  if (typeof raw.version === "number" && raw.version > PLAN_VERSION) {
+    return { ok: false, plan: emptyPlan(), errors: [`This backup was written by a newer version of AfterSchool Together (version ${raw.version}). Update the app before opening it.`] };
+  }
+
+  const children = normalizePeople(raw.children, "child", errors, true);
+  const caregivers = normalizePeople(raw.caregivers, "caregiver", errors);
+  const venues = normalizePeople(raw.venues, "place", errors);
+  const childIds = new Set(children.map(child => child.id));
+  const caregiverIds = new Set(caregivers.map(caregiver => caregiver.id));
+  const venueIds = new Set(venues.map(venue => venue.id));
+
+  const routes = [];
+  const routeSeen = new Set();
+  if (raw.routes !== undefined && !Array.isArray(raw.routes)) errors.push('The "routes" section is not a list, so it was skipped.');
+  for (const entry of Array.isArray(raw.routes) ? raw.routes : []) {
+    if (!isPlainObject(entry) || !venueIds.has(entry.fromVenueId) || !venueIds.has(entry.toVenueId)) {
+      errors.push("One travel time referred to a place that is not in the file and was skipped.");
+      continue;
+    }
+    if (entry.fromVenueId === entry.toVenueId) continue;
+    const minutes = parseMinutesInput(entry.minutes);
+    if (minutes === null) {
+      errors.push("One travel time was not a whole number of minutes and was skipped.");
+      continue;
+    }
+    const key = [entry.fromVenueId, entry.toVenueId].sort().join("|");
+    if (routeSeen.has(key)) {
+      errors.push("Two travel times described the same pair of places; the second was skipped.");
+      continue;
+    }
+    routeSeen.add(key);
+    routes.push({
+      id: typeof entry.id === "string" && entry.id ? entry.id : `route_${routes.length + 1}`,
+      fromVenueId: entry.fromVenueId,
+      toVenueId: entry.toVenueId,
+      minutes,
+    });
+  }
+
+  const activities = [];
+  const activitySeen = new Set();
+  if (raw.activities !== undefined && !Array.isArray(raw.activities)) errors.push('The "activities" section is not a list, so it was skipped.');
+  for (const entry of Array.isArray(raw.activities) ? raw.activities : []) {
+    if (!isPlainObject(entry) || typeof entry.id !== "string" || !entry.id.trim()) {
+      errors.push("One activity was missing an id and was skipped.");
+      continue;
+    }
+    if (activitySeen.has(entry.id)) {
+      errors.push(`Two activities shared the id "${entry.id}"; the second was skipped.`);
+      continue;
+    }
+    if (!childIds.has(entry.childId)) {
+      errors.push(`“${cleanText(entry.name, "One activity")}” pointed at a child who is not in the file and was skipped.`);
+      continue;
+    }
+    if (!venueIds.has(entry.venueId)) {
+      errors.push(`“${cleanText(entry.name, "One activity")}” pointed at a place that is not in the file and was skipped.`);
+      continue;
+    }
+    if (!DAY_IDS.includes(entry.day)) {
+      errors.push(`“${cleanText(entry.name, "One activity")}” was not on a recognised weekday and was skipped.`);
+      continue;
+    }
+    if (parseTime(entry.start) === null || parseTime(entry.end) === null) {
+      errors.push(`“${cleanText(entry.name, "One activity")}” had a time that is not a real clock time and was skipped.`);
+      continue;
+    }
+    if (entry.dropoffCaregiverId != null && !caregiverIds.has(entry.dropoffCaregiverId)) {
+      errors.push(`“${cleanText(entry.name, "One activity")}” named a drop-off driver who is not in the file, so that trip is unassigned.`);
+    }
+    if (entry.pickupCaregiverId != null && !caregiverIds.has(entry.pickupCaregiverId)) {
+      errors.push(`“${cleanText(entry.name, "One activity")}” named a pickup driver who is not in the file, so that trip is unassigned.`);
+    }
+    activitySeen.add(entry.id);
+    activities.push({
+      id: entry.id,
+      childId: entry.childId,
+      name: cleanText(entry.name, "Untitled activity"),
+      venueId: entry.venueId,
+      day: entry.day,
+      start: entry.start.trim(),
+      end: entry.end.trim(),
+      dropoffCaregiverId: caregiverIds.has(entry.dropoffCaregiverId) ? entry.dropoffCaregiverId : null,
+      pickupCaregiverId: caregiverIds.has(entry.pickupCaregiverId) ? entry.pickupCaregiverId : null,
+      adultStays: entry.adultStays === true,
+    });
+  }
+
+  const rawSettings = isPlainObject(raw.settings) ? raw.settings : {};
+  const bufferMinutes = parseMinutesInput(rawSettings.bufferMinutes);
+  const defaultTravelMinutes = parseMinutesInput(rawSettings.defaultTravelMinutes);
+  if (rawSettings.bufferMinutes !== undefined && bufferMinutes === null) errors.push("The handoff buffer was not a whole number of minutes, so 10 minutes is being used.");
+  if (rawSettings.defaultTravelMinutes !== undefined && defaultTravelMinutes === null) errors.push("The estimated travel time was not a whole number of minutes, so 20 minutes is being used.");
+
+  return {
+    ok: true,
+    errors,
+    plan: {
+      version: PLAN_VERSION,
+      isExample: raw.isExample === true,
+      children,
+      caregivers,
+      venues,
+      routes,
+      activities,
+      settings: {
+        bufferMinutes: bufferMinutes === null ? DEFAULT_SETTINGS.bufferMinutes : bufferMinutes,
+        defaultTravelMinutes: defaultTravelMinutes === null ? DEFAULT_SETTINGS.defaultTravelMinutes : defaultTravelMinutes,
+      },
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Backup files
+// ---------------------------------------------------------------------------
+
+function buildBackup(plan, savedAt) {
+  return {
+    format: BACKUP_FORMAT,
+    version: PLAN_VERSION,
+    savedAt: savedAt || null,
+    plan: { ...plan, isExample: plan.isExample === true },
+  };
+}
+
+function readBackup(text) {
+  if (typeof text !== "string" || !text.trim()) {
+    return { ok: false, errors: ["That file was empty."], plan: null };
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return { ok: false, errors: ["That file is not valid JSON, so nothing was changed."], plan: null };
+  }
+  if (!isPlainObject(parsed)) {
+    return { ok: false, errors: ["That file does not contain an AfterSchool Together backup."], plan: null };
+  }
+  if (parsed.format !== BACKUP_FORMAT) {
+    return { ok: false, errors: ["That file is not an AfterSchool Together backup, so nothing was changed."], plan: null };
+  }
+  if (typeof parsed.version !== "number" || !Number.isInteger(parsed.version) || parsed.version < 1) {
+    return { ok: false, errors: ["That backup does not say which version it is, so nothing was changed."], plan: null };
+  }
+  if (parsed.version > PLAN_VERSION) {
+    return { ok: false, errors: [`That backup was written by a newer version (version ${parsed.version}). Update the app first.`], plan: null };
+  }
+  const result = normalizePlan(parsed.plan);
+  if (!result.ok) return { ok: false, errors: result.errors, plan: null };
+  return { ok: true, errors: result.errors, plan: result.plan, savedAt: typeof parsed.savedAt === "string" ? parsed.savedAt : null };
+}
+
+// ---------------------------------------------------------------------------
+// Browser storage
+// ---------------------------------------------------------------------------
+
+// status: "first-run" | "loaded" | "recovered" | "unavailable"
+function loadPlan(storage) {
+  if (!storage) return { plan: examplePlan(), status: "unavailable", errors: ["This browser is not allowing local storage, so your plan cannot be saved between visits."] };
+  let stored = null;
+  try {
+    stored = storage.getItem(STORAGE_KEY);
+  } catch {
+    return { plan: examplePlan(), status: "unavailable", errors: ["This browser blocked local storage, so your plan cannot be saved between visits."] };
+  }
+  if (stored === null) return { plan: examplePlan(), status: "first-run", errors: [] };
+
+  let parsed = null;
+  try {
+    parsed = JSON.parse(stored);
+  } catch {
+    return { plan: examplePlan(), status: "recovered", errors: ["The saved plan in this browser could not be read. It has been kept aside untouched and the example week is shown instead."], rescued: stored };
+  }
+  const result = normalizePlan(parsed);
+  if (!result.ok) {
+    return { plan: examplePlan(), status: "recovered", errors: [...result.errors, "The example week is shown instead. Your old data was kept aside, not deleted."], rescued: stored };
+  }
+  return { plan: result.plan, status: "loaded", errors: result.errors };
+}
+
+function savePlan(storage, plan) {
+  if (!storage) return { ok: false, error: "This browser is not allowing local storage, so nothing was saved." };
+  try {
+    storage.setItem(STORAGE_KEY, JSON.stringify(plan));
+    return { ok: true, error: null };
+  } catch (error) {
+    const name = error && typeof error === "object" && "name" in error ? String(error.name) : "";
+    if (name === "QuotaExceededError" || name === "NS_ERROR_DOM_QUOTA_REACHED") {
+      return { ok: false, error: "This browser has run out of local storage, so the last change was not saved. Export a backup before making more changes." };
+    }
+    return { ok: false, error: "This browser refused to save the change. Export a backup so you do not lose it." };
+  }
+}
+
+function keepUnreadable(storage, rescued) {
+  if (!storage || typeof rescued !== "string") return false;
+  try {
+    storage.setItem(CORRUPT_BACKUP_KEY, rescued);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/* ---- src/lib/report.js ---- */
+// Plain-language explanations and the copyable daily driver plan.
+// Pure text builders so both the screen and the clipboard say the same thing.
+
+
+function tripLabel(plan, trip) {
+  const child = childName(plan, trip.childId);
+  const place = venueName(plan, trip.venueId);
+  if (trip.role === "stay") {
+    return `staying with ${child} at ${place} for ${trip.activityName} (${formatTime(trip.from)}–${formatTime(trip.to)})`;
+  }
+  const verb = trip.role === "dropoff" ? "dropping off" : "picking up";
+  return `${verb} ${child} at ${place} for ${trip.activityName} (${formatTime(trip.from)})`;
+}
+
+function shortTripLabel(plan, trip) {
+  const child = childName(plan, trip.childId);
+  if (trip.role === "stay") return `Stay with ${child} · ${formatTime(trip.from)}–${formatTime(trip.to)}`;
+  const verb = trip.role === "dropoff" ? "Drop off" : "Pick up";
+  return `${verb} ${child} · ${formatTime(trip.from)}`;
+}
+
+// Reads as the middle of a sentence: "Ask Aunt Dee to <phrase>".
+function handoverPhrase(plan, trip) {
+  const child = childName(plan, trip.childId);
+  if (trip.role === "stay") return `stay with ${child}, ${formatTime(trip.from)} to ${formatTime(trip.to)}`;
+  if (trip.role === "dropoff") return `drop ${child} off at ${formatTime(trip.from)}`;
+  return `pick up ${child} at ${formatTime(trip.from)}`;
+}
+
+// One sentence naming the two competing trips and how far short the day falls.
+function explainConflict(plan, conflict) {
+  if (conflict.kind === "driver") {
+    const who = caregiverName(plan, conflict.caregiverId);
+    const first = tripLabel(plan, conflict.first);
+    const second = tripLabel(plan, conflict.second);
+    const travel = conflict.sameVenue
+      ? "the same place, so no travel is needed"
+      : `${formatMinutes(conflict.travelMinutes)} of travel plus ${formatMinutes(conflict.bufferMinutes)} to park and hand over`;
+    return `${who} is ${first} and then ${second}. That leaves ${describeGap(conflict.gapMinutes)} between them, but you need ${formatMinutes(conflict.requiredMinutes)} — ${travel}. Short by ${formatMinutes(conflict.shortfallMinutes)}.`;
+  }
+  const child = childName(plan, conflict.childId);
+  const first = `${conflict.first.name} at ${venueName(plan, conflict.first.venueId)} (${formatTime(conflict.first.startMinutes)}–${formatTime(conflict.first.endMinutes)})`;
+  const second = `${conflict.second.name} at ${venueName(plan, conflict.second.venueId)} (${formatTime(conflict.second.startMinutes)}–${formatTime(conflict.second.endMinutes)})`;
+  if (conflict.kind === "child-overlap") {
+    return `${child} is booked for ${first} and ${second} at the same time. Whoever drives, ${child} can only be in one of them.`;
+  }
+  return `${child} finishes ${first} and is due at ${second}. That leaves ${describeGap(conflict.gapMinutes)}, but the trip needs ${formatMinutes(conflict.requiredMinutes)}. Short by ${formatMinutes(conflict.shortfallMinutes)}.`;
+}
+
+function describeGap(minutes) {
+  if (minutes < 0) return `an overlap of ${formatMinutes(Math.abs(minutes))}`;
+  if (minutes === 0) return "no time at all";
+  return formatMinutes(minutes);
+}
+
+function conflictTitle(plan, conflict) {
+  if (conflict.kind === "driver") return `${caregiverName(plan, conflict.caregiverId)} cannot make both trips`;
+  if (conflict.kind === "child-overlap") return `${childName(plan, conflict.childId)} is booked twice at once`;
+  return `${childName(plan, conflict.childId)} cannot get there in time`;
+}
+
+// The thing a parent actually copies into a message or prints for the fridge.
+function dailyDriverPlanText(plan, analysis, dayId) {
+  const day = analysis.byDay[dayId];
+  const lines = [];
+  lines.push(`${dayLabel(dayId)} driver plan`);
+  if (plan.isExample) lines.push("(Example data — not a real family's week)");
+  lines.push("");
+
+  if (!day || (!day.obligations.length && !day.unassigned.length)) {
+    lines.push("Nothing is scheduled on this day.");
+    return lines.join("\n");
+  }
+
+  const byCaregiver = new Map();
+  for (const trip of day.obligations) {
+    if (!byCaregiver.has(trip.caregiverId)) byCaregiver.set(trip.caregiverId, []);
+    byCaregiver.get(trip.caregiverId).push(trip);
+  }
+  const ordered = (plan.caregivers || []).filter(caregiver => byCaregiver.has(caregiver.id));
+  for (const caregiver of ordered) {
+    lines.push(`${caregiver.name}:`);
+    const trips = [...byCaregiver.get(caregiver.id)].sort((a, b) => a.from - b.from || a.to - b.to);
+    for (const trip of trips) {
+      const place = venueName(plan, trip.venueId);
+      if (trip.role === "stay") {
+        lines.push(`  ${formatTime(trip.from)}–${formatTime(trip.to)}  Stay with ${childName(plan, trip.childId)} at ${place} (${trip.activityName})`);
+      } else {
+        const verb = trip.role === "dropoff" ? "Drop off" : "Pick up";
+        lines.push(`  ${formatTime(trip.from)}  ${verb} ${childName(plan, trip.childId)} at ${place} (${trip.activityName})`);
+      }
+    }
+    lines.push("");
+  }
+
+  if (day.unassigned.length) {
+    lines.push("Nobody assigned yet:");
+    for (const trip of [...day.unassigned].sort((a, b) => a.from - b.from)) {
+      const verb = trip.role === "dropoff" ? "Drop off" : trip.role === "pickup" ? "Pick up" : "Stay with";
+      lines.push(`  ${formatTime(trip.from)}  ${verb} ${childName(plan, trip.childId)} at ${venueName(plan, trip.venueId)} (${trip.activityName})`);
+    }
+    lines.push("");
+  }
+
+  if (day.conflicts.length) {
+    lines.push(`Conflicts to sort out (${day.conflicts.length}):`);
+    for (const conflict of day.conflicts) {
+      lines.push(`  - ${conflictTitle(plan, conflict)}: ${explainConflict(plan, conflict)}`);
+      if (conflict.estimated) lines.push("    (Uses an estimated travel time, not a measured one.)");
+    }
+    lines.push("");
+  } else {
+    lines.push("No transport conflicts found for this day.");
+    lines.push("");
+  }
+
+  const estimatedToday = analysis.estimatedRoutes.length > 0;
+  if (estimatedToday) {
+    lines.push("Note: some travel times are estimates you have not confirmed. This plan does not use live traffic or maps.");
+  }
+  lines.push("Made with AfterSchool Together. Based on this family’s times—please confirm each ride with the person helping.");
+  return lines.join("\n");
+}
+
+/* ---- src/app.js ---- */
+// Screen layer. All scheduling decisions come from src/lib/conflicts.js, which
+// knows nothing about the DOM and is covered by the tests in tests/.
+
+
+
+
+
+const root = document.getElementById("root");
+const storage = (() => {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+})();
+
+const view = {
+  plan: emptyPlan(),
+  analysis: null,
+  dayId: "mon",
+  setupOpen: false,
+  notices: [],
+  toast: null,
+  dialog: null,
+  undo: null,
+  pendingFocus: null,
+};
+
+// ---------------------------------------------------------------------------
+// Small helpers
+// ---------------------------------------------------------------------------
+
+const esc = value =>
+  String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
+
+const act = (name, id = "") =>
+  `data-act="${name}"${id ? ` data-id="${esc(id)}"` : ""} data-fk="${esc(name + (id ? ":" + id : ""))}"`;
+
+const ICONS = {
+  calendar: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 11h18"/>',
+  lock: '<rect x="4" y="10" width="16" height="10" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
+  car: '<path d="M5 17h14M6.5 17v1.5M17.5 17v1.5"/><path d="M4 17v-4l2-5h12l2 5v4z"/><circle cx="8" cy="14.5" r="1.2"/><circle cx="16" cy="14.5" r="1.2"/>',
+  hand: '<path d="M12 21a7 7 0 0 0 7-7v-3M12 21a7 7 0 0 1-7-7V8.5a1.5 1.5 0 0 1 3 0V12"/><path d="M8 12V4.5a1.5 1.5 0 0 1 3 0V11M11 11V3.5a1.5 1.5 0 0 1 3 0V11M14 11V6.5a1.5 1.5 0 0 1 3 0V14"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>',
+  alert: '<path d="M10.3 3.9 2.5 17.4A2 2 0 0 0 4.2 20.4h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4.5M12 17.2h.01"/>',
+  check: '<circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.6-5"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.8h.01"/>',
+  chevron: '<path d="m6 9 6 6 6-6"/>',
+  close: '<path d="M6 6l12 12M18 6L6 18"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  pencil: '<path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17z"/><path d="M14.5 6.5 17.5 9.5"/>',
+  trash: '<path d="M4 7h16M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M6.5 7l1 12.2A1.8 1.8 0 0 0 9.3 21h5.4a1.8 1.8 0 0 0 1.8-1.8L17.5 7"/>',
+  copy: '<rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M6 15H5.5A1.5 1.5 0 0 1 4 13.5v-8A1.5 1.5 0 0 1 5.5 4h8A1.5 1.5 0 0 1 15 5.5V6"/>',
+  download: '<path d="M12 4v11M8 11.5l4 4 4-4M4 19h16"/>',
+  upload: '<path d="M12 19V8M8 11.5 12 7.5l4 4M4 4h16"/>',
+  printer: '<path d="M7 9V4h10v5"/><rect x="4" y="9" width="16" height="7" rx="2"/><path d="M7 14h10v6H7z"/>',
+  undo: '<path d="M4 9h9a5 5 0 0 1 0 10h-3"/><path d="m7.5 5.5-3.5 3.5 3.5 3.5"/>',
+  people: '<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><path d="M16 5.5a3.2 3.2 0 0 1 0 6M17 19a5.5 5.5 0 0 0-2.2-4.4"/>',
+  pin: '<path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/>',
+};
+
+const icon = name =>
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ""}</svg>`;
+
+const childStyle = child => {
+  const color = childColor(child);
+  return `style="--child-line: var(--child-${color.id}); --child-wash: color-mix(in srgb, var(--child-${color.id}) 14%, #fff)"`;
+};
+
+function toast(message, tone = "info", withUndo = false) {
+  view.toast = { message, tone, withUndo };
+}
+
+function snapshot(label) {
+  view.undo = { label, plan: JSON.parse(JSON.stringify(view.plan)) };
+}
+
+function commit(plan, { keepExample = false } = {}) {
+  view.plan = keepExample ? plan : { ...plan, isExample: false };
+  const result = savePlan(storage, view.plan);
+  if (!result.ok) toast(result.error, "error");
+  render();
+}
+
+// ---------------------------------------------------------------------------
+// Masthead, notices, day picker
+// ---------------------------------------------------------------------------
+
+function masthead() {
+  return `<header class="masthead">
+    <div class="masthead-inner">
+      <div class="wordmark">
+        <span class="wordmark-mark" style="color:#fff">${icon("calendar")}</span>
+        <div>
+          <h1>AfterSchool Together</h1>
+          <p>Two places at once? Let’s work out the rides.</p>
+        </div>
+      </div>
+      <p class="masthead-note">${icon("lock")}<span>Your family plan stays in this browser. No account or automatic sharing. Save a backup when you want to keep a copy or send it yourself.</span></p>
+    </div>
+  </header>`;
+}
+
+function noticesHtml() {
+  const blocks = [];
+  if (view.plan.isExample) {
+    blocks.push(`<div class="banner is-example">
+      <span class="banner-tag">${icon("info")} Example week</span>
+      <p><strong>This is a made-up week</strong> for Ada, Milo and Nia. Try changing a ride to see what happens, or start fresh with your own family.</p>
+      <div class="banner-actions"><button class="btn btn-quiet btn-small" ${act("clear-all")}>Start our plan</button></div>
+    </div>`);
+  }
+  for (const notice of view.notices) {
+    blocks.push(`<div class="banner ${notice.tone === "alert" ? "is-alert" : ""}">
+      <span class="banner-tag">${icon(notice.tone === "alert" ? "alert" : "info")} ${esc(notice.tag)}</span>
+      <p>${esc(notice.message)}</p>
+      <div class="banner-actions"><button class="btn btn-quiet btn-small" ${act("dismiss-notice", notice.id)}>Got it</button></div>
+    </div>`);
+  }
+  return blocks.join("");
+}
+
+function daybar() {
+  const chips = DAYS.map(day => {
+    const data = view.analysis.byDay[day.id];
+    const count = data.activities.length;
+    const trouble = data.conflicts.length;
+    const selected = day.id === view.dayId;
+    const detail = trouble
+      ? `<span class="chip-flag">${icon("alert")} ${trouble}</span>`
+      : `<small>${count ? `${count} ${count === 1 ? "activity" : "activities"}` : "Free"}</small>`;
+    const label = `${day.label}: ${count ? `${count} ${count === 1 ? "activity" : "activities"}` : "nothing scheduled"}${trouble ? `, ${trouble} ${trouble === 1 ? "conflict" : "conflicts"}` : ""}`;
+    return `<button class="day-chip" ${act("select-day", day.id)} aria-pressed="${selected}" aria-label="${esc(label)}">
+      <span>${day.short}</span>${detail}
+    </button>`;
+  }).join("");
+  return `<section class="daybar" aria-label="Choose a day">
+    <p class="daybar-label">Week at a glance</p>
+    <div class="daybar-list">${chips}</div>
+  </section>`;
+}
+
+// ---------------------------------------------------------------------------
+// Agenda
+// ---------------------------------------------------------------------------
+
+function tripPill(trip, role) {
+  if (!trip) return "";
+  const open = !trip.caregiverId;
+  const who = open ? "Nobody yet" : caregiverName(view.plan, trip.caregiverId);
+  if (role === "stay") {
+    return `<span class="trip-pill is-stay">${icon("clock")}<span>An adult stays: <b>${esc(who)}</b></span></span>`;
+  }
+  const label = role === "dropoff" ? "Drop-off" : "Pickup";
+  return `<span class="trip-pill ${open ? "is-open" : ""}">${icon(role === "dropoff" ? "car" : "hand")}<span>${label}: <b>${esc(who)}</b></span></span>`;
+}
+
+function agendaItem(activity) {
+  const child = findById(view.plan.children, activity.childId);
+  const marker = childColor(child);
+  const trips = view.analysis.obligations
+    .concat(view.analysis.unassigned)
+    .filter(item => item.activityId === activity.id);
+  const stay = trips.find(item => item.role === "stay");
+  const dropoff = trips.find(item => item.role === "dropoff");
+  const pickup = trips.find(item => item.role === "pickup");
+  const troubles = view.analysis.conflicts.filter(
+    conflict =>
+      conflict.first?.activityId === activity.id || conflict.second?.activityId === activity.id ||
+      conflict.first?.id === activity.id || conflict.second?.id === activity.id,
+  );
+  const openTrips = trips.filter(item => !item.caregiverId);
+
+  return `<article class="agenda-item ${troubles.length ? "has-conflict" : ""}" ${childStyle(child)}>
+    <div class="agenda-top">
+      <span class="child-tag"><span class="marker" aria-hidden="true">${marker.shape}</span>${esc(childName(view.plan, activity.childId))}</span>
+      <span class="agenda-time">${formatTime(activity.startMinutes)} – ${formatTime(activity.endMinutes)}</span>
+    </div>
+    <h3>${esc(activity.name)}</h3>
+    <p class="agenda-where">${esc(venueName(view.plan, activity.venueId))} · ${formatMinutes(activity.endMinutes - activity.startMinutes)}</p>
+    <div class="trip-row">
+      ${stay ? tripPill(stay, "stay") : tripPill(dropoff, "dropoff")}
+      ${pickup ? tripPill(pickup, "pickup") : ""}
+    </div>
+    ${openTrips.length ? `<p class="agenda-flag">${icon("alert")}<span>${openTrips.length === 1 ? "One trip has" : `${openTrips.length} trips have`} nobody assigned yet.</span></p>` : ""}
+    ${troubles.length ? `<p class="agenda-flag">${icon("alert")}<span>${troubles.length === 1 ? "In one conflict" : `In ${troubles.length} conflicts`} below.</span></p>` : ""}
+    <div class="agenda-actions">
+      <button class="btn btn-quiet btn-small" ${act("edit-activity", activity.id)}>${icon("pencil")} Edit</button>
+      <button class="btn btn-plain" ${act("ask-delete-activity", activity.id)}>Remove</button>
+    </div>
+  </article>`;
+}
+
+function agendaPanel() {
+  const day = view.analysis.byDay[view.dayId];
+  const items = [...day.activities].sort((a, b) => a.startMinutes - b.startMinutes || a.endMinutes - b.endMinutes);
+  const hasPeople = view.plan.children.length > 0;
+  const anythingAtAll = view.plan.activities.length > 0;
+
+  let body;
+  if (items.length) {
+    body = `<div class="agenda">${items.map(agendaItem).join("")}</div>`;
+  } else if (anythingAtAll) {
+    body = `<div class="empty-note">
+      <h3>Nothing on ${esc(dayLabel(view.dayId))}</h3>
+      <p>A free afternoon counts too. Children need unstructured time as much as scheduled time.</p>
+      <div class="empty-actions"><button class="btn btn-primary btn-small" ${act("add-activity")}>${icon("plus")} Add an activity</button></div>
+    </div>`;
+  } else {
+    body = `<div class="empty-note">
+      <h3>Your week is empty</h3>
+      <p>${hasPeople ? "Add the first activity and we can see whether the drop-offs and pickups fit." : "Start with your kids, the people who can help, and the places you go. Then add the after-school activities."}</p>
+      <div class="empty-actions">
+        <button class="btn btn-primary btn-small" ${act("add-activity")}>${icon("plus")} Add an activity</button>
+        <button class="btn btn-quiet btn-small" ${act("open-setup")}>Set up people and places</button>
+        <button class="btn btn-quiet btn-small" ${act("load-example")}>Show the example week</button>
+      </div>
+    </div>`;
+  }
+
+  return `<section class="panel" aria-labelledby="agenda-heading">
+    <div class="panel-head">
+      <div>
+        <h2 id="agenda-heading">${esc(dayLabel(view.dayId))}</h2>
+        <p>${items.length ? `${items.length} ${items.length === 1 ? "activity" : "activities"} · ${day.obligations.length + day.unassigned.length} trips` : "Nothing scheduled"}</p>
+      </div>
+      <button class="btn btn-primary btn-small" ${act("add-activity")}>${icon("plus")} Add an activity</button>
+    </div>
+    ${body}
+  </section>`;
+}
+
+// ---------------------------------------------------------------------------
+// Conflicts and next actions
+// ---------------------------------------------------------------------------
+
+function suggestionButtons(conflict) {
+  const suggestions = suggestAlternateDrivers(view.plan, conflict);
+  const seen = new Set();
+  const buttons = [];
+  for (const suggestion of suggestions) {
+    const key = `${suggestion.trip.key}|${suggestion.caregiverId}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    buttons.push(`<button class="btn btn-quiet btn-small" data-act="apply-suggestion" data-conflict="${esc(conflict.id)}" data-trip="${esc(suggestion.trip.key)}" data-caregiver="${esc(suggestion.caregiverId)}" data-fk="apply-suggestion:${esc(key)}">
+      Ask ${esc(caregiverName(view.plan, suggestion.caregiverId))} to ${esc(handoverPhrase(view.plan, suggestion.trip))}
+    </button>`);
+  }
+  const editButtons = [conflict.first, conflict.second]
+    .map(item => item.activityId || item.id)
+    .filter((id, index, list) => id && list.indexOf(id) === index)
+    .map(id => {
+      const activity = findById(view.plan.activities, id);
+      return `<button class="btn btn-quiet btn-small" ${act("edit-activity", id)}>Change the times for ${esc(activity ? activity.name : "this activity")}</button>`;
+    });
+
+  return `<div class="choices">
+    <p class="choices-label">Ways to make it work</p>
+    <div class="choices-list">${editButtons.join("")}${buttons.join("")}</div>
+    ${conflict.kind === "driver" && !buttons.length ? `<p class="choices-none">No one else on your list has enough time for this ride. Try another class time or make a different plan for the afternoon.</p>` : ""}
+    ${buttons.length ? `<p class="choices-none">Check with them first. Choosing a driver here changes your plan, but does not send a message or confirm a ride.</p>` : ""}
+  </div>`;
+}
+
+function conflictCard(conflict) {
+  return `<article class="conflict-card ${conflict.kind === "driver" ? "" : "is-child"}">
+    <div class="conflict-head">
+      ${icon("alert")}
+      <div>
+        <h3>${esc(conflictTitle(view.plan, conflict))}</h3>
+        <p class="conflict-day">${esc(dayLabel(conflict.dayId))}</p>
+      </div>
+    </div>
+    <p class="conflict-why">${esc(explainConflict(view.plan, conflict))}</p>
+    ${conflict.estimated ? `<p class="conflict-estimate">${icon("info")}<span>This uses an <strong>estimated</strong> ${formatMinutes(conflict.travelMinutes)} between those two places because you have not entered a real travel time. It is not a live route and does not know about traffic.</span></p>` : ""}
+    ${suggestionButtons(conflict)}
+  </article>`;
+}
+
+function decisionsPanel() {
+  const day = view.analysis.byDay[view.dayId];
+  const counts = view.analysis.counts;
+  const elsewhere = DAYS.filter(item => item.id !== view.dayId && view.analysis.byDay[item.id].conflicts.length);
+
+  const tally = `<div class="tally">
+    <div class="tally-item ${day.conflicts.length ? "is-alert" : "is-clear"}"><b>${day.conflicts.length}</b><span>${day.conflicts.length === 1 ? "conflict" : "conflicts"} on ${esc(dayLabel(view.dayId).slice(0, 3))}</span></div>
+    <div class="tally-item ${counts.conflicts ? "is-alert" : "is-clear"}"><b>${counts.conflicts}</b><span>this week</span></div>
+    <div class="tally-item ${counts.unassigned ? "is-caution" : ""}"><b>${counts.unassigned}</b><span>${counts.unassigned === 1 ? "trip with no driver" : "trips with no driver"}</span></div>
+    <div class="tally-item ${counts.estimatedRoutes ? "is-caution" : ""}"><b>${counts.estimatedRoutes}</b><span>${counts.estimatedRoutes === 1 ? "estimated travel time" : "estimated travel times"}</span></div>
+  </div>`;
+
+  let body;
+  if (day.conflicts.length) {
+    body = day.conflicts.map(conflictCard).join("");
+  } else if (day.activities.length) {
+    body = `<div class="all-clear">${icon("check")}<div>
+      <h3>${esc(dayLabel(view.dayId))} works</h3>
+      <p>Every trip on this day fits, using the travel times you entered and a ${formatMinutes(view.analysis.settings.bufferMinutes)} buffer at each handover.</p>
+    </div></div>`;
+  } else {
+    body = `<div class="empty-note"><p>Nothing to check on ${esc(dayLabel(view.dayId))} yet.</p></div>`;
+  }
+
+  const openTrips = day.unassigned.length
+    ? `<div class="conflict-card is-child" style="margin-top:12px">
+        <div class="conflict-head">${icon("alert")}<div><h3>${day.unassigned.length} ${day.unassigned.length === 1 ? "trip has" : "trips have"} nobody assigned</h3><p class="conflict-day">${esc(dayLabel(view.dayId))}</p></div></div>
+        <ul class="fineprint">${day.unassigned.map(trip => `<li>${esc(shortTripLabel(view.plan, trip))} at ${esc(venueName(view.plan, trip.venueId))} — ${esc(trip.activityName)}</li>`).join("")}</ul>
+        <div class="choices"><p class="choices-label">Ways to make it work</p><div class="choices-list">${[...new Set(day.unassigned.map(trip => trip.activityId))].map(id => `<button class="btn btn-quiet btn-small" ${act("edit-activity", id)}>Assign someone for ${esc(findById(view.plan.activities, id)?.name || "this activity")}</button>`).join("")}</div></div>
+      </div>`
+    : "";
+
+  const estimates = view.analysis.estimatedRoutes.length
+    ? `<div class="conflict-card is-child" style="margin-top:12px">
+        <div class="conflict-head">${icon("info")}<div><h3>A few drive times still need checking</h3><p class="conflict-day">Those parts of the plan are only estimates</p></div></div>
+        <ul class="fineprint">${view.analysis.estimatedRoutes.map(pair => `<li>${esc(venueName(view.plan, pair.fromVenueId))} ↔ ${esc(venueName(view.plan, pair.toVenueId))} — using ${formatMinutes(pair.minutes)}</li>`).join("")}</ul>
+        <div class="choices"><div class="choices-list"><button class="btn btn-quiet btn-small" ${act("open-setup")}>Add the drive times you know</button></div></div>
+      </div>`
+    : "";
+
+  const other = elsewhere.length
+    ? `<div class="choices" style="margin-top:14px"><p class="choices-label">Other days needing attention</p><div class="choices-list">${elsewhere.map(item => `<button class="btn btn-quiet btn-small" ${act("select-day", item.id)}>${esc(item.label)} (${view.analysis.byDay[item.id].conflicts.length})</button>`).join("")}</div></div>`
+    : "";
+
+  return `<section class="panel" aria-labelledby="decisions-heading">
+    <div class="panel-head"><div><h2 id="decisions-heading">Let’s sort out the tricky bits</h2><p>Based on your drive times, not live traffic. Leave room for the school-run rush.</p></div></div>
+    ${tally}
+    ${body}
+    ${openTrips}
+    ${estimates}
+    ${other}
+  </section>`;
+}
+
+// ---------------------------------------------------------------------------
+// Plan file panel
+// ---------------------------------------------------------------------------
+
+function dataPanel() {
+  return `<section class="panel" aria-labelledby="data-heading">
+    <div class="panel-head"><div><h2 id="data-heading">Your plan, and how to share it</h2><p>Saved in this browser only.</p></div></div>
+    <div class="action-row">
+      <button class="btn btn-quiet btn-small" ${act("show-day-plan")}>${icon("copy")} Daily driver plan</button>
+      <button class="btn btn-quiet btn-small" ${act("export-download")}>${icon("download")} Save a backup file</button>
+      <button class="btn btn-quiet btn-small" ${act("import-open")}>${icon("upload")} Open a backup file</button>
+      <button class="btn btn-danger btn-small" ${act("clear-all")}>${icon("trash")} Clear everything</button>
+    </div>
+    <input type="file" accept="application/json,.json" class="visually-hidden" data-import-input aria-hidden="true" tabindex="-1" />
+    <ul class="fineprint">
+      <li>This browser remembers your plan. Another device will not have it, and clearing browser data removes it. Save a backup to keep a copy.</li>
+      <li>To share it, save a backup file and send it yourself. There is no cloud sync and no shared account.</li>
+      <li>Travel times are the ones you type in. Nothing here checks live traffic or looks up a map.</li>
+      <li>A name on the plan is not a confirmed ride. Please check with the person helping.</li>
+    </ul>
+  </section>`;
+}
+
+// ---------------------------------------------------------------------------
+// Setup
+// ---------------------------------------------------------------------------
+
+function entityChips(list, kind, styled = false) {
+  if (!list.length) return `<p class="choices-none">None yet.</p>`;
+  return `<div class="chip-list">${list.map(item => `<span class="entity-chip" ${styled ? childStyle(item) : ""}>
+    ${styled ? `<span class="marker" aria-hidden="true">${childColor(item).shape}</span>` : ""}
+    <span>${esc(item.name)}</span>
+    <button type="button" ${act(`remove-${kind}`, item.id)} aria-label="Remove ${esc(item.name)}">${icon("close")}</button>
+  </span>`).join("")}</div>`;
+}
+
+function addForm(kind, placeholder, label) {
+  return `<form class="inline-add" data-add="${kind}">
+    <label class="visually-hidden" for="add-${kind}">${esc(label)}</label>
+    <input type="text" id="add-${kind}" name="name" maxlength="60" placeholder="${esc(placeholder)}" data-fk="add-${kind}" />
+    <button class="btn btn-quiet btn-small" type="submit">${icon("plus")} Add</button>
+  </form>`;
+}
+
+function routeRows() {
+  const venues = view.plan.venues;
+  if (venues.length < 2) {
+    return `<p class="choices-none">Add two or more places and you can enter how long it takes to get between them.</p>`;
+  }
+  const rows = [];
+  for (let i = 0; i < venues.length; i += 1) {
+    for (let j = i + 1; j < venues.length; j += 1) {
+      const from = venues[i];
+      const to = venues[j];
+      const route = view.plan.routes.find(
+        item =>
+          (item.fromVenueId === from.id && item.toVenueId === to.id) ||
+          (item.fromVenueId === to.id && item.toVenueId === from.id),
+      );
+      const known = route && parseMinutesInput(route.minutes) !== null;
+      rows.push(`<tr>
+        <td>${esc(from.name)} <span aria-hidden="true">↔</span> ${esc(to.name)}<br /><span class="${known ? "route-known" : "route-estimated"}">${known ? "Your time" : `Estimated ${formatMinutes(view.analysis.settings.defaultTravelMinutes)}`}</span></td>
+        <td><label class="visually-hidden" for="route-${from.id}-${to.id}">Minutes from ${esc(from.name)} to ${esc(to.name)}</label>
+        <input type="number" min="0" step="1" inputmode="numeric" id="route-${from.id}-${to.id}" data-route-from="${esc(from.id)}" data-route-to="${esc(to.id)}" data-fk="route:${esc(from.id)}:${esc(to.id)}" value="${known ? route.minutes : ""}" placeholder="—" /></td>
+      </tr>`);
+    }
+  }
+  return `<table class="route-table"><caption class="visually-hidden">Travel time between each pair of places, in minutes</caption>
+    <thead><tr><th scope="col">Between</th><th scope="col">Minutes</th></tr></thead>
+    <tbody>${rows.join("")}</tbody></table>`;
+}
+
+function setupSection() {
+  const toggle = `<button class="section-toggle" ${act("toggle-setup")} aria-expanded="${view.setupOpen}" aria-controls="setup-body">
+    <div><h2>People, places and travel times</h2><p>Add your usual drive times so the plan can spot a tight pickup.</p></div>
+    <span class="chev">${icon("chevron")}</span>
+  </button>`;
+  if (!view.setupOpen) return toggle;
+
+  return `${toggle}
+  <div class="panel setup-body" id="setup-body">
+    <div class="setup-grid">
+      <div class="setup-block">
+        <h3>${icon("people")} Children</h3>
+        <p>Nicknames are all we need. Keep birthdays, school names and contact details out of the plan.</p>
+        ${entityChips(view.plan.children, "child", true)}
+        ${addForm("child", "Nickname", "Add a child")}
+      </div>
+      <div class="setup-block">
+        <h3>${icon("car")} Who helps out</h3>
+        <p>A partner, grandparent or trusted friend who can drive or stay. First names or nicknames are enough.</p>
+        ${entityChips(view.plan.caregivers, "caregiver")}
+        ${addForm("caregiver", "Name", "Add someone who helps")}
+      </div>
+      <div class="setup-block">
+        <h3>${icon("pin")} Places</h3>
+        <p>Nicknames, not addresses. “Little Gym” is more useful than a street.</p>
+        ${entityChips(view.plan.venues, "venue")}
+        ${addForm("venue", "Place nickname", "Add a place")}
+      </div>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--line);margin:20px 0" />
+    <div class="setup-grid">
+      <div class="setup-block">
+        <h3>Travel times</h3>
+        <p>Know the drive from piano to the pool? Add it here. Any drive you leave blank will be clearly marked as an estimate.</p>
+        ${routeRows()}
+      </div>
+      <div class="setup-block">
+        <h3>A little breathing room</h3>
+        <p>Allow time to park, walk in and say goodbye—not just time behind the wheel.</p>
+        <div class="settings-row">
+          <label class="field"><span>Extra minutes at each stop<small>Parking, walking in, saying goodbye.</small></span>
+            <input type="number" min="0" step="1" inputmode="numeric" data-setting="bufferMinutes" data-fk="setting:bufferMinutes" value="${esc(view.plan.settings.bufferMinutes)}" /></label>
+          <label class="field"><span>Drive time when you are unsure<small>Used only where you have not entered a time.</small></span>
+            <input type="number" min="0" step="1" inputmode="numeric" data-setting="defaultTravelMinutes" data-fk="setting:defaultTravelMinutes" value="${esc(view.plan.settings.defaultTravelMinutes)}" /></label>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ---------------------------------------------------------------------------
+// Dialogs
+// ---------------------------------------------------------------------------
+
+function optionList(items, selected, placeholder) {
+  return `<option value="">${esc(placeholder)}</option>${items
+    .map(item => `<option value="${esc(item.id)}" ${item.id === selected ? "selected" : ""}>${esc(item.name)}</option>`)
+    .join("")}`;
+}
+
+function activityDialog() {
+  const editing = view.dialog.activityId ? findById(view.plan.activities, view.dialog.activityId) : null;
+  const draft = editing || {
+    childId: view.plan.children[0]?.id || "",
+    name: "",
+    venueId: view.plan.venues[0]?.id || "",
+    day: view.dayId,
+    start: "15:30",
+    end: "16:30",
+    dropoffCaregiverId: view.plan.caregivers[0]?.id || "",
+    pickupCaregiverId: view.plan.caregivers[0]?.id || "",
+    adultStays: false,
+  };
+
+  return `<dialog aria-labelledby="activity-dialog-title"><div class="dialog-inner">
+    <div class="dialog-head">
+      <div>
+        <h2 id="activity-dialog-title">${editing ? "Edit this activity" : "Add an activity"}</h2>
+        <p>Use nicknames for your kids and places. No addresses, birthdays, school names or contact details needed.</p>
+      </div>
+      <button type="button" class="dialog-close" ${act("close-dialog")} aria-label="Close without saving">${icon("close")}</button>
+    </div>
+    ${view.dialog.error ? `<p class="form-error">${icon("alert")}<span>${esc(view.dialog.error)}</span></p>` : ""}
+    <form data-activity-form>
+      <label class="field"><span>Child</span>
+        <select name="childId" data-fk="form:childId">${optionList(view.plan.children, draft.childId, "Choose a child")}</select>
+      </label>
+      <label class="field"><span>Or add a new child<small>Leave empty to use the list above.</small></span>
+        <input type="text" name="newChild" maxlength="60" placeholder="Nickname" data-fk="form:newChild" />
+      </label>
+      <label class="field"><span>What is it?</span>
+        <input type="text" name="name" maxlength="60" required placeholder="Swim practice" value="${esc(draft.name)}" data-fk="form:name" />
+      </label>
+      <label class="field"><span>Where?</span>
+        <select name="venueId" data-fk="form:venueId">${optionList(view.plan.venues, draft.venueId, "Choose a place")}</select>
+      </label>
+      <label class="field"><span>Or add a new place<small>A nickname, not an address.</small></span>
+        <input type="text" name="newVenue" maxlength="60" placeholder="Riverside Pool" data-fk="form:newVenue" />
+      </label>
+      <label class="field"><span>Which day?</span>
+        <select name="day" data-fk="form:day">${DAYS.map(day => `<option value="${day.id}" ${day.id === draft.day ? "selected" : ""}>${day.label}</option>`).join("")}</select>
+      </label>
+      <div class="field-pair">
+        <label class="field"><span>Starts</span><input type="time" name="start" required value="${esc(draft.start)}" data-fk="form:start" /></label>
+        <label class="field"><span>Ends</span><input type="time" name="end" required value="${esc(draft.end)}" data-fk="form:end" /></label>
+      </div>
+      <label class="check-field">
+        <input type="checkbox" name="adultStays" ${draft.adultStays ? "checked" : ""} data-fk="form:adultStays" />
+        <span><b>An adult has to stay for the whole session</b><small>The person dropping off will stay until the activity ends, so they cannot cover another ride during that time.</small></span>
+      </label>
+      <div class="field-pair">
+        <label class="field"><span>Drop-off</span><select name="dropoffCaregiverId" data-fk="form:dropoff">${optionList(view.plan.caregivers, draft.dropoffCaregiverId, "Nobody yet")}</select></label>
+        <label class="field"><span>Pickup<small>If an adult stays, choose them here or the person taking over.</small></span><select name="pickupCaregiverId" data-fk="form:pickup">${optionList(view.plan.caregivers, draft.pickupCaregiverId, "Nobody yet")}</select></label>
+      </div>
+      ${view.plan.caregivers.length ? "" : `<p class="choices-none">Nobody is on your list yet. Save this, then add the people who drive under “People, places and travel times”.</p>`}
+      <div class="dialog-actions">
+        ${editing ? `<button type="button" class="btn btn-danger btn-small spacer" ${act("ask-delete-activity", editing.id)}>${icon("trash")} Remove</button>` : ""}
+        <button type="button" class="btn btn-quiet" ${act("close-dialog")}>Cancel</button>
+        <button type="submit" class="btn btn-primary">${editing ? "Save changes" : "Add it"}</button>
+      </div>
+    </form>
+  </div></dialog>`;
+}
+
+function dayPlanDialog() {
+  const text = dailyDriverPlanText(view.plan, view.analysis, view.dialog.dayId);
+  return `<dialog aria-labelledby="plan-dialog-title"><div class="dialog-inner">
+    <div class="dialog-head">
+      <div><h2 id="plan-dialog-title">${esc(dayLabel(view.dialog.dayId))} driver plan</h2><p>Copy it into a message, or print it for the fridge.</p></div>
+      <button type="button" class="dialog-close" ${act("close-dialog")} aria-label="Close">${icon("close")}</button>
+    </div>
+    <label class="visually-hidden" for="plan-text">Daily driver plan text</label>
+    <textarea class="plan-text" id="plan-text" readonly data-plan-text data-fk="plan-text">${esc(text)}</textarea>
+    <div class="dialog-actions">
+      <button type="button" class="btn btn-quiet spacer" ${act("print-day-plan")}>${icon("printer")} Print</button>
+      <button type="button" class="btn btn-quiet" ${act("close-dialog")}>Close</button>
+      <button type="button" class="btn btn-primary" ${act("copy-day-plan")}>${icon("copy")} Copy</button>
+    </div>
+  </div></dialog>`;
+}
+
+function confirmDialog() {
+  const { title, body, confirmLabel } = view.dialog;
+  return `<dialog aria-labelledby="confirm-dialog-title"><div class="dialog-inner">
+    <div class="dialog-head">
+      <div><h2 id="confirm-dialog-title">${esc(title)}</h2></div>
+      <button type="button" class="dialog-close" ${act("close-dialog")} aria-label="Close">${icon("close")}</button>
+    </div>
+    <p>${esc(body)}</p>
+    <div class="dialog-actions">
+      <button type="button" class="btn btn-quiet" ${act("close-dialog")}>Keep it</button>
+      <button type="button" class="btn btn-danger" ${act("confirm-yes")} data-fk="confirm-yes">${esc(confirmLabel)}</button>
+    </div>
+  </div></dialog>`;
+}
+
+function dialogHtml() {
+  if (!view.dialog) return "";
+  if (view.dialog.type === "activity") return activityDialog();
+  if (view.dialog.type === "dayplan") return dayPlanDialog();
+  if (view.dialog.type === "confirm") return confirmDialog();
+  return "";
+}
+
+function toastHtml() {
+  if (!view.toast) return "";
+  const tone = view.toast.tone === "error" ? "is-error" : view.toast.tone === "good" ? "is-good" : "";
+  const glyph = view.toast.tone === "error" ? "alert" : view.toast.tone === "good" ? "check" : "info";
+  return `<div class="toast-anchor"><div class="toast ${tone}">
+    ${icon(glyph)}<span>${esc(view.toast.message)}</span>
+    ${view.toast.withUndo && view.undo ? `<button type="button" ${act("undo")}>${icon("undo")} Undo</button>` : ""}
+    <button type="button" ${act("dismiss-toast")} aria-label="Dismiss message">${icon("close")}</button>
+  </div></div>`;
+}
+
+// ---------------------------------------------------------------------------
+// Render
+// ---------------------------------------------------------------------------
+
+function captureFocus() {
+  const el = document.activeElement;
+  const fk = el && el.getAttribute ? el.getAttribute("data-fk") : null;
+  if (!fk) return null;
+  const snap = { fk, start: null, end: null };
+  try {
+    snap.start = el.selectionStart;
+    snap.end = el.selectionEnd;
+  } catch {
+    // Selection is not readable on every input type; focus alone is enough.
+  }
+  return snap;
+}
+
+function restoreFocus(previous) {
+  const key = view.pendingFocus || previous?.fk;
+  view.pendingFocus = null;
+  if (!key) return;
+  const target = root.querySelector(`[data-fk="${CSS.escape(key)}"]`);
+  if (!target) return;
+  target.focus({ preventScroll: true });
+  if (previous && previous.fk === key && previous.start != null && target.setSelectionRange) {
+    try {
+      target.setSelectionRange(previous.start, previous.end);
+    } catch {
+      // Not every input supports selection ranges.
+    }
+  }
+}
+
+function render() {
+  const previous = captureFocus();
+  view.analysis = analyzePlan(view.plan);
+  root.innerHTML = `${masthead()}
+    <main class="shell" id="main" tabindex="-1">
+      ${noticesHtml()}
+      ${daybar()}
+      <div class="columns">
+        <div>${agendaPanel()}</div>
+        <div>${decisionsPanel()}${dataPanel()}</div>
+      </div>
+      ${setupSection()}
+    </main>
+    <footer class="colophon"><div class="colophon-inner">
+      <p><strong>AfterSchool Together</strong> — a small tool by the CreatorWorks team.</p>
+      <p>Your family plan stays in this browser. No account, automatic sharing or live traffic.</p>
+    </div></footer>
+    <div class="print-sheet"><pre>${esc(dailyDriverPlanText(view.plan, view.analysis, view.dayId))}</pre></div>
+    ${dialogHtml()}
+    ${toastHtml()}`;
+
+  const dialog = root.querySelector("dialog");
+  if (dialog && !dialog.open) {
+    dialog.showModal();
+    dialog.addEventListener("close", () => {
+      if (view.dialog) {
+        view.dialog = null;
+        render();
+      }
+    });
+  }
+  restoreFocus(previous);
+}
+
+// ---------------------------------------------------------------------------
+// Actions
+// ---------------------------------------------------------------------------
+
+function closeDialog() {
+  view.dialog = null;
+  render();
+}
+
+function askConfirm(config) {
+  view.dialog = { type: "confirm", ...config };
+  render();
+}
+
+function removeEntity(kind, id) {
+  const plan = JSON.parse(JSON.stringify(view.plan));
+  if (kind === "child") {
+    plan.children = plan.children.filter(item => item.id !== id);
+    plan.activities = plan.activities.filter(item => item.childId !== id);
+  } else if (kind === "venue") {
+    plan.venues = plan.venues.filter(item => item.id !== id);
+    plan.activities = plan.activities.filter(item => item.venueId !== id);
+    plan.routes = plan.routes.filter(item => item.fromVenueId !== id && item.toVenueId !== id);
+  } else {
+    plan.caregivers = plan.caregivers.filter(item => item.id !== id);
+    for (const activity of plan.activities) {
+      if (activity.dropoffCaregiverId === id) activity.dropoffCaregiverId = null;
+      if (activity.pickupCaregiverId === id) activity.pickupCaregiverId = null;
+    }
+  }
+  snapshot("remove");
+  commit(plan);
+  toast(kind === "caregiver" ? "Removed. Their rides now need someone else." : "Removed, along with the activities and travel times linked to it.", "info", true);
+  render();
+}
+
+function askRemoveEntity(kind, id) {
+  const list = kind === "child" ? view.plan.children : kind === "venue" ? view.plan.venues : view.plan.caregivers;
+  const entity = findById(list, id);
+  if (!entity) return;
+  const affected =
+    kind === "child"
+      ? view.plan.activities.filter(item => item.childId === id).length
+      : kind === "venue"
+        ? view.plan.activities.filter(item => item.venueId === id).length
+        : view.plan.activities.filter(item => item.dropoffCaregiverId === id || item.pickupCaregiverId === id).length;
+  if (!affected) {
+    removeEntity(kind, id);
+    return;
+  }
+  askConfirm({
+    title: `Remove ${entity.name}?`,
+    body:
+      kind === "caregiver"
+        ? `${entity.name} is named on ${affected} ${affected === 1 ? "activity" : "activities"}. Removing them leaves those trips with nobody assigned. Nothing else is deleted.`
+        : `${affected} ${affected === 1 ? "activity uses" : "activities use"} this. Removing it removes ${affected === 1 ? "that activity" : "those activities"} too.`,
+    confirmLabel: `Remove ${entity.name}`,
+    action: { name: `remove-${kind}`, id },
+  });
+}
+
+function saveActivityForm(form) {
+  const data = new FormData(form);
+  const plan = JSON.parse(JSON.stringify(view.plan));
+
+  const newChild = String(data.get("newChild") || "").trim();
+  let childId = String(data.get("childId") || "");
+  if (newChild) {
+    childId = makeId("child");
+    plan.children.push({ id: childId, name: newChild.slice(0, 60), color: CHILD_COLORS[plan.children.length % CHILD_COLORS.length].id });
+  }
+  if (!childId) {
+    view.dialog.error = "Choose a child, or type a nickname in “Or add a new child”.";
+    render();
+    return;
+  }
+
+  const newVenue = String(data.get("newVenue") || "").trim();
+  let venueId = String(data.get("venueId") || "");
+  if (newVenue) {
+    venueId = makeId("venue");
+    plan.venues.push({ id: venueId, name: newVenue.slice(0, 60) });
+  }
+  if (!venueId) {
+    view.dialog.error = "Choose a place, or type one in “Or add a new place”.";
+    render();
+    return;
+  }
+
+  const name = String(data.get("name") || "").trim();
+  if (!name) {
+    view.dialog.error = "Give it a name you will recognize, like swimming or piano.";
+    render();
+    return;
+  }
+
+  const start = String(data.get("start") || "");
+  const end = String(data.get("end") || "");
+  if (parseTime(start) === null || parseTime(end) === null) {
+    view.dialog.error = "Add a valid start time and end time so we can check the rides.";
+    render();
+    return;
+  }
+  if (parseTime(end) <= parseTime(start)) {
+    view.dialog.error = "The end time has to be after the start time.";
+    render();
+    return;
+  }
+
+  const record = {
+    id: view.dialog.activityId || makeId("act"),
+    childId,
+    name: name.slice(0, 60),
+    venueId,
+    day: String(data.get("day") || view.dayId),
+    start,
+    end,
+    dropoffCaregiverId: String(data.get("dropoffCaregiverId") || "") || null,
+    pickupCaregiverId: String(data.get("pickupCaregiverId") || "") || null,
+    adultStays: data.get("adultStays") === "on",
+  };
+
+  const index = plan.activities.findIndex(item => item.id === record.id);
+  if (index >= 0) plan.activities[index] = record;
+  else plan.activities.push(record);
+
+  snapshot("activity");
+  view.dialog = null;
+  view.dayId = record.day;
+  commit(plan);
+  toast(index >= 0 ? "Saved. Take a look at how the rides fit now." : "Added. Let’s see how the afternoon fits together.", "good", true);
+  render();
+}
+
+function applySuggestion(conflictId, tripKey, caregiverId) {
+  const conflict = view.analysis.conflicts.find(item => item.id === conflictId);
+  const trip = view.analysis.obligations.find(item => item.key === tripKey);
+  if (!conflict || !trip) {
+    toast("That option is no longer available because the plan has changed.", "error");
+    render();
+    return;
+  }
+  snapshot("suggestion");
+  const next = reassignTrip(view.plan, trip, caregiverId);
+  commit(next);
+  toast(`${caregiverName(view.plan, caregiverId)} is now down for that trip in your plan. Nobody has been contacted.`, "good", true);
+  render();
+}
+
+function copyText(text, okMessage) {
+  const finish = ok => {
+    toast(ok ? okMessage : "The copy button did not work in this browser. You can still select the plan and copy it yourself.", ok ? "good" : "error");
+    render();
+  };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => finish(true), () => finish(legacyCopy(text)));
+    return;
+  }
+  finish(legacyCopy(text));
+}
+
+function legacyCopy(text) {
+  const area = document.createElement("textarea");
+  area.value = text;
+  area.setAttribute("readonly", "");
+  area.style.position = "fixed";
+  area.style.opacity = "0";
+  document.body.appendChild(area);
+  area.select();
+  let ok = false;
+  try {
+    ok = document.execCommand("copy");
+  } catch {
+    ok = false;
+  }
+  area.remove();
+  return ok;
+}
+
+function exportBackup() {
+  const payload = JSON.stringify(buildBackup(view.plan, new Date().toISOString()), null, 2);
+  try {
+    const blob = new Blob([payload], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `afterschool-together-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    toast("Backup saved to your downloads. Send it yourself to share this plan.", "good");
+  } catch {
+    copyText(payload, "This browser would not download a file, so the backup was copied to your clipboard instead.");
+    return;
+  }
+  render();
+}
+
+function importBackup(file) {
+  const reader = new FileReader();
+  reader.onerror = () => {
+    toast("That file could not be read, so nothing was changed.", "error");
+    render();
+  };
+  reader.onload = () => {
+    const result = readBackup(String(reader.result || ""));
+    if (!result.ok) {
+      toast(result.errors[0], "error");
+      render();
+      return;
+    }
+    snapshot("import");
+    commit(result.plan, { keepExample: true });
+    view.dayId = firstUsefulDay(result.plan);
+    if (result.errors.length) {
+      view.notices = [{ id: makeId("notice"), tag: "Opened with repairs", tone: "alert", message: `${result.errors.length} ${result.errors.length === 1 ? "part" : "parts"} of that file could not be used: ${result.errors.join(" ")}` }];
+      toast("Backup opened, but some of it had to be skipped. See the note at the top.", "error", true);
+    } else {
+      toast("Backup opened. Your previous plan can still be restored with Undo.", "good", true);
+    }
+    render();
+  };
+  reader.readAsText(file);
+}
+
+function firstUsefulDay(plan) {
+  const today = DAYS[(new Date().getDay() + 6) % 7].id;
+  const has = dayId => plan.activities.some(item => item.day === dayId);
+  if (has(today)) return today;
+  return DAYS.find(day => has(day.id))?.id || today;
+}
+
+function updateRoute(input) {
+  const from = input.dataset.routeFrom;
+  const to = input.dataset.routeTo;
+  const raw = input.value.trim();
+  const plan = JSON.parse(JSON.stringify(view.plan));
+  plan.routes = plan.routes.filter(
+    item => !((item.fromVenueId === from && item.toVenueId === to) || (item.fromVenueId === to && item.toVenueId === from)),
+  );
+  if (raw === "") {
+    commit(plan);
+    toast("Cleared. That pair is an estimate again, and it is marked wherever it matters.", "info");
+    render();
+    return;
+  }
+  const minutes = parseMinutesInput(raw);
+  if (minutes === null) {
+    toast("Travel time has to be a whole number of minutes, and cannot be negative.", "error");
+    render();
+    return;
+  }
+  plan.routes.push({ id: makeId("route"), fromVenueId: from, toVenueId: to, minutes });
+  commit(plan);
+}
+
+function updateSetting(input) {
+  const key = input.dataset.setting;
+  const minutes = parseMinutesInput(input.value);
+  if (minutes === null) {
+    toast("That has to be a whole number of minutes, and cannot be negative.", "error");
+    render();
+    return;
+  }
+  commit({ ...view.plan, settings: { ...view.plan.settings, [key]: minutes } });
+}
+
+const CONFIRMED = {
+  "clear-all": () => {
+    snapshot("clear");
+    commit(emptyPlan());
+    view.setupOpen = true;
+    toast("Cleared. Undo will bring it back if that was a mistake.", "info", true);
+    render();
+  },
+  "delete-activity": id => {
+    snapshot("delete");
+    commit({ ...view.plan, activities: view.plan.activities.filter(item => item.id !== id) });
+    toast("Removed. Undo will bring it back.", "info", true);
+    render();
+  },
+  "remove-child": id => removeEntity("child", id),
+  "remove-venue": id => removeEntity("venue", id),
+  "remove-caregiver": id => removeEntity("caregiver", id),
+};
+
+const ACTIONS = {
+  "select-day": id => {
+    view.dayId = id;
+    render();
+  },
+  "add-activity": () => {
+    view.dialog = { type: "activity", activityId: null, error: null };
+    render();
+  },
+  "edit-activity": id => {
+    view.dialog = { type: "activity", activityId: id, error: null };
+    render();
+  },
+  "ask-delete-activity": id => {
+    const activity = findById(view.plan.activities, id);
+    if (!activity) return;
+    askConfirm({
+      title: `Remove “${activity.name}”?`,
+      body: `This removes ${activity.name} on ${dayLabel(activity.day)} and the trips that go with it. You can undo it straight afterwards.`,
+      confirmLabel: "Remove it",
+      action: { name: "delete-activity", id },
+    });
+  },
+  "toggle-setup": () => {
+    view.setupOpen = !view.setupOpen;
+    render();
+  },
+  "open-setup": () => {
+    view.setupOpen = true;
+    view.dialog = null;
+    render();
+    document.getElementById("setup-body")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  },
+  "remove-child": id => askRemoveEntity("child", id),
+  "remove-caregiver": id => askRemoveEntity("caregiver", id),
+  "remove-venue": id => askRemoveEntity("venue", id),
+  "close-dialog": closeDialog,
+  "confirm-yes": () => {
+    const action = view.dialog?.action;
+    view.dialog = null;
+    if (action && CONFIRMED[action.name]) CONFIRMED[action.name](action.id);
+    else render();
+  },
+  "clear-all": () => {
+    askConfirm({
+      title: "Clear everything?",
+      body: "This removes every child, caregiver, place, travel time and activity from this browser. Save a backup first if you might want it back later. Undo is available immediately afterwards.",
+      confirmLabel: "Clear everything",
+      action: { name: "clear-all" },
+    });
+  },
+  "load-example": () => {
+    snapshot("example");
+    commit(examplePlan(), { keepExample: true });
+    view.dayId = "mon";
+    toast("Example week loaded. It is clearly labelled and yours to edit.", "info", true);
+    render();
+  },
+  "show-day-plan": () => {
+    view.dialog = { type: "dayplan", dayId: view.dayId };
+    render();
+  },
+  "copy-day-plan": () => {
+    copyText(dailyDriverPlanText(view.plan, view.analysis, view.dialog.dayId), "Copied. Paste it into a message.");
+  },
+  "print-day-plan": () => {
+    window.print();
+  },
+  "export-download": exportBackup,
+  "import-open": () => {
+    root.querySelector("[data-import-input]")?.click();
+  },
+  undo: () => {
+    if (!view.undo) return;
+    const restored = view.undo.plan;
+    view.undo = null;
+    commit(restored, { keepExample: true });
+    toast("Put back the way it was.", "info");
+    render();
+  },
+  "dismiss-toast": () => {
+    view.toast = null;
+    render();
+  },
+  "dismiss-notice": id => {
+    view.notices = view.notices.filter(item => item.id !== id);
+    render();
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Events
+// ---------------------------------------------------------------------------
+
+root.addEventListener("click", event => {
+  const suggestion = event.target.closest("[data-act='apply-suggestion']");
+  if (suggestion) {
+    view.pendingFocus = null;
+    applySuggestion(suggestion.dataset.conflict, suggestion.dataset.trip, suggestion.dataset.caregiver);
+    return;
+  }
+  const trigger = event.target.closest("[data-act]");
+  if (!trigger) return;
+  const handler = ACTIONS[trigger.dataset.act];
+  if (!handler) return;
+  event.preventDefault();
+  view.pendingFocus = trigger.getAttribute("data-fk");
+  handler(trigger.dataset.id);
+});
+
+root.addEventListener("submit", event => {
+  const activityForm = event.target.closest("[data-activity-form]");
+  if (activityForm) {
+    event.preventDefault();
+    saveActivityForm(activityForm);
+    return;
+  }
+  const addForm = event.target.closest("[data-add]");
+  if (!addForm) return;
+  event.preventDefault();
+  const kind = addForm.dataset.add;
+  const input = addForm.querySelector("input[name='name']");
+  const name = input.value.trim().replace(/\s+/g, " ").slice(0, 60);
+  if (!name) {
+    toast("Type a name first.", "error");
+    render();
+    return;
+  }
+  const plan = JSON.parse(JSON.stringify(view.plan));
+  if (kind === "child") plan.children.push({ id: makeId("child"), name, color: CHILD_COLORS[plan.children.length % CHILD_COLORS.length].id });
+  if (kind === "caregiver") plan.caregivers.push({ id: makeId("care"), name });
+  if (kind === "venue") plan.venues.push({ id: makeId("venue"), name });
+  view.pendingFocus = `add-${kind}`;
+  commit(plan);
+});
+
+root.addEventListener("change", event => {
+  if (event.target.matches("[data-route-from]")) {
+    view.pendingFocus = event.target.getAttribute("data-fk");
+    updateRoute(event.target);
+    return;
+  }
+  if (event.target.matches("[data-setting]")) {
+    view.pendingFocus = event.target.getAttribute("data-fk");
+    updateSetting(event.target);
+    return;
+  }
+  if (event.target.matches("[data-import-input]")) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (file) importBackup(file);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Start
+// ---------------------------------------------------------------------------
+
+const startup = loadPlan(storage);
+view.plan = startup.plan;
+view.dayId = firstUsefulDay(startup.plan);
+if (startup.status === "recovered") {
+  keepUnreadable(storage, startup.rescued);
+  view.notices = [{ id: makeId("notice"), tag: "Saved plan could not be read", tone: "alert", message: `${startup.errors.join(" ")} The unreadable copy is still in this browser under "${"afterschool-together.unreadable-backup.v1"}" in case it can be rescued.` }];
+} else if (startup.status === "unavailable") {
+  view.notices = [{ id: makeId("notice"), tag: "Not saving", tone: "alert", message: startup.errors[0] }];
+} else if (startup.errors.length) {
+  view.notices = [{ id: makeId("notice"), tag: "Opened with repairs", tone: "alert", message: startup.errors.join(" ") }];
+}
+
+render();
+})();
+    </script>
+  </body>
+</html>
