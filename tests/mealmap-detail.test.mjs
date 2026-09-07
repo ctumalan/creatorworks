@@ -6,7 +6,7 @@ import vm from 'node:vm';
 test('All eleven projects use the approved presentation with their own action targets', () => {
   const source = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
   const functions = source.slice(source.indexOf('const projectPresentation ='), source.indexOf("document.addEventListener('submit'"));
-  const context = vm.createContext({ videoPlayer: () => '', similarSection: () => '', state: { saved: new Set(), communityPosts: [] }, esc: value => String(value ?? ''), creatorLink: () => 'CreatorWorks Studio', creatorFor: () => ({ slug: 'creatorworks-studio', name: 'CreatorWorks Studio' }) });
+  const context = vm.createContext({ videoPlayer: () => '', similarSection: () => '', state: { saved: new Set(), communityPosts: [] }, esc: value => String(value ?? ''), creatorLink: () => 'TryMyBuild Studio', creatorFor: () => ({ slug: 'creatorworks-studio', name: 'TryMyBuild Studio' }) });
   vm.runInContext(functions, context);
   const product = { slug: 'mealmap', url: 'https://meal-map-cw.tumalanct.chatgpt.site', preview: 'assets/previews/mealmap.png', note: 'New listing', benefits: [] };
   const markup = context.detailDrawer(product);

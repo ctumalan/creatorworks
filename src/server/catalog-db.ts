@@ -5,13 +5,13 @@ import { database } from './database';
 
 const STUDIO = {
   slug: 'creatorworks-studio',
-  name: 'CreatorWorks Studio',
-  initials: 'CW',
+  name: 'TryMyBuild Studio',
+  initials: 'TMB',
   label: 'In-house creator · Founded by Christian Tumalán',
-  bio: 'Our launch collection of practical tools, built in-house at CreatorWorks.',
+  bio: 'Our launch collection of practical tools, built in-house at TryMyBuild.',
   verified: true,
 };
-const studioNote = 'Founder-confirmed: Christian Tumalán confirmed control of CreatorWorks Studio and its listed projects on September 4, 2026. This is not independent verification or a guarantee of product quality.';
+const studioNote = 'Founder-confirmed: Christian Tumalán confirmed control of TryMyBuild Studio and its listed projects on September 4, 2026. This is not independent verification or a guarantee of product quality.';
 
 const initialsOf = (name: string) => String(name || 'Member').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase() || 'M';
 
@@ -28,22 +28,26 @@ async function attributions(db: any, rows: any[]) {
   return (row: any) => {
     if (row.is_studio || !row.owner_user_id) return { ...STUDIO, verificationNote: studioNote };
     const p: any = byUser.get(row.owner_user_id);
-    if (!p) return { slug: '', name: 'A CreatorWorks creator', initials: 'C', label: 'CreatorWorks creator', bio: '', verified: false };
+    if (!p) return { slug: '', name: 'A TryMyBuild creator', initials: 'C', label: 'TryMyBuild creator', bio: '', verified: false };
     return {
       slug: p.is_public ? p.slug : '',
       name: p.display_name,
       avatar: p.avatar_path || '',
       initials: initialsOf(p.display_name),
-      label: p.identity_label || 'CreatorWorks creator',
+      label: p.identity_label || 'TryMyBuild creator',
       bio: '',
       verified: p.verified === true,
-      verificationNote: p.verified ? 'Creator identity reviewed by CreatorWorks. This is not a guarantee of product quality.' : '',
+      verificationNote: p.verified ? 'Creator identity reviewed by TryMyBuild. This is not a guarantee of product quality.' : '',
     };
   };
 }
 
 export function toClientProject(row: any, attributedBy: (row: any) => any, index = 0) {
   const benefits = Array.isArray(row.benefits) ? row.benefits : [];
+  // Display-only rebrand of platform-authored launch notes; keep stored data and user copy intact.
+  const studioCopy = (value: string) => row.is_studio
+    ? value.replace(/\bCreator(?:\s+|-)?Works\b/g, 'TryMyBuild')
+    : value;
   return {
     slug: row.slug,
     video: row.video_url || '',
@@ -56,12 +60,12 @@ export function toClientProject(row: any, attributedBy: (row: any) => any, index
     price: row.price_label || 'Free',
     isFree: row.is_free !== false,
     url: row.external_url || '',
-    linkNote: row.link_note || '',
+    linkNote: studioCopy(row.link_note || ''),
     outcome: row.outcome || '',
-    note: row.note || '',
+    note: studioCopy(row.note || ''),
     preview: row.preview_public_url || row.preview_path || `/assets/previews/${row.slug}.png`,
     benefits,
-    accessNote: row.access_note || 'Opens a separate site; sign-in may be required',
+    accessNote: studioCopy(row.access_note || 'Opens a separate site; sign-in may be required'),
     presentation: {
       eyebrow: row.tagline || row.category || '',
       headline: row.headline || row.summary || row.title,

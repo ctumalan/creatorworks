@@ -14,7 +14,7 @@ export const GET: APIRoute = async () => {
   return json({ connected: true, posts: result.data.map(row => {
     const profile = profiles.data?.find(item => item.user_id === row.author_user_id);
     const author: string = profile?.display_name || 'Member';
-    return { id: row.id, projectSlug: row.project_slug, response: row.response, author, avatar: profile?.avatar_path || '', label: profile?.identity_label || 'CreatorWorks member', initials: author.split(/\s+/).slice(0, 2).map(word => word[0]).join(''), createdAt: row.created_at, source: 'community', signals: [] };
+    return { id: row.id, projectSlug: row.project_slug, response: row.response, author, avatar: profile?.avatar_path || '', label: profile?.identity_label || 'TryMyBuild member', initials: author.split(/\s+/).slice(0, 2).map(word => word[0]).join(''), createdAt: row.created_at, source: 'community', signals: [] };
   }) });
 };
 

@@ -20,7 +20,7 @@ export const GET:APIRoute = async context => {
   if(!row || row.listing_status!=='public' && row.listing_status!=='published') return surface('Not found','<h1>Project not found.</h1>','',404);
   product={ name:row.title, category:row.category, summary:row.summary, preview:row.preview_public_url||`/assets/previews/${slug}.png`, url:row.external_url };
   ownerId=row.owner_user_id; ownerReady=!!row.owner_user_id;
-  if(row.is_studio) creator='CreatorWorks Studio';
+  if(row.is_studio) creator='TryMyBuild Studio';
   else if(ownerId){ const prof=await db.from('profiles').select('display_name').eq('user_id',ownerId).maybeSingle(); creator=prof.data?.display_name || 'The creator'; }
   const feedback=await db.from('creator_feedback').select('id,author_user_id,helpful,price,message,created_at').eq('project_slug',slug!).eq('visibility','public').eq('moderation_status','published').order('created_at',{ascending:false}).order('id').range(page*25,page*25+24);
   if(feedback.error) throw feedback.error;

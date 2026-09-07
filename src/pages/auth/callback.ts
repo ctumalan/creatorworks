@@ -18,7 +18,7 @@ export const GET: APIRoute = async context => {
   if (!authReady()) return authMessage('Sign-in setup is still being connected.');
   const code = context.url.searchParams.get('code');
   if (!code || !verifier || !equalState(context.url.searchParams.get('state'), expected)) {
-    return authMessage('This sign-in link has expired. Please return to CreatorWorks and start sign-in again.', 400);
+    return authMessage('This sign-in link has expired. Please return to TryMyBuild and start sign-in again.', 400);
   }
   try {
     const result = await workos().userManagement.authenticateWithCode({

@@ -12,13 +12,13 @@
     gtag('js', new Date());
     // Exclude query strings, account identity, search text, and dashboard activity.
     gtag('config', config.measurementId, {send_page_view:false, allow_google_signals:false, allow_ad_personalization_signals:false});
-    gtag('event', 'page_view', {page_location:location.origin + location.pathname, page_title:'CreatorWorks catalog', page_referrer:document.referrer ? new URL(document.referrer).origin : ''});
+    gtag('event', 'page_view', {page_location:location.origin + location.pathname, page_title:'TryMyBuild catalog', page_referrer:document.referrer ? new URL(document.referrer).origin : ''});
     const script = document.createElement('script'); script.src = 'https://www.googletagmanager.com/gtag/js?id=' + config.measurementId; script.async = true; document.head.append(script);
   }
   function choice() {
     document.querySelector('.analytics-choice')?.remove();
     const panel = document.createElement('section'); panel.className = 'analytics-choice'; panel.setAttribute('aria-label','Analytics preferences');
-    panel.innerHTML = '<strong>Help improve CreatorWorks</strong><p>Allow Google Analytics to measure visits and project interest? Optional analytics stays off until you allow it.</p><button class="secondary-button" data-consent="denied">No thanks</button><button class="primary-button" data-consent="granted">Allow analytics</button><p><a href="/privacy">Privacy details</a></p>';
+    panel.innerHTML = '<strong>Help improve TryMyBuild</strong><p>Allow Google Analytics to measure visits and project interest? Optional analytics stays off until you allow it.</p><button class="secondary-button" data-consent="denied">No thanks</button><button class="primary-button" data-consent="granted">Allow analytics</button><p><a href="/privacy">Privacy details</a></p>';
     panel.addEventListener('click', e => { const value = e.target.closest('[data-consent]')?.dataset.consent; if (!value) return; set(value); panel.remove(); if (value === 'granted') start(); else {
       if (config?.measurementId) window['ga-disable-' + config.measurementId] = true;
       window.gtag?.('consent','update',{analytics_storage:'denied'});
