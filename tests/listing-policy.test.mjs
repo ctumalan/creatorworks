@@ -27,13 +27,13 @@ test('stage falls back to a safe default', () => {
 });
 
 test('normalizeDraft maps builder fields and rejects a broken link', () => {
-  const { value } = normalizeDraft({ title: 'My Tool', url: 'https://mytool.app', category: 'ai', stage: 'x', does: 'Does a thing', helps: 'Helps you', firstTry: 'Try this' });
+  const { value } = normalizeDraft({ title: 'My Tool', url: 'https://mytool.app', category: 'ai', stage: 'x', does: 'Does a useful thing', helps: 'Helps you plan your day', firstTry: 'Try this useful feature first' });
   assert.equal(value.title, 'My Tool');
   assert.equal(value.external_url, 'https://mytool.app/');
   assert.equal(value.category, 'AI & automation');
-  assert.equal(value.headline, 'Does a thing');
-  assert.equal(value.help_text, 'Helps you');
-  assert.equal(value.first_try, 'Try this');
+  assert.equal(value.headline, 'Does a useful thing');
+  assert.equal(value.help_text, 'Helps you plan your day');
+  assert.equal(value.first_try, 'Try this useful feature first');
   const bad = normalizeDraft({ title: 'X', url: 'javascript:alert(1)' });
   assert.ok(bad.error, 'invalid link is rejected');
 });
@@ -44,8 +44,8 @@ test('publishReadiness lists exactly what is missing and passes a complete draft
   assert.ok(empty.missing.includes('project name'));
   assert.ok(empty.missing.includes('a preview screenshot'));
   const complete = publishReadiness({
-    title: 'T', external_url: 'https://t.app', category: 'Tech', headline: 'H',
-    help_text: 'help', first_try: 'first', preview_path: 'previews/x/y.jpg',
+    title: 'T', external_url: 'https://t.app', category: 'Tech', headline: 'Plan meals for your family',
+    help_text: 'Make dinner decisions more easily', first_try: 'Add ingredients from your fridge', preview_path: 'previews/x/y.jpg',
   });
   assert.deepEqual(complete, { ready: true, missing: [] });
 });

@@ -1,3 +1,4 @@
+import {notificationKey} from '../../server/notifications';
 import type { APIRoute } from 'astro';
 import { memberContext } from '../../server/workspace';
 import { origin,env } from '../../server/auth';
@@ -16,6 +17,7 @@ export const POST:APIRoute=async context=>{
   if(f.action==='preferences'||f.action==='alerts'){
    const p=preferences(f);if(!p)return back(false);
    r=await db.from('account_preferences').upsert({user_id:member.id,...(f.action==='alerts'?{feedback_alerts:p.feedback_alerts,publication_alerts:p.publication_alerts}:{tips:p.tips,interests:p.interests}),updated_at:new Date().toISOString()});
+  if(!r.error&&f.action==='alerts')r=await db.from('site_settings').upsert({key:notificationKey(member.id),value:{saved_updates:f.savedUpdates==='on',recommendations:f.recommendations==='on',activity_digest:f.activityDigest==='on',draft_reminders:f.draftReminders==='on'},updated_at:new Date().toISOString()});
   }else if(f.action==='read'||f.action==='read-all'){
    let q=db.from('notifications').update({read_at:new Date().toISOString()}).eq('user_id',member.id).is('read_at',null);if(f.action==='read'){if(!uuid(f.id))return back(false);q=q.eq('id',f.id);}r=await q;
   }else if(f.action==='case-create'){

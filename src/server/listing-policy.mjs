@@ -1,4 +1,5 @@
 import '../../project-media.js';
+import '../../listing-rules.js';
 // Pure listing rules — no I/O, unit-testable. Ownership and authority are enforced by the caller
 // using the authenticated server session; nothing here trusts a client-supplied owner id.
 
@@ -72,6 +73,10 @@ export function normalizeDraft(body) {
   if ((body.video || body.video_url) && !value.video_url) return { error: 'Use a YouTube, Vimeo, or Loom video URL or iframe embed.' };
   if (body.url != null && String(body.url).trim() && !value.external_url) return { error: 'Enter a complete http or https project link.' };
   if (value.category === '' && (body.category ?? '') !== '') return { error: 'Choose a clearer category, or pick a common one.' };
+  for(const [key,label] of [['headline','What your project does'],['help_text','How it helps'],['first_try','What to try first']]) {
+    const raw=key==='headline'?(body.does??body.headline):key==='help_text'?(body.helps??body.help_text):(body.firstTry??body.first_try);
+    if(String(raw||'').trim() && !globalThis.CWListingRules.valid(raw)) return {error:label+' must contain 4–10 words.'};
+  }
   return { value };
 }
 
@@ -84,6 +89,7 @@ export function publishReadiness(project) {
   if (!project?.headline?.trim()) missing.push('what it does (the heading)');
   if (!project?.help_text?.trim()) missing.push('how it helps');
   if (!project?.first_try?.trim()) missing.push('what to try first');
+  for(const [key,label] of [['headline','what it does'],['help_text','how it helps'],['first_try','what to try first']]) if(project?.[key]?.trim()&&!globalThis.CWListingRules.valid(project[key]))missing.push(label+' (4–10 words)');
   if (!project?.preview_path?.trim()) missing.push('a preview screenshot');
   return { ready: missing.length === 0, missing };
 }

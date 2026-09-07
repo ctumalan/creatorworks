@@ -22,9 +22,9 @@ export async function currentUser(context: APIContext) {
   try {
     const session = workos().userManagement.loadSealedSession({ sessionData: data, cookiePassword: env('WORKOS_COOKIE_PASSWORD') });
     const result = await session.authenticate();
-    if (result.authenticated) return await permittedUser(result.user);
+    if (result.authenticated) return result.impersonator ? null : await permittedUser(result.user);
     const refreshed = await session.refresh();
-    if (refreshed.authenticated && refreshed.sealedSession) {
+    if (refreshed.authenticated && refreshed.sealedSession && !refreshed.impersonator) {
       context.cookies.set(SESSION_COOKIE, refreshed.sealedSession, cookieOptions(context));
       return await permittedUser(refreshed.user);
     }

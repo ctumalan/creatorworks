@@ -24,7 +24,8 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape')document.que
   try {
     const r = await fetch('/api/me'); if (!r.ok) return; const session = await r.json();
     window.CWAccountMenu.mount(session);
-    if (session.authenticated && session.databaseReady && location.pathname === '/dashboard') {
+    document.dispatchEvent(new CustomEvent('cw:account-ready',{detail:session}));
+    if (session.authenticated && session.databaseReady && ['/dashboard','/dashboard/overview'].includes(location.pathname)) {
       let draft; try { draft = JSON.parse(localStorage.getItem('creatorworks-listing-draft-v1') || '{}'); } catch {}
       if (draft?.title?.trim() && draft?.url?.trim() && !draft.serverId && (!draft.accountOwner || draft.accountOwner === session.user.id)) {
         const notice = document.createElement('p'); notice.className = 'cw-notice'; notice.setAttribute('role','status'); notice.textContent = 'Saving your project draft to your account…'; document.querySelector('main')?.prepend(notice);
@@ -34,7 +35,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape')document.que
           const result = await saved.json(); if(!saved.ok || !result.project) throw new Error();
           Object.assign(draft,{serverId:result.project.id,serverSlug:result.project.slug,serverStatus:result.project.status,accountOwner:session.user.id,imported:'yes'});
           localStorage.setItem('creatorworks-listing-draft-v1',JSON.stringify(draft));
-          location.replace('/dashboard?view=creator');
+          location.replace('/dashboard/overview');
         } catch { notice.innerHTML = 'Your draft is still saved on this device. <a href="/?listing=settings">Continue saving your project</a>.'; }
       }
     }

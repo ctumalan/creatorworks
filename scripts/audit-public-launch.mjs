@@ -1,0 +1,8 @@
+import fs from 'node:fs/promises';
+const base='https://creatorworks.vercel.app';
+const get=async path=>{const r=await fetch(base+path,{redirect:'manual',signal:AbortSignal.timeout(20000)});return {r,text:await r.text()};};
+const home=await get('/');const catalog=JSON.parse((await get('/api/catalog')).text);const login=await get('/auth/sign-in');
+const targets=await Promise.all(catalog.projects.map(async p=>{try{const url=new URL(p.url,base+'/');const r=await fetch(url,{method:'HEAD',redirect:'follow',signal:AbortSignal.timeout(15000)});return {slug:p.slug,host:url.hostname,status:r.status};}catch{return {slug:p.slug,status:'unreachable during check'};}}));
+const guarded=await Promise.all(['/api/me','/api/notifications','/api/account-export','/admin/workspace','/dashboard'].map(async path=>{const {r}=await get(path);return {path,status:r.status,location:r.headers.get('location')?.split('?')[0]};}));
+let loginHost='';try{loginHost=new URL(login.r.headers.get('location')).hostname;}catch{}
+console.log(JSON.stringify({checkedAt:new Date().toISOString(),home:home.r.status,searchIndexing:home.r.headers.get('x-robots-tag'),headers:{hsts:!!home.r.headers.get('strict-transport-security'),nosniff:home.r.headers.get('x-content-type-options'),frame:home.r.headers.get('x-frame-options'),referrer:home.r.headers.get('referrer-policy'),csp:home.r.headers.get('content-security-policy')||'not present'},published:catalog.projects.length,descriptionsOutsideRange:catalog.projects.filter(p=>{const n=p.presentation.headline.trim().split(/\s+/).length;return n<4||n>10;}).map(p=>p.slug),loginStatus:login.r.status,loginHost,guarded,targets},null,2));

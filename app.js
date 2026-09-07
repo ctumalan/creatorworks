@@ -520,7 +520,7 @@ document.addEventListener('drop', event => { if(event.target.closest('[data-list
 document.addEventListener('error', event => { if(event.target.matches?.('[data-listing-screenshot]')) {listingCapture.state='error';listingCapture.message='That image could not be displayed. Upload another screenshot or retry capture.';listingDraft.imageData='';listingDraft.image='';saveListingDraft();refreshListingPreview();} },true);
 function listingField(key, label, placeholder, multiline = false) {
   const control = multiline
-    ? `<textarea data-listing-field="${key}" maxlength="500" required placeholder="${placeholder}">${esc(listingDraft[key])}</textarea>`
+    ? `<textarea data-listing-field="${key}" maxlength="140" required aria-describedby="words-${key}" placeholder="${placeholder}">${esc(listingDraft[key])}</textarea><small id="words-${key}" class="word-counter" data-word-counter="${key}">${CWListingRules.count(listingDraft[key])} / 10 words · minimum 4</small>`
     : `<input data-listing-field="${key}" value="${esc(listingDraft[key])}" maxlength="${key === 'url' ? 2000 : 80}" type="${key === 'url' ? 'url' : 'text'}" required placeholder="${placeholder}" />`;
   return `<label class="listing-field">${label}${control}</label>`;
 }
@@ -562,7 +562,7 @@ function listingSettingsPage() {
       : status === 'in_review'
         ? '<button class="secondary-button" data-listing-unpublish>Withdraw from review</button>'
         : '<button class="primary-button" data-listing-publish>Publish — submit for review</button>'}<a class="share-browse-link" href="/dashboard?view=creator">Go to My projects →</a></div><p class="privacy-note">Publishing sends your listing for a quick founder review before it appears publicly. You can unpublish anytime.</p></div>`;
-  return `<section class="page-shell listing-review"><p class="eyebrow">Your project · Settings</p><h1>Make it yours.</h1><p>Signed in as ${name}.</p><form data-listing-settings>${listingField('title', 'Project name', 'Your project name')}${listingField('url', 'Project link', 'https://your-project.com')}${listingCategoryPicker()}${videoField()}<p class="share-name-hint">The screenshot, benefit, and first-feature answers are edited on the preview below. Categories appear in homepage filters only when a listing is published. Drafts never create public filters.</p><div class="form-actions share-start-actions"><button class="primary-button" type="submit">${hasServer ? 'Save changes' : 'Save draft'}</button><button class="share-browse-link" type="button" data-listing-review>Back</button></div><p data-listing-status role="status"></p></form>${importCard}${publishControls}<button type="button" class="share-browse-link" data-listing-reset>Start over</button>${listingPreview()}</section>`;
+  return `<section class="page-shell listing-review"><p class="eyebrow">Your project · Settings</p><h1>Make it yours.</h1><p>Signed in as ${name}.</p><form data-listing-settings>${listingField('title', 'Project name', 'Your project name')}${listingField('url', 'Project link', 'https://your-project.com')}${listingCategoryPicker()}${listingField('does','What does your project do?','Describe your project in 4–10 words.',true)}${listingField('helps','How does it help people?','Explain the benefit in 4–10 words.',true)}${listingField('firstTry','What should someone try first?','Suggest one action in 4–10 words.',true)}${videoField()}<p class="share-name-hint">Each answer needs 4–10 words. Edit your screenshot in the preview below. Categories appear in homepage filters only when a listing is published. Drafts never create public filters.</p><div class="form-actions share-start-actions"><button class="primary-button" type="submit">${hasServer ? 'Save changes' : 'Save draft'}</button><button class="share-browse-link" type="button" data-listing-review>Back</button></div><p data-listing-status role="status"></p></form>${importCard}${publishControls}<button type="button" class="share-browse-link" data-listing-reset>Start over</button>${listingPreview()}</section>`;
 }
 function listingAccountPage() {
   return `<section class="page-shell listing-review"><p class="eyebrow">Keep your project yours</p><h1>Create your creator account.</h1><p>Your draft is ready. Sign up or sign in to continue to project settings.</p><div class="form-actions share-start-actions"><a class="primary-button" href="/auth/sign-in?signup=1&next=listing">Create my account</a><a class="share-browse-link" href="/auth/sign-in?next=listing">Already have an account? Sign in</a><button class="share-browse-link" data-listing-review>Back</button></div><p class="privacy-note">Your draft stays on this device through sign-in. Nothing is public yet.</p></section>`;
@@ -573,8 +573,8 @@ function sharePage() {
   if (listingStep === 3) return `<section class="page-shell listing-review"><p class="eyebrow">4 · Preview your listing</p><h1>Here’s how your project will look.</h1><p>Check the three things visitors need to know before they try it.</p>${videoField()}${listingPreview()}<div class="form-actions share-start-actions"><button class="primary-button" data-listing-share>Share now</button><button class="share-browse-link" data-listing-back>Back</button><button type="button" class="share-browse-link" data-listing-reset>Start over</button></div><p class="privacy-note">Next: sign up or sign in, then choose your project settings. Nothing is published yet.</p><p data-listing-status role="status"></p></section>`;
   const content = [
     { headline: 'You have an idea. How do you know if it’s good?', note: 'Start with a link. You’ll preview the listing before creating your account.', image: 'creatorworks-idea-v1.png', title: 'What are you building?', copy: 'Add a name and a link people can open.', fields: listingField('title','Project name','For example: MealMap') + listingField('url','Project link','https://your-project.com') },
-    { headline: 'Help people see what’s possible.', note: 'A clear description and one small first task give visitors a reason to try your project.', image: 'creatorworks-small-difference-v1.png', title: 'Three things to know.', copy: 'Use everyday language. A sentence for each is enough.', fields: listingField('does','What does your project do?','For example: Turns ingredients into meal ideas.',true) + listingField('helps','How does it help people?','For example: Makes dinner decisions easier and reduces food waste.',true) + listingField('firstTry','What feature should someone try first?','For example: Enter three ingredients from your fridge.',true) },
-    { headline: 'There’s room for work in progress.', note: 'Let visitors know what to expect. Your project can be useful before it is finished.', image: 'creatorworks-first-user-v1.png', title: 'What stage is it at?', copy: 'Choose the closest match. You can change it later.', fields: `<div class="choice-grid" role="group" aria-label="Project stage">${['Still taking shape','Ready for a first try','Being tested by early users','Finished and launched'].map(stage => `<button type="button" class="choice-button ${stage === listingDraft.stage ? 'is-selected' : ''}" aria-pressed="${stage === listingDraft.stage}" data-listing-stage="${stage}"><span aria-hidden="true">${stage === listingDraft.stage ? '✓' : ''}</span>${stage}</button>`).join('')}</div>` }
+    { headline: 'Help people see what’s possible.', note: 'A clear description and one small first task give visitors a reason to try your project.', image: 'creatorworks-small-difference-v1.png', title: 'Three things to know.', copy: 'Use everyday language. Keep each answer between 4 and 10 words.', fields: listingField('does','What does your project do?','For example: Turns ingredients into meal ideas.',true) + listingField('helps','How does it help people?','For example: Makes dinner decisions easier and reduces food waste.',true) + listingField('firstTry','What feature should someone try first?','For example: Enter three ingredients from your fridge.',true) },
+    { headline: 'There’s room for work in progress.', note: 'Let visitors know what to expect. Your project can be useful before it is finished.', image: 'creatorworks-first-user-v1.png', title: 'What stage is it at?', copy: 'Choose the closest match. You can change it later.', fields: `${videoField()}<div class="choice-grid" role="group" aria-label="Project stage">${['Still taking shape','Ready for a first try','Being tested by early users','Finished and launched'].map(stage => `<button type="button" class="choice-button ${stage === listingDraft.stage ? 'is-selected' : ''}" aria-pressed="${stage === listingDraft.stage}" data-listing-stage="${stage}"><span aria-hidden="true">${stage === listingDraft.stage ? '✓' : ''}</span>${stage}</button>`).join('')}</div>` }
   ][listingStep];
   const evidence = [
     '<p><strong>42% of failed startups said people didn’t need their product.</strong></p><p class="share-evidence-source">Based on 101 failed startups studied by CB Insights. <a href="https://s3-us-west-2.amazonaws.com/cbi-content/research-reports/The-20-Reasons-Startups-Fail.pdf" target="_blank" rel="noopener noreferrer">Source</a></p>',
@@ -612,6 +612,7 @@ document.addEventListener('submit', event => {
   const status = form.querySelector('[data-listing-status]');
   const fields = form.hasAttribute('data-listing-settings') || listingStep === 0 ? ['title','url'] : listingStep === 1 ? ['does','helps','firstTry'] : [];
   if (fields.some(key => !listingDraft[key].trim())) { status.textContent = 'Please add a short answer to each field.'; return; }
+  if ((listingStep === 1 || form.hasAttribute('data-listing-settings')) && ['does','helps','firstTry'].some(key=>!CWListingRules.valid(listingDraft[key]))) { status.textContent='Each of the three project answers must contain 4–10 words.'; return; }
   if (!listingUrl(listingDraft.url)) { status.textContent = 'Enter a complete http or https project link.'; return; }
   if (form.hasAttribute('data-listing-settings')) {
     const normalizedCategory = normalizeCategory(listingDraft.category);
@@ -974,42 +975,8 @@ if (window.CW_SERVER) {
 }
 
 
-// Share a link to this listing rather than the external tool.
-function productShareUrl(slug) {
-  const url = new URL('/', location.origin);
-  url.searchParams.set('project', slug);
-  return url.href;
-}
-document.addEventListener('click', async event => {
-  const button = event.target.closest('[data-share-product]');
-  if (!button) return;
-  const product = projects.find(item => item.slug === button.dataset.shareProduct);
-  if (!product) return;
-  const url = productShareUrl(product.slug);
-  const status = button.parentElement.querySelector('[data-share-status]');
-  try {
-    if (navigator.share) {
-      await navigator.share({ title: product.name, text: product.summary, url });
-      return;
-    }
-    await navigator.clipboard.writeText(url);
-    status.textContent = 'Link copied';
-  } catch (error) {
-    if (error.name === 'AbortError') return;
-    status.textContent = 'Copy this project link:';
-    let input = button.parentElement.querySelector('[data-share-url]');
-    if (!input) {
-      input = document.createElement('input');
-      input.dataset.shareUrl = '';
-      input.readOnly = true;
-      input.setAttribute('aria-label', 'Project link to copy');
-      button.parentElement.append(input);
-    }
-    input.value = url;
-    input.focus();
-    input.select();
-  }
-});
+// Canonical recipient page; sharing always opens a preview first.
+function productShareUrl(slug) { return new URL('/projects/'+encodeURIComponent(slug),location.origin).href; }
 // Load an existing owned project into the builder (used by "Continue editing" from My projects),
 // or refresh the current draft's server status. Never attaches to an account on its own.
 function loadOwnedProjectIntoDraft(p) {
@@ -1055,7 +1022,7 @@ function openLinkedProject() {
 openLinkedProject();
 
 function videoField() {
-  return `<label class="listing-field">Project video · Optional<textarea data-listing-field="video" placeholder="Paste a YouTube, Vimeo, or Loom URL or iframe embed code" maxlength="5000">${esc(listingDraft.video)}</textarea></label><p class="share-name-hint">YouTube, Vimeo, and Loom supported. Visitors choose when to load the video.</p>`;
+  return `<label class="listing-field">Add a video (optional)<textarea data-listing-field="video" placeholder="Paste a YouTube, Vimeo, or Loom URL or iframe embed code" maxlength="5000">${esc(listingDraft.video)}</textarea></label><p class="share-name-hint">Paste a video link or embed code from YouTube, Vimeo, or Loom. A Play project video preview appears below when the video is valid.</p>`;
 }
 function videoPlayer(value) {
   const url = CWMedia.videoUrl(value);
@@ -1074,4 +1041,11 @@ document.addEventListener('click', event => {
     invalidateListingCapture(); resetListingDraft(); listingSettings = false; listingStep = 0; state.route = 'share';
     history.replaceState({}, '', '/?listing=settings'); render();
   }
+});
+
+document.addEventListener('input',event=>{
+ const field=event.target.closest('[data-listing-field]');if(!field||!['does','helps','firstTry'].includes(field.dataset.listingField))return;
+ const counter=document.querySelector('[data-word-counter="'+field.dataset.listingField+'"]');const count=CWListingRules.count(field.value);
+ if(counter){counter.textContent=count+' / 10 words · minimum 4';counter.classList.toggle('invalid',count<4||count>10);}
+ field.setCustomValidity(count<4||count>10?'Use 4–10 words for this answer.':'');
 });

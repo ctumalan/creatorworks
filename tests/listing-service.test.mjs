@@ -35,7 +35,7 @@ function makeStore(opts = {}) {
     async deleteImage(key) { storage.delete(key); },
   };
 }
-const draft = (title, over = {}) => ({ title, external_url: 'https://x.app/', category: 'Technology', stage: 'Ready for a first try', headline: 'Does a thing', help_text: 'Helps you', first_try: 'Try this', summary: 'sum', ...over });
+const draft = (title, over = {}) => ({ title, external_url: 'https://x.app/', category: 'Technology', stage: 'Ready for a first try', headline: 'Does a genuinely useful thing', help_text: 'Helps you organize your day', first_try: 'Try this useful feature first', summary: 'sum', ...over });
 const deps = (() => { let n = 0; return { slugify: s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'project', randomSuffix: () => 's' + (n++) }; })();
 const reencode = async () => ({ bytes: Buffer.from('reencoded'), contentType: 'image/jpeg' });
 
@@ -125,7 +125,7 @@ test('admin approval is bound to the reviewed revision: a stale approval after w
   const reviewedVersion = store.rows.get(row.id).lock_version;
   // Creator withdraws, edits materially, resubmits — advancing the revision past what the admin saw.
   await unpublish(store, { ownerId: 'A', id: row.id });     // in_review → draft
-  await saveDraft(store, { ownerId: 'A', id: row.id, input: draft('One', { headline: 'changed' }) }, deps);
+  await saveDraft(store, { ownerId: 'A', id: row.id, input: draft('One', { headline: 'A newly changed project heading' }) }, deps);
   await submit(store, { ownerId: 'A', id: row.id });        // → in_review again, higher lock_version
   // Approval from the STALE review screen (old status+version) must be rejected.
   const stale = await store.updateOwnedGuarded(row.id, 'A', { status: reviewedStatus, lockVersion: reviewedVersion }, { listing_status: 'published', visibility: 'public' });
