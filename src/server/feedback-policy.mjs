@@ -11,6 +11,15 @@ export function feedbackInput(data) {
 }
 export function threadAccess(memberId, authorId, ownerId) { return !!memberId && (memberId === authorId || memberId === ownerId); }
 export function feedbackDestination(value) {
+  // Only a local category return path is accepted; never an arbitrary redirect.
+  if (typeof value === 'string' && value.startsWith('/?category=')) {
+    const url = new URL(value, 'https://local.invalid');
+    const category = url.searchParams.get('category');
+    if (url.pathname === '/' && category && category.length <= 80 && !/[\u0000-\u001f]/.test(category)
+      && [...url.searchParams.keys()].every(key => key === 'category')) {
+      return '/?category=' + encodeURIComponent(category) + '#category-community';
+    }
+  }
   if (['/','/dashboard/community','/dashboard/security','/dashboard/overview','/dashboard/preferences','/dashboard/notifications','/dashboard/privacy','/dashboard/help'].includes(value)) return value;
   if (value === 'listing' || value === '/?listing=settings') return '/?listing=settings';
   if (value === '/dashboard' || value === '/dashboard?view=creator' || value === '/dashboard/profile') return value;

@@ -139,7 +139,9 @@ const state = {
   preferencesHydrated: false,
   communityPosts: window.CW_SERVER ? [] : JSON.parse(localStorage.getItem("creatorworks-community-posts") || "[]"),
   dailyComments: [],
-  communityCategory: "All",
+  discussionCategory: "",
+  discussionError: "",
+  discussionExpanded: false,
   profileSlug: null,
   creatorStep: 0,
   creator: { url: "", stage: "Someone can try it", audience: "", benefit: "", participant: "" },
@@ -254,24 +256,38 @@ function discover(communityFocused = false) {
     <div class="catalog-layout">
       <aside class="filter-panel"><div><strong>Filter by category</strong><button data-category-filter="All" class="${state.category === "All" ? "is-selected" : ""}"><span>All tools</span><b>${projects.length}</b></button>${publishedCategories().map(category => `<button data-category-filter="${esc(category.name)}" class="${state.category === category.name ? "is-selected" : ""}">${categoryIcon(category.name)}<span>${esc(category.name)}</span><b>${category.count}</b></button>`).join("")}</div><div class="filter-trust"><strong>Nothing paid its way here.</strong><p>Position follows the sorting choice above—not advertising.</p></div></aside>
       <div class="catalog-results"><div class="results-heading"><strong>${filtered.length} ${filtered.length === 1 ? "solution" : "solutions"}</strong><span>${state.sort === "reviewed" ? "No reviews have been collected yet." : "Newest listings first."}</span></div><div class="catalog-list">${filtered.length ? filtered.map(product => catalogRow(product)).join("") : `<div class="empty-state"><h2>Nothing matched that search.</h2><p>Try fewer words or explore another category.</p><button class="secondary-button" data-clear-search>Clear search</button></div>`}</div></div>
-      ${communityRail(communityFocused)}
     </div>
+    ${communityRail()}
   </section>`;
 }
 
-function communityRail(focused = false) {
-  const relevantPosts = state.communityPosts.filter(post => {
-    const project = projects.find(item => item.slug === post.projectSlug);
-    return project && (state.communityCategory === "All" || project.category === state.communityCategory);
-  });
-  const relevantProjects = projects.filter(project => state.communityCategory === "All" || project.category === state.communityCategory);
-  return `<aside class="community-rail ${focused ? "is-focused" : ""}" aria-label="Community activity" tabindex="-1">
-    <header class="community-rail-header"><div><p class="eyebrow">Community</p><h2>What people are discovering</h2></div><label><span>Show</span><select data-community-filter><option value="All" ${state.communityCategory === "All" ? "selected" : ""}>Everything</option>${publishedCategories().map(category => `<option value="${esc(category.name)}" ${state.communityCategory === category.name ? "selected" : ""}>${esc(category.name)}</option>`).join("")}</select></label></header>
-    <div class="community-rail-body">${dailyCreatorTip()}${relevantPosts.length ? relevantPosts.slice(0, 5).map(post => experienceCard(post, true)).join("") : `<div class="community-rail-empty"><span>◌</span><strong>No one has shared an experience here yet.</strong><p>Try something, then tell its creator what happened.</p></div>`}
-      <div class="community-rail-new"><p class="eyebrow">New from creators</p>${relevantProjects.slice(0, 3).map(project => `<button data-product="${project.slug}"><strong>${project.name}</strong><span>${esc(creatorFor(project).name)} · Built in-house</span></button>`).join("")}</div>
-    </div>
-    <footer><strong>Project-bound community</strong><span>Every note stays connected to something a person tried.</span></footer>
-  </aside>`;
+function discussionDraftKey(category = state.category) {
+  return 'trymybuild-category-comment:' + encodeURIComponent(category);
+}
+function discussionDraft(category = state.category) {
+  try { return localStorage.getItem(discussionDraftKey(category)) || ''; } catch { return ''; }
+}
+function saveDiscussionDraft(category, value) {
+  try { localStorage.setItem(discussionDraftKey(category), value); return true; } catch { return false; }
+}
+function communityRail() {
+  if (state.category === 'All') return '';
+  const category=state.category, draft=discussionDraft(), count=commentWordCount(draft);
+  const now=new Date(),day=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+  const comments=state.discussionCategory===category?state.dailyComments:[];
+  const posts=state.communityPosts.filter(post=>projects.some(project=>project.slug===post.projectSlug&&project.category===category));
+  return `<section id="category-community" class="category-community" aria-labelledby="category-community-title">
+    <header><h2 id="category-community-title">Conversations about ${esc(category.toLowerCase())}</h2><p>See what people tried, what helped, and what they’re still looking for.</p></header>
+    <div class="category-conversations">${comments.length||posts.length?[...comments.map(dailyCommentCard),...posts.map(post=>experienceCard(post,true))].slice(0,state.discussionExpanded?Infinity:3).join(''):'<p class="category-community-empty">No conversations yet. What would make this part of your life easier?</p>'}</div>
+    ${comments.length+posts.length>3?`<button class="text-button" data-more-conversations>${state.discussionExpanded?'Show fewer conversations':'See more conversations'}</button>`:''}
+    ${state.discussionError?`<p role="status">${esc(state.discussionError)} <button class="text-button" data-retry-discussion>Try again</button></p>`:''}
+    <form data-daily-discussion data-category="${esc(category)}" data-day="${day}">
+      <div class="daily-comment-compose"><label for="category-comment">Share your experience or ask a question</label><textarea id="category-comment" name="message" maxlength="800" rows="3" placeholder="What has helped you, or what are you looking for?" aria-describedby="daily-comment-guidance daily-comment-count">${esc(draft)}</textarea>
+      <div class="daily-comment-actions"><small id="daily-comment-count" data-daily-word-count class="word-counter">${count} / 7 words minimum</small><button type="submit">${state.session?.authenticated?'Post comment':'Sign up to post'}</button></div></div>
+      <p class="comment-conduct">${state.session?.authenticated?'Your comment will appear after moderation review.':'Write first. Your draft stays private in this browser. Create an account or sign in, then return here to post. Comments appear after moderation review.'}</p>
+      <p id="daily-comment-guidance" class="comment-conduct"><strong>Be thoughtful. Be respectful.</strong> Discuss ideas, not people. <a href="/community-guidelines">Guidelines</a></p><p data-daily-status role="status"></p>
+    </form>
+  </section>`;
 }
 
 function catalogRow(product) {
@@ -378,7 +394,7 @@ function detailDrawer(product) {
 
 document.addEventListener('input', event => {
   const field=event.target.closest('[data-daily-discussion] textarea');if(!field)return;
-  localStorage.setItem('trymybuild-daily-comment',field.value);const count=commentWordCount(field.value),counter=field.closest('form').querySelector('[data-daily-word-count]');
+  saveDiscussionDraft(field.closest('form').dataset.category,field.value);const count=commentWordCount(field.value),counter=field.closest('form').querySelector('[data-daily-word-count]');
   counter.textContent=`${count} / 7 words minimum`;counter.classList.toggle('invalid',count>0&&count<7);field.setCustomValidity(count>=7&&count<=150?'':'Write 7–150 words.');
 });
 document.addEventListener('input',event=>{
@@ -389,9 +405,10 @@ document.addEventListener('submit', async event => {
   if(daily){
     event.preventDefault();const field=daily.elements.message,status=daily.querySelector('[data-daily-status]'),count=commentWordCount(field.value);
     if(count<7||count>150){status.textContent='Write a thoughtful response of 7–150 words.';field.focus();return;}
-    if(!state.session?.authenticated){localStorage.setItem('trymybuild-daily-comment',field.value);location.href='/auth/sign-in?next=%2F';return;}
+    if(!saveDiscussionDraft(daily.dataset.category,field.value)){status.textContent='Your browser cannot save this draft. Copy your comment before signing in.';return;}
+    if(!state.session?.authenticated){const destination='/?category='+encodeURIComponent(daily.dataset.category)+'#category-community';location.href='/auth/sign-in?signup=1&next='+encodeURIComponent(destination);return;}
     const button=daily.querySelector('button');button.disabled=true;status.textContent='Posting…';
-    try{const response=await fetch('/api/daily-comments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({day:daily.dataset.day,message:field.value.trim()})}),data=await response.json();if(!response.ok)throw Error(data.error||'Unable to post');localStorage.removeItem('trymybuild-daily-comment');field.value='';status.textContent=data.message;await loadDailyComments();}
+    try{const response=await fetch('/api/daily-comments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({day:daily.dataset.day,category:daily.dataset.category,message:field.value.trim()})}),data=await response.json();if(!response.ok)throw Error(data.error||'Unable to post');saveDiscussionDraft(daily.dataset.category,'');field.value='';status.textContent=data.message;await loadDailyComments();}
     catch(error){status.textContent=error.message||'Your response could not be saved.';}finally{button.disabled=false;}return;
   }
   const form = event.target.closest('[data-project-comment]');
@@ -852,9 +869,9 @@ document.addEventListener("click", async event => {
     return;
   }
   const categoryButton = event.target.closest("[data-category]");
-  if (categoryButton) { state.category = categoryButton.dataset.category; state.query = ""; state.route = "discover"; render(); return; }
+  if (categoryButton) { selectDiscussionCategory(categoryButton.dataset.category); state.query = ""; state.route = "discover"; render(); return; }
   const categoryFilter = event.target.closest("[data-category-filter]");
-  if (categoryFilter) { state.category = categoryFilter.dataset.categoryFilter;trackCategoryInterest(state.category); render(); return; }
+  if (categoryFilter) { selectDiscussionCategory(categoryFilter.dataset.categoryFilter); trackCategoryInterest(state.category); return; }
   const interest = event.target.closest("[data-interest]");
   if (interest) {
     state.interests.has(interest.dataset.interest) ? state.interests.delete(interest.dataset.interest) : state.interests.add(interest.dataset.interest);
@@ -947,7 +964,7 @@ document.addEventListener("input", event => {
 });
 
 document.addEventListener("change", event => {
-  if (event.target.matches("[data-community-filter]")) { state.communityCategory = event.target.value; render(); }
+
 });
 
 document.addEventListener("change", event => {
@@ -1022,9 +1039,36 @@ if (window.CW_SERVER) {
   void loadDailyComments();
 }
 
+function selectDiscussionCategory(category) {
+  state.category=category;state.dailyComments=[];state.discussionError='';state.discussionExpanded=false;
+  const url=new URL(location.href);if(category==='All')url.searchParams.delete('category');else url.searchParams.set('category',category);
+  url.hash='';history.replaceState({},'',url);render();void loadDailyComments();
+}
+document.addEventListener('click',event=>{
+  if(event.target.closest('[data-more-conversations]')){state.discussionExpanded=!state.discussionExpanded;render();}
+  if(event.target.closest('[data-retry-discussion]'))void loadDailyComments();
+});
+let discussionRequest=0;
 async function loadDailyComments(){
-  const now=new Date(),day=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-  try{const response=await fetch('/api/daily-comments?day='+day),data=await response.json();if(response.ok&&Array.isArray(data.comments)){state.dailyComments=data.comments;if(['discover','community'].includes(state.route)&&!document.querySelector('.detail-dialog'))render();}}catch{}
+  const category=state.category,request=++discussionRequest;if(category==='All')return;
+  const now=new Date(),day=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+  try{
+    const response=await fetch('/api/daily-comments?day='+day+'&category='+encodeURIComponent(category)),data=await response.json();
+    if(request!==discussionRequest||category!==state.category)return;
+    if(!response.ok||!Array.isArray(data.comments))throw Error('Unavailable');
+    state.dailyComments=data.comments;state.discussionCategory=category;state.discussionError='';
+  }catch{if(request!==discussionRequest||category!==state.category)return;state.discussionError='Conversations could not load. Your draft is still here.';}
+  if(['discover','community'].includes(state.route)&&!document.querySelector('.detail-dialog')){
+    // Refresh the section while preserving an active draft and its caret.
+    const section=document.querySelector('.category-community');
+    if(section){const field=section.querySelector('textarea'),focused=document.activeElement===field,start=field?.selectionStart,end=field?.selectionEnd;
+      const template=document.createElement('template');template.innerHTML=communityRail();const replacement=template.content.firstElementChild;
+      if(field)replacement.querySelector('textarea').value=field.value;
+      section.replaceWith(replacement);
+      if(focused){const input=replacement.querySelector('textarea');input.focus({preventScroll:true});input.setSelectionRange(start,end);}
+    }
+    else render();
+  }
 }
 
 

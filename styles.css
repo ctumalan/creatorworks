@@ -507,13 +507,21 @@ img { display: block; max-width: 100%; }
 
 /* Browse is the home: categories, solutions, then a quieter community window. */
 @media (min-width: 981px) {
-  .discover-page .catalog-layout { grid-template-columns: 185px minmax(0, 1fr) 255px; gap: 18px; }
+  .discover-page .catalog-layout { grid-template-columns: 185px minmax(0, 1fr); gap: 24px; }
   .discover-page .filter-panel { top: 18px; }
   .discover-page .catalog-row { min-height: 0; grid-template-columns: 170px minmax(0, 1fr); gap: 18px; }
   .discover-page .row-preview img { min-height: 180px; }
   .discover-page .row-actions { grid-column: 2; padding: 0 0 8px; flex-direction: row; justify-content: flex-start; }
 }
 
+.category-community { margin-top: 36px; padding: clamp(20px, 3vw, 32px); border: 1px solid var(--line); border-radius: 20px; background: var(--white); scroll-margin-top: 24px; }
+.category-community h2 { margin: 0; font-size: clamp(1.6rem, 3vw, 2.2rem); line-height: 1.15; }
+.category-community header > p, .category-community-empty { color: var(--muted); line-height: 1.5; }
+.category-community form { max-width: 760px; margin-top: 24px; }
+.category-community .daily-comment-compose textarea { font-size: 1rem; margin-top: 10px; }
+.category-community .comment-conduct { font-size: .85rem!important; }
+.category-community .daily-comment-actions { flex-wrap: wrap; }
+.category-conversations { display: grid; gap: 12px; }
 .community-rail { min-width: 0; max-height: calc(100vh - 36px); position: sticky; top: 18px; overflow: hidden; border: 1px solid var(--line); border-radius: 20px; background: rgba(255,255,255,.78); box-shadow: 0 14px 38px rgba(28,48,41,.07); display: grid; grid-template-rows: auto minmax(0,1fr) auto; }
 .community-rail:focus { outline: none; }
 .community-rail.is-focused { box-shadow: 0 0 0 3px rgba(39,125,93,.12), 0 14px 38px rgba(28,48,41,.08); }
