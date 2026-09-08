@@ -24,6 +24,7 @@ export const GET:APIRoute=async context=>{
   let header=`<header><h1>${creator?'My projects':'My discoveries'}</h1></header>`;
   if(creator&&!owned.data.length)return surface('Creator workspace',header+'<section class="cw-panel"><h2>Create your first listing.</h2><p>Add your project, preview how it will look, and publish it for review. Once it’s approved it appears in the public catalog, and any feedback shows up here.</p><a class="primary-button" href="/?listing=settings&new=1">Add project</a></section>',"creator",200,admin);
   const selected=creator?owned.data.find(p=>p.slug===context.url.searchParams.get('project'))||owned.data[0]:null;
+  if(selected)header+=`<p><a class="secondary-button" href="/dashboard/builds?project=${e(selected.slug)}">Manage builds & release notes</a></p>`;
   let query=db.from('creator_feedback').select('id,project_slug,author_user_id,helpful,price,message,visibility,moderation_status,created_at',{count:'exact'});
   query=creator?query.eq('project_slug',selected!.slug):query.eq('author_user_id',member.id);
   const result=await query.order('created_at',{ascending:false}).order('id').range(page*25,page*25+24);

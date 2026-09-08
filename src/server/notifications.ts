@@ -7,7 +7,18 @@ export async function prepareNotifications(db:any,id:string,admin:boolean){
  const pref=await notificationPreferences(db,id),since=new Date(Date.now()-7*86400000).toISOString(),week=String(Math.floor(Date.now()/(7*86400000)));
  const pending:any[]=[];const add=(key:string,kind:string,title:string,href:string)=>pending.push({id:stableId(id+':'+key),user_id:id,kind,title,href});
  const check=(r:any)=>{if(r.error)throw r.error;return r.data||[];};
- if(pref.saved_updates){const saved=check(await db.from('saved_projects').select('project_slug,created_at').eq('user_id',id));if(saved.length){const ps=check(await db.from('projects').select('id,slug,title,published_at').in('slug',saved.map((x:any)=>x.project_slug)).eq('listing_status','published').gt('published_at',since));for(const p of ps)if(p.published_at>saved.find((s:any)=>s.project_slug===p.slug).created_at)add('saved:'+p.id+':'+p.published_at,'saved','A saved project is available: '+p.title,'/projects/'+p.slug);}}
+ if(pref.saved_updates){const saved=check(await db.from('saved_projects').select('project_slug,created_at').eq('user_id',id));if(saved.length){
+  const ps=check(await db.from('projects').select('id,slug,title,owner_user_id,published_at').in('slug',saved.map((x:any)=>x.project_slug)).eq('listing_status','published'));
+  const states=ps.length?check(await db.from('site_settings').select('key,value').in('key',ps.map((p:any)=>'project-builds:'+p.id))):[];
+  for(const p of ps){const savedAt=saved.find((s:any)=>s.project_slug===p.slug).created_at;
+   if(p.published_at>savedAt&&p.published_at>since)add('saved:'+p.id+':'+p.published_at,'saved','A saved project is available: '+p.title,'/projects/'+p.slug);
+   if(p.owner_user_id===id)continue;
+   const state=states.find((s:any)=>s.key==='project-builds:'+p.id)?.value;
+   for(const event of state?.events||[]){if(event.createdAt<=savedAt)continue;const build=state.builds.find((b:any)=>b.id===event.buildId);if(!build)continue;
+    pending.push({id:stableId(id+':build:'+event.id),user_id:id,kind:'build',title:`${p.title} · Build ${build.version}: ${build.notes}`,href:'/projects/'+p.slug+'#build-'+event.id,created_at:event.createdAt});
+   }
+  }
+ }}
  if(pref.recommendations){const r=await db.from('account_preferences').select('interests').eq('user_id',id).maybeSingle();if(r.error)throw r.error;const interests=r.data?.interests||[];if(interests.length){const ps=check(await db.from('projects').select('slug,title,category,owner_user_id').eq('listing_status','published').gt('published_at',since).order('published_at',{ascending:false}).limit(100));for(const p of ps.filter((p:any)=>p.owner_user_id!==id&&interests.some((i:string)=>i.toLowerCase()===p.category.toLowerCase())).slice(0,3))add('discovery:'+week+':'+p.slug,'discovery','New in your interests: '+p.title,'/projects/'+p.slug);}}
  if(pref.draft_reminders){for(const p of check(await db.from('projects').select('id,slug,title').eq('owner_user_id',id).eq('listing_status','draft').lt('updated_at',since)))add('draft:'+p.id,'draft','Ready to continue '+p.title+'?','/?listing=settings&project='+p.slug);}
  if(pref.activity_digest){for(const p of check(await db.from('projects').select('id,slug,title').eq('owner_user_id',id).eq('listing_status','published'))){const [s,f]=await Promise.all([db.from('saved_projects').select('project_slug',{head:true,count:'exact'}).eq('project_slug',p.slug).gt('created_at',since),db.from('creator_feedback').select('id',{head:true,count:'exact'}).eq('project_slug',p.slug).gt('created_at',since)]);if(s.error||f.error)throw Error('Activity unavailable');if(s.count+f.count>0)add('activity:'+week+':'+p.id,'activity',`${p.title}: ${s.count} saves and ${f.count} feedback entries in the last 7 days`,'/dashboard?view=creator&project='+p.slug);}}

@@ -26,6 +26,8 @@ export const POST:APIRoute=async context=>{
    if(f.confirmation!=='DELETE'||!validProof(context.cookies.get('cw_security_fresh')?.value,m.user.id,'fresh',env('WORKOS_COOKIE_PASSWORD')))return back(false);
    r=await db.rpc('cw_erase_account',{p_actor:member.id,p_user:f.id,p_founder:env('FOUNDER_WORKOS_USER_ID')});if(r.error)return back(false);
    const prefs=await db.from('site_settings').delete().eq('key',notificationKey(f.id));if(prefs.error)throw prefs.error;
+   const erasedProjects=await db.from('projects').select('id').eq('owner_user_id',f.id);if(erasedProjects.error)throw erasedProjects.error;
+   if(erasedProjects.data.length){const builds=await db.from('site_settings').delete().in('key',erasedProjects.data.map(p=>'project-builds:'+p.id));if(builds.error)throw builds.error;}
    const job=await db.from('erasure_jobs').select('*').eq('user_id',f.id).single();if(job.error)throw job.error;
    if(job.data.status!=='complete'){
     if(job.data.paths.length){const removed=await db.storage.from('project-previews').remove(job.data.paths);if(removed.error)throw removed.error;}

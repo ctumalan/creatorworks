@@ -13,3 +13,16 @@ function setup(preferences={}){
 test('personal updates only include the authenticated member’s saved projects',async()=>{const s=setup();await s.prepare(s.db,'A',false);assert.equal(s.tables.notifications.length,1);assert.equal(s.tables.notifications[0].href,'/projects/one');assert.equal(s.tables.notifications[0].user_id,'A');});
 test('refreshing notifications is idempotent and preserves read state',async()=>{const s=setup();await s.prepare(s.db,'A',false);const id=s.tables.notifications[0].id;await s.prepare(s.db,'A',false);assert.equal(s.tables.notifications.length,1);assert.equal(s.tables.notifications[0].id,id);assert.equal(s.tables.notifications[0].read_at,'preserved');});
 test('turning off optional saved updates suppresses generation',async()=>{const s=setup({saved_updates:false});await s.prepare(s.db,'A',false);assert.equal(s.tables.notifications.length,0);});
+test('build releases notify savers once, include notes, and retain event time',async()=>{
+ const s=setup(),time=new Date().toISOString();s.tables.site_settings.push({key:'project-builds:p',value:{builds:[{id:'v1',version:'1.1',notes:'Search now supports keyboard navigation.'}],events:[{id:'release',buildId:'v1',createdAt:time}]}});
+ await s.prepare(s.db,'A',false);await s.prepare(s.db,'A',false);
+ const rows=s.tables.notifications.filter(n=>n.kind==='build');assert.equal(rows.length,1);assert.match(rows[0].title,/keyboard navigation/);assert.equal(rows[0].created_at,time);assert.equal(rows[0].href,'/projects/one#build-release');
+});
+test('old releases, unpublished projects, and opted-out savers receive no build update',async()=>{
+ for(const mode of ['old','private','optout']){
+  const s=setup(mode==='optout'?{saved_updates:false}:{});
+  if(mode==='private')s.tables.projects[0].listing_status='draft';
+  s.tables.site_settings.push({key:'project-builds:p',value:{builds:[{id:'v',version:'1',notes:'Improved search.'}],events:[{id:'e',buildId:'v',createdAt:mode==='old'?'2020-01-01T00:00:00.000Z':new Date().toISOString()}]}});
+  await s.prepare(s.db,'A',false);assert.equal(s.tables.notifications.filter(n=>n.kind==='build').length,0);
+ }
+});

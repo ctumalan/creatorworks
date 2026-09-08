@@ -8,3 +8,22 @@ document.addEventListener('click',async event=>{
 });
 
 fetch('/api/saved').then(r=>r.ok?r.json():null).then(data=>{if(!data)return;document.querySelectorAll('[data-save-public]').forEach(button=>{const saved=data.saved.includes(button.dataset.savePublic);button.dataset.saved=String(saved);button.textContent=saved?'♥ Saved':'♡ Save';});}).catch(()=>{});
+// Release notes contain creator text; insert it as text, never HTML.
+if(location.pathname.startsWith('/projects/')&&document.querySelector('.recipient-answers')){
+ const slug=location.pathname.split('/')[2];
+ fetch('/api/builds/'+encodeURIComponent(slug)).then(r=>{if(!r.ok)throw Error();return r.json();}).then(data=>{
+  if(!data.events.length)return;
+  const section=document.createElement('section');section.className='cw-panel';section.id='build-updates';
+  const heading=document.createElement('h2');heading.textContent='Builds & improvements';section.append(heading);
+  const current=data.builds.find(b=>b.id===data.active),label=document.createElement('p');label.textContent='Active build: '+(current?.version||'Not selected');section.append(label);
+  for(const event of [...data.events].reverse()){
+   const build=data.builds.find(b=>b.id===event.buildId);if(!build)continue;
+   const item=document.createElement('article');item.id='build-'+event.id;
+   const title=document.createElement('h3');title.textContent='Build '+build.version;
+   const date=document.createElement('p');date.className='cw-meta';date.textContent='Activated '+new Date(event.createdAt).toLocaleDateString();
+   const notes=document.createElement('p');notes.textContent=build.notes;item.append(title,date,notes);section.append(item);
+  }
+  document.querySelector('.recipient-answers').after(section);
+  if(/^#build-[0-9a-f-]+$/.test(location.hash))document.getElementById(location.hash.slice(1))?.scrollIntoView();
+ }).catch(()=>{});
+}
