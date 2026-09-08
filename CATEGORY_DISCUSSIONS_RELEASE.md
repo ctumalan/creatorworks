@@ -1,6 +1,8 @@
 # Category conversations — pending release
 
-Local implementation only. No production schema changes or deployment performed.
+Migration 013 applied on 2026-09-08 to CreatorWorks `nkrkmfszuntvzjonrznb` (Tumalan Music) through its signed-in SQL editor. Database transaction returned `category discussion migration committed`. No comment rows existed before migration. RLS was enabled. The existing named unique constraint was inspected before changing it. Website deployment is recorded separately below when verified.
+
+Recovery reference: scheduled physical database backup 2026-09-08 08:17:58 UTC, Restore control verified. This is not a fresh logical backup and excludes later writes and Storage object contents. This migration touches no Storage objects and deletes no rows. Prefer website rollback/forward repair; never restore over newer writes without review.
 
 ## Behavior
 
