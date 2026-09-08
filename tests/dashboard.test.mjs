@@ -10,9 +10,9 @@ test('profile website rejects executable links and embedded credentials',()=>{
  assert.equal(publicWebsite('https://example.com/me'),'https://example.com/me');
  for(const v of ['javascript:alert(1)','data:text/html,x','https://name:password@example.com','//example.com'])assert.equal(publicWebsite(v),null);
 });
-test('preferences deduplicate topics and use explicit boolean choices',()=>{
- assert.deepEqual(preferences({interests:'Music, Family life, Music',tips:'on'}),{feedback_alerts:false,publication_alerts:false,tips:true,interests:['Music','Family life']});
- assert.equal(preferences({interests:Array(11).fill('a').join(',')}),null);
+test('preferences use behavioral personalization and explicit boolean choices',()=>{
+ assert.deepEqual(preferences({tips:'on',personalization:'on'}),{feedback_alerts:false,publication_alerts:false,tips:true,personalization:true});
+ assert.deepEqual(preferences({}),{feedback_alerts:false,publication_alerts:false,tips:false,personalization:false});
 });
 test('member administration protects founder and rejects non-admin or inactive actors',()=>{
  const a={workos_user_id:'founder',account_status:'active'},t={workos_user_id:'member',account_status:'active',system_role:'member'};

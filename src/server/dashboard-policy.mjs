@@ -11,9 +11,7 @@ export function publicWebsite(value) {
  try{const u=new URL(value);return u.protocol==='https:'&&!u.username&&!u.password&&u.href.length<=1000?u.href:null;}catch{return null;}
 }
 export function preferences(body) {
- const interests=String(body.interests||'').split(',').map(x=>x.trim()).filter(Boolean);
- if(interests.length>10||interests.some(x=>x.length>48))return null;
- return {feedback_alerts:body.feedbackAlerts==='on',publication_alerts:body.publicationAlerts==='on',tips:body.tips==='on',interests:[...new Set(interests)]};
+ return {feedback_alerts:body.feedbackAlerts==='on',publication_alerts:body.publicationAlerts==='on',tips:body.tips==='on',personalization:body.personalization==='on'};
 }
 export function canManageTarget(actor, target, founder) {
  return !!actor&&actor.workos_user_id===founder&&actor.account_status==='active'&&!!target&&target.workos_user_id!==founder&&target.system_role!=='admin'&&target.account_status!=='deleted';

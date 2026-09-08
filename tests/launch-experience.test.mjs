@@ -1,0 +1,26 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
+
+test('signup and global navigation expose the legal agreement',()=>{
+ const app=read('app.js'),index=read('index.html'),terms=read('src/pages/terms.ts'),privacy=read('src/pages/privacy.ts');
+ assert.match(app,/legal-agreement/);assert.match(app,/Terms of Service/);assert.match(app,/Privacy Policy/);
+ assert.match(index,/href="\/terms"/);assert.match(index,/href="\/privacy"/);
+ assert.match(terms,/Your projects and content/);assert.match(privacy,/categories you open or select/);
+});
+
+test('personalization is measured, ranked, optional, and resettable',()=>{
+ const sql=read('database/012_launch_experience.sql'),dashboard=read('src/pages/dashboard/[section].ts'),api=read('src/pages/api/category-interest.ts');
+ assert.match(sql,/create table if not exists public\.category_engagement/);
+ assert.match(sql,/order by clicks desc/);assert.match(sql,/personalization/);
+ assert.match(dashboard,/Your learned priorities/);assert.match(dashboard,/preferences-reset/);
+ assert.doesNotMatch(dashboard,/name="interests"/);assert.match(api,/cw_record_category_interest/);
+});
+
+test('permanent member removal is founder protected and deletes WorkOS identity',()=>{
+ const sql=read('database/012_launch_experience.sql'),ui=read('src/pages/admin/workspace.ts'),api=read('src/pages/api/admin/manage.ts');
+ assert.match(sql,/cw_admin_erase_account/);assert.match(sql,/target\.system_role='admin'/);
+ assert.match(ui,/Permanently remove member/);assert.match(ui,/pattern="DELETE"/);
+ assert.match(api,/validProof/);assert.match(api,/userManagement\.deleteUser/);
+});

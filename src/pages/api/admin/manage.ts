@@ -5,6 +5,19 @@ import { origin,env,workos } from '../../../server/auth';
 import { sameOrigin } from '../../../server/security.mjs';
 import { validProof } from '../../../server/account-security.mjs';
 import { allowRequest } from '../../../server/abuse';
+async function finishErasure(db:any,id:string){
+ const prefs=await db.from('site_settings').delete().eq('key',notificationKey(id));if(prefs.error)throw prefs.error;
+ const erasedProjects=await db.from('projects').select('id').eq('owner_user_id',id);if(erasedProjects.error)throw erasedProjects.error;
+ if(erasedProjects.data.length){const builds=await db.from('site_settings').delete().in('key',erasedProjects.data.map((p:any)=>'project-builds:'+p.id));if(builds.error)throw builds.error;}
+ const daily=await db.from('daily_discussion_comments').update({message:'[Removed by account deletion]',moderation_status:'hidden'}).eq('user_id',id);if(daily.error)throw daily.error;
+ for(const table of ['credit_ledger','feedback_requests','feedback_qualifications','project_slot_assignments','project_slot_grants','category_engagement']){const removed=await db.from(table).delete().eq('user_id',id);if(removed.error)throw removed.error;}
+ const job=await db.from('erasure_jobs').select('*').eq('user_id',id).single();if(job.error)throw job.error;
+ if(job.data.status!=='complete'){
+  if(job.data.paths.length){const removed=await db.storage.from('project-previews').remove(job.data.paths);if(removed.error)throw removed.error;}
+  try{await workos().userManagement.deleteUser(job.data.workos_id);}catch(err:any){if(err.status!==404&&err.statusCode!==404)throw err;}
+  const done=await db.from('erasure_jobs').update({status:'complete',workos_id:'',paths:[],completed_at:new Date().toISOString()}).eq('user_id',id);if(done.error)throw done.error;
+ }
+}
 export const POST:APIRoute=async context=>{
  if(!sameOrigin(context.request,origin(context)))return new Response('Forbidden',{status:403});let tab='overview',caseId='';
  const back=(ok:boolean)=>context.redirect(`/admin/workspace?tab=${tab}&${ok?'saved':'error'}=1${caseId?'&case='+caseId:''}`,303);
@@ -25,18 +38,12 @@ export const POST:APIRoute=async context=>{
   }else if(f.action==='erase'){
    if(f.confirmation!=='DELETE'||!validProof(context.cookies.get('cw_security_fresh')?.value,m.user.id,'fresh',env('WORKOS_COOKIE_PASSWORD')))return back(false);
    r=await db.rpc('cw_erase_account',{p_actor:member.id,p_user:f.id,p_founder:env('FOUNDER_WORKOS_USER_ID')});if(r.error)return back(false);
-   const prefs=await db.from('site_settings').delete().eq('key',notificationKey(f.id));if(prefs.error)throw prefs.error;
-   const erasedProjects=await db.from('projects').select('id').eq('owner_user_id',f.id);if(erasedProjects.error)throw erasedProjects.error;
-   if(erasedProjects.data.length){const builds=await db.from('site_settings').delete().in('key',erasedProjects.data.map(p=>'project-builds:'+p.id));if(builds.error)throw builds.error;}
-   const daily=await db.from('daily_discussion_comments').update({message:'[Removed by account deletion]',moderation_status:'hidden'}).eq('user_id',f.id);if(daily.error)throw daily.error;
-   for(const table of ['credit_ledger','feedback_requests','feedback_qualifications','project_slot_assignments','project_slot_grants']){const removed=await db.from(table).delete().eq('user_id',f.id);if(removed.error)throw removed.error;}
-   const job=await db.from('erasure_jobs').select('*').eq('user_id',f.id).single();if(job.error)throw job.error;
-   if(job.data.status!=='complete'){
-    if(job.data.paths.length){const removed=await db.storage.from('project-previews').remove(job.data.paths);if(removed.error)throw removed.error;}
-    try{await workos().userManagement.deleteUser(job.data.workos_id);}catch(err:any){if(err.status!==404&&err.statusCode!==404)throw err;}
-    r=await db.from('erasure_jobs').update({status:'complete',workos_id:'',paths:[],completed_at:new Date().toISOString()}).eq('user_id',f.id);if(r.error)throw r.error;
-   }
+   await finishErasure(db,f.id);
    r=await db.from('account_deletion_requests').update({status:'complete',updated_at:new Date().toISOString()}).eq('user_id',f.id);
+  }else if(f.action==='admin-erase'){
+   if(f.confirmation!=='DELETE'||String(f.reason||'').trim().length<10||!validProof(context.cookies.get('cw_security_fresh')?.value,m.user.id,'fresh',env('WORKOS_COOKIE_PASSWORD')))return back(false);
+   r=await db.rpc('cw_admin_erase_account',{p_actor:member.id,p_user:f.id,p_founder:env('FOUNDER_WORKOS_USER_ID'),p_reason:f.reason});if(r.error)return back(false);
+   await finishErasure(db,f.id);r={error:null};
   }else return back(false);
   return back(!r?.error);
  }catch{return back(false);}

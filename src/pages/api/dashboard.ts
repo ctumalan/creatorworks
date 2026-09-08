@@ -16,8 +16,11 @@ export const POST:APIRoute=async context=>{
   const f=Object.fromEntries(new URLSearchParams(raw));section=['preferences','notifications','help'].includes(f.section)?f.section:'overview';const {db,member}=m;let r:any;
   if(f.action==='preferences'||f.action==='alerts'){
    const p=preferences(f);if(!p)return back(false);
-   r=await db.from('account_preferences').upsert({user_id:member.id,...(f.action==='alerts'?{feedback_alerts:p.feedback_alerts,publication_alerts:p.publication_alerts}:{tips:p.tips,interests:p.interests}),updated_at:new Date().toISOString()});
+   let interests:any[]=[];if(f.action==='preferences'&&p.personalization){const ranked=await db.from('category_engagement').select('category').eq('user_id',member.id).order('clicks',{ascending:false}).order('updated_at',{ascending:false}).limit(10);if(ranked.error)return back(false);interests=ranked.data.map((x:any)=>x.category);}
+   r=await db.from('account_preferences').upsert({user_id:member.id,...(f.action==='alerts'?{feedback_alerts:p.feedback_alerts,publication_alerts:p.publication_alerts}:{tips:p.tips,personalization:p.personalization,interests}),updated_at:new Date().toISOString()});
   if(!r.error&&f.action==='alerts')r=await db.from('site_settings').upsert({key:notificationKey(member.id),value:{saved_updates:f.savedUpdates==='on',recommendations:f.recommendations==='on',activity_digest:f.activityDigest==='on',draft_reminders:f.draftReminders==='on'},updated_at:new Date().toISOString()});
+  }else if(f.action==='preferences-reset'){
+   r=await db.from('category_engagement').delete().eq('user_id',member.id);if(!r.error)r=await db.from('account_preferences').upsert({user_id:member.id,interests:[],updated_at:new Date().toISOString()});
   }else if(f.action==='read'||f.action==='read-all'){
    let q=db.from('notifications').update({read_at:new Date().toISOString()}).eq('user_id',member.id).is('read_at',null);if(f.action==='read'){if(!uuid(f.id))return back(false);q=q.eq('id',f.id);}r=await q;
   }else if(f.action==='case-create'){

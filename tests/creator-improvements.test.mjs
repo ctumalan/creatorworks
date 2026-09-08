@@ -7,6 +7,8 @@ const {videoUrl,similarProjects} = globalThis.CWMedia;
 test('video embeds accept supported sources and discard executable attributes',()=>{
  assert.equal(videoUrl('https://youtu.be/dQw4w9WgXcQ'),'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ');
  assert.equal(videoUrl('<iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" onload="alert(1)"></iframe>'),'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ');
+ assert.equal(videoUrl('<iframe width="560" height="315" src="https://www.youtube.com/embed/yFC5tHnfAFg?si=SP0IliLKwsjHUswy" title="YouTube video player" allowfullscreen></iframe>'),'https://www.youtube-nocookie.com/embed/yFC5tHnfAFg');
+ assert.equal(videoUrl('https://www.youtube-nocookie.com/embed/yFC5tHnfAFg'),'https://www.youtube-nocookie.com/embed/yFC5tHnfAFg');
  assert.equal(videoUrl('https://vimeo.com/123456/abcdef'),'https://player.vimeo.com/video/123456?h=abcdef');
  for(const bad of ['javascript:alert(1)','https://youtube.com.evil.org/embed/dQw4w9WgXcQ','https://evil.org','<script>alert(1)</script>','https://user:pass@vimeo.com/123']) assert.equal(videoUrl(bad),'');
  assert.ok(normalizeDraft({video:'https://evil.org'}).error);

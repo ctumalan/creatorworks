@@ -123,6 +123,8 @@ function publishedCategories() {
     .sort((a, b) => (categoryCatalog.findIndex(c => c.name === a.name) + 1 || 999) - (categoryCatalog.findIndex(c => c.name === b.name) + 1 || 999) || a.name.localeCompare(b.name));
 }
 
+const storedCategoryClicks = typeof localStorage==='undefined'?{}:JSON.parse(localStorage.getItem('trymybuild-category-clicks-v1') || '{}');
+const rankedStoredCategories = Object.entries(storedCategoryClicks).sort((a,b)=>b[1]-a[1]).map(([name])=>name);
 const state = {
   route: new URLSearchParams(location.search).get('listing') === 'settings' ? "share" : new URLSearchParams(location.search).has('account') ? "account" : "discover",
   session: null,
@@ -132,7 +134,9 @@ const state = {
   price: "all",
   query: "",
   saved: new Set(JSON.parse(localStorage.getItem("creatorworks-saved") || "[]")),
-  interests: new Set(JSON.parse(localStorage.getItem("creatorworks-interests") || "[]")),
+  interests: new Set(rankedStoredCategories),
+  personalization: true,
+  preferencesHydrated: false,
   communityPosts: window.CW_SERVER ? [] : JSON.parse(localStorage.getItem("creatorworks-community-posts") || "[]"),
   dailyComments: [],
   communityCategory: "All",
@@ -604,15 +608,15 @@ function listingSettingsPage() {
       : status === 'in_review'
         ? '<button class="secondary-button" data-listing-unpublish>Withdraw from review</button>'
         : '<button class="primary-button" data-listing-publish>Publish — submit for review</button>'}<a class="share-browse-link" href="/dashboard?view=creator">Go to My projects →</a></div><p class="privacy-note">Publishing sends your listing for a quick founder review before it appears publicly. You can unpublish anytime.</p></div>`;
-  return `<section class="page-shell listing-review"><p class="eyebrow">Your project · Settings</p><h1>Make it yours.</h1><p>Signed in as ${name}.</p><form data-listing-settings>${listingField('title', 'Project name', 'Your project name')}${listingField('url', 'Project link', 'https://your-project.com')}${listingCategoryPicker()}${listingField('does','What does your project do?','Describe your project in 4–10 words.',true)}${listingField('helps','How does it help people?','Explain the benefit in 4–10 words.',true)}${listingField('firstTry','What should someone try first?','Suggest one action in 4–10 words.',true)}${videoField()}<p class="share-name-hint">Each answer needs 4–10 words. Edit your screenshot in the preview below. Categories appear in homepage filters only when a listing is published. Drafts never create public filters.</p><div class="form-actions share-start-actions"><button class="primary-button" type="submit">${hasServer ? 'Save changes' : 'Save draft'}</button><button class="share-browse-link" type="button" data-listing-review>Back</button></div><p data-listing-status role="status"></p></form>${importCard}${publishControls}<button type="button" class="share-browse-link" data-listing-reset>Start over</button>${listingPreview()}</section>`;
+  return `<section class="page-shell listing-review"><p class="eyebrow">Your project · Settings</p><h1>Make it yours.</h1><p>Signed in as ${name}.</p><form data-listing-settings>${listingField('title', 'Project name', 'Your project name')}${listingField('url', 'Project link', 'https://your-project.com')}${listingCategoryPicker()}${listingField('does','What does your project do?','Describe your project in 4–10 words.',true)}${listingField('helps','How does it help people?','Explain the benefit in 4–10 words.',true)}${listingField('firstTry','What should someone try first?','Suggest one action in 4–10 words.',true)}${videoField()}<p class="share-name-hint">Each answer needs 4–10 words. Edit your screenshot in the preview below. Categories appear in homepage filters only when a listing is published. Drafts never create public filters.</p><p data-video-status class="video-status" role="status"></p><div class="form-actions share-start-actions"><button class="primary-button" type="submit">${hasServer ? 'Save changes' : 'Save draft'}</button><button class="secondary-button" type="button" data-listing-review>Back</button><button type="button" class="secondary-button listing-reset-button" data-listing-reset>Start over</button></div><p data-listing-status role="status"></p></form>${importCard}${publishControls}${listingPreview()}</section>`;
 }
 function listingAccountPage() {
-  return `<section class="page-shell listing-review"><p class="eyebrow">Keep your project yours</p><h1>Create your creator account.</h1><p>Your draft is ready. Sign up or sign in to continue to project settings.</p><div class="form-actions share-start-actions"><a class="primary-button" href="/auth/sign-in?signup=1&next=listing">Create my account</a><a class="share-browse-link" href="/auth/sign-in?next=listing">Already have an account? Sign in</a><button class="share-browse-link" data-listing-review>Back</button></div><p class="privacy-note">Your draft stays on this device through sign-in. Nothing is public yet.</p></section>`;
+  return `<section class="page-shell listing-review"><p class="eyebrow">Keep your project yours</p><h1>Create your creator account.</h1><p>Your draft is ready. Sign up or sign in to continue to project settings.</p><form method="get" action="/auth/sign-in" class="legal-signup"><input type="hidden" name="signup" value="1"><input type="hidden" name="next" value="listing"><label class="legal-agreement"><input type="checkbox" required> By creating an account, I agree to the <a href="/terms" target="_blank">Terms of Service</a> and acknowledge the <a href="/privacy" target="_blank">Privacy Policy</a>.</label><button class="primary-button" type="submit">Create my account</button></form><div class="form-actions share-start-actions"><a class="share-browse-link" href="/auth/sign-in?next=listing">Already have an account? Sign in</a><button class="share-browse-link" data-listing-review>Back</button></div><p class="privacy-note">Your draft stays on this device through sign-in. Nothing is public yet.</p></section>`;
 }
 function sharePage() {
   if (listingSettings) return listingSettingsPage();
   if (listingStep === 4) return listingAccountPage();
-  if (listingStep === 3) return `<section class="page-shell listing-review"><p class="eyebrow">4 · Preview your listing</p><h1>Here’s how your project will look.</h1><p>Check the three things visitors need to know before they try it.</p>${videoField()}${listingPreview()}<div class="form-actions share-start-actions"><button class="primary-button" data-listing-share>Share now</button><button class="share-browse-link" data-listing-back>Back</button><button type="button" class="share-browse-link" data-listing-reset>Start over</button></div><p class="privacy-note">Next: sign up or sign in, then choose your project settings. Nothing is published yet.</p><p data-listing-status role="status"></p></section>`;
+  if (listingStep === 3) return `<section class="page-shell listing-review"><p class="eyebrow">4 · Preview your listing</p><h1>Here’s how your project will look.</h1><p>Check the three things visitors need to know before they try it.</p>${listingPreview()}<section class="video-editor"><h2>Add a project video <span>(optional)</span></h2>${videoField()}<p data-video-status class="video-status" role="status"></p></section><div class="form-actions share-start-actions"><button class="primary-button" data-listing-share>Share now</button><button class="secondary-button" data-listing-back>Back</button><button type="button" class="secondary-button listing-reset-button" data-listing-reset>Start over</button></div><p class="privacy-note">Next: sign up or sign in, then choose your project settings. Nothing is published yet.</p><p data-listing-status role="status"></p></section>`;
   const content = [
     { headline: 'You have an idea. How do you know if it’s good?', note: 'Start with a link. You’ll preview the listing before creating your account.', image: 'creatorworks-idea-v1.png', title: 'What are you building?', copy: 'Add a name and a link people can open.', fields: listingField('title','Project name','For example: MealMap') + listingField('url','Project link','https://your-project.com') },
     { headline: 'Help people see what’s possible.', note: 'A clear description and one small first task give visitors a reason to try your project.', image: 'creatorworks-small-difference-v1.png', title: 'Three things to know.', copy: 'Use everyday language. Keep each answer between 4 and 10 words.', fields: listingField('does','What does your project do?','For example: Turns ingredients into meal ideas.',true) + listingField('helps','How does it help people?','For example: Makes dinner decisions easier and reduces food waste.',true) + listingField('firstTry','What feature should someone try first?','For example: Enter three ingredients from your fridge.',true) },
@@ -623,7 +627,7 @@ function sharePage() {
     '<p>“Focus on the user’s problem rather than possible solutions.”</p><p class="share-evidence-source">— GOV.UK Service Manual. <a href="https://www.gov.uk/service-manual/user-research/start-by-learning-user-needs" target="_blank" rel="noopener noreferrer">Source</a></p>',
     '<p>“The feedback you get from engaging directly with your earliest users will be the best you ever get.”</p><p class="share-evidence-source">— Paul Graham, <a href="https://paulgraham.com/ds.html" target="_blank" rel="noopener noreferrer">Do Things That Don’t Scale</a>, 2013.</p>'
   ][listingStep];
-  return `<section class="share-page page-shell"><div class="share-layout share-layout-intro listing-flow"><aside class="share-visual share-visual-intro"><div class="share-visual-copy"><p class="eyebrow">For people who make things</p><h2>${content.headline}</h2></div><div class="share-evidence">${evidence}</div><img src="assets/illustrations/${content.image}" alt="A creator developing a useful project." width="1536" height="1024" /><p class="share-reassurance">${content.note}</p></aside><div class="share-work"><div class="share-progress"><span style="width:${(listingStep+1)/4*100}%"></span></div><p class="eyebrow">Create your listing · ${listingStep+1} of 3</p><h1>${content.title}</h1><p class="share-copy">${content.copy}</p><form data-listing-step>${content.fields}<div class="form-actions share-start-actions"><button class="primary-button" type="submit">${listingStep === 2 ? 'Preview my listing' : 'Continue'}</button>${listingStep ? '<button class="share-browse-link" type="button" data-listing-back>Back</button>' : '<button class="share-browse-link" type="button" data-route="discover">Browse other projects</button>'}</div><p data-listing-status role="status"></p></form><button type="button" class="share-browse-link" data-listing-reset>Start over</button><p class="privacy-note">Your draft stays on this device. Nothing is public yet.</p></div></div></section>`;
+  return `<section class="share-page page-shell"><div class="share-layout share-layout-intro listing-flow"><aside class="share-visual share-visual-intro"><div class="share-visual-copy"><p class="eyebrow">For people who make things</p><h2>${content.headline}</h2></div><div class="share-evidence">${evidence}</div><img src="assets/illustrations/${content.image}" alt="A creator developing a useful project." width="1536" height="1024" /><p class="share-reassurance">${content.note}</p></aside><div class="share-work"><div class="share-progress"><span style="width:${(listingStep+1)/4*100}%"></span></div><p class="eyebrow">Create your listing · ${listingStep+1} of 3</p><h1>${content.title}</h1><p class="share-copy">${content.copy}</p><form data-listing-step>${content.fields}<div class="form-actions share-start-actions"><button class="primary-button" type="submit">${listingStep === 2 ? 'Preview my listing' : 'Continue'}</button>${listingStep ? '<button class="secondary-button" type="button" data-listing-back>Back</button>' : '<button class="share-browse-link" type="button" data-route="discover">Browse other projects</button>'}<button type="button" class="secondary-button listing-reset-button" data-listing-reset>Start over</button></div><p data-listing-status role="status"></p></form><p class="privacy-note">Your draft stays on this device. Nothing is public yet.</p></div></div></section>`;
 }
 document.addEventListener('input', event => {
   const field = event.target.closest('[data-listing-field]');
@@ -826,7 +830,7 @@ function render() {
     profile.classList.add('signed-out');
     profile.disabled = !state.session; }
     if(state.session) window.CWAccountMenu?.mount(state.session);
-    if(state.session?.preferences) { state.interests = new Set(state.session.preferences.interests || []); document.body.classList.toggle('hide-guidance', state.session.preferences.tips === false); }
+    if(state.session?.preferences) { state.personalization=state.session.preferences.personalization!==false;if(!state.preferencesHydrated){state.interests = new Set(state.session.preferences.interests || []);state.preferencesHydrated=true;} document.body.classList.toggle('hide-guidance', state.session.preferences.tips === false); }
   }
   if (focusedSearch) { const input = document.querySelector('[data-catalog-search]'); input?.focus({preventScroll:true}); input?.setSelectionRange(focusedSearch.start, focusedSearch.end); }
   else window.scrollTo({ top: 0, behavior: "smooth" });
@@ -842,6 +846,7 @@ document.addEventListener("click", async event => {
   const productButton = event.target.closest("[data-product]");
   if (productButton) {
     const product = projects.find(item => item.slug === productButton.dataset.product);
+    if(product)trackCategoryInterest(product.category);
     if (state.route !== "discover") { state.route = "discover"; state.category = "All"; state.query = ""; render(); }
     openProductDetail(product, productButton);
     return;
@@ -849,7 +854,7 @@ document.addEventListener("click", async event => {
   const categoryButton = event.target.closest("[data-category]");
   if (categoryButton) { state.category = categoryButton.dataset.category; state.query = ""; state.route = "discover"; render(); return; }
   const categoryFilter = event.target.closest("[data-category-filter]");
-  if (categoryFilter) { state.category = categoryFilter.dataset.categoryFilter; render(); return; }
+  if (categoryFilter) { state.category = categoryFilter.dataset.categoryFilter;trackCategoryInterest(state.category); render(); return; }
   const interest = event.target.closest("[data-interest]");
   if (interest) {
     state.interests.has(interest.dataset.interest) ? state.interests.delete(interest.dataset.interest) : state.interests.add(interest.dataset.interest);
@@ -1070,7 +1075,7 @@ function openLinkedProject() {
 openLinkedProject();
 
 function videoField() {
-  return `<label class="listing-field">Add a video (optional)<textarea data-listing-field="video" placeholder="Paste a YouTube, Vimeo, or Loom URL or iframe embed code" maxlength="5000">${esc(listingDraft.video)}</textarea></label><p class="share-name-hint">Paste a video link or embed code from YouTube, Vimeo, or Loom. A Play project video preview appears below when the video is valid.</p>`;
+  return `<label class="listing-field">Video link or embed code<textarea data-listing-field="video" placeholder="Paste a YouTube, Vimeo, or Loom URL or iframe embed code" maxlength="5000" aria-describedby="video-help">${esc(listingDraft.video)}</textarea></label><p class="share-name-hint" id="video-help">YouTube, Vimeo, and Loom links or iframe embed codes are supported.</p>`;
 }
 function videoPlayer(value) {
   const url = CWMedia.videoUrl(value);
@@ -1092,8 +1097,23 @@ document.addEventListener('click', event => {
 });
 
 document.addEventListener('input',event=>{
- const field=event.target.closest('[data-listing-field]');if(!field||!['does','helps','firstTry'].includes(field.dataset.listingField))return;
+ const field=event.target.closest('[data-listing-field]');if(!field)return;
+ if(field.dataset.listingField==='video'){
+  const valid=!field.value.trim()||!!CWMedia.videoUrl(field.value),status=document.querySelector('[data-video-status]');
+  field.setCustomValidity(valid?'':'Paste a valid YouTube, Vimeo, or Loom link or iframe embed code.');
+  if(status)status.textContent=!field.value.trim()?'':valid?'Video recognized. The preview is ready.':'This video could not be recognized. Check the link or embed code.';
+  return;
+ }
+ if(!['does','helps','firstTry'].includes(field.dataset.listingField))return;
  const counter=document.querySelector('[data-word-counter="'+field.dataset.listingField+'"]');const count=CWListingRules.count(field.value);
  if(counter){counter.textContent=count+' / 10 words · minimum 4';counter.classList.toggle('invalid',count<4||count>10);}
  field.setCustomValidity(count<4||count>10?'Use 4–10 words for this answer.':'');
 });
+
+function trackCategoryInterest(category){
+ if(!category||category==='All'||state.personalization===false)return;
+ storedCategoryClicks[category]=(Number(storedCategoryClicks[category])||0)+1;
+ localStorage.setItem('trymybuild-category-clicks-v1',JSON.stringify(storedCategoryClicks));
+ state.interests=new Set(Object.entries(storedCategoryClicks).sort((a,b)=>b[1]-a[1]).map(([name])=>name));
+ if(window.CW_SERVER&&state.session?.authenticated)fetch('/api/category-interest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({category})}).catch(()=>{});
+}

@@ -5,7 +5,7 @@
     let raw = value.trim();
     if (!raw) return '';
     if (raw.startsWith('<')) {
-      const match = raw.match(/^<iframe\b[^>]*\bsrc\s*=\s*(["'])(.*?)\1[^>]*>\s*<\/iframe>$/i);
+      const match = raw.match(/^\s*<iframe\b[^>]*\bsrc\s*=\s*(["'])(.*?)\1[^>]*>\s*<\/iframe>\s*$/i);
       if (!match) return '';
       raw = match[2].replace(/&amp;/g, '&');
     }
@@ -15,7 +15,7 @@
       const host = u.hostname.toLowerCase().replace(/^www\./, '');
       let id = '';
       if (host === 'youtu.be') id = u.pathname.slice(1);
-      if (['youtube.com', 'm.youtube.com', 'youtube-nocookie.com'].includes(host)) id = u.pathname === '/watch' ? u.searchParams.get('v') : u.pathname.match(/^\/(?:embed|shorts)\/([^/]+)\/?$/)?.[1];
+      if (['youtube.com', 'm.youtube.com', 'youtube-nocookie.com'].includes(host)) id = u.pathname === '/watch' ? u.searchParams.get('v') : u.pathname.match(/^\/(?:embed|shorts|live)\/([^/]+)\/?$/)?.[1];
       if (id && /^[A-Za-z0-9_-]{11}$/.test(id)) return `https://www.youtube-nocookie.com/embed/${id}`;
       if (['vimeo.com', 'player.vimeo.com'].includes(host)) {
         const parts = u.pathname.match(/^\/(?:video\/)?(\d{1,15})(?:\/([a-f0-9]+))?\/?$/);

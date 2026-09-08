@@ -14,9 +14,9 @@ export const GET: APIRoute = async context => {
     const member = await ensureMember(user);
     const result = await database().from('profiles').select('display_name,identity_label,bio,slug,is_public,avatar_path,website').eq('user_id', member.id).single();
     if (result.error) throw result.error;
-    const preferences = await database().from('account_preferences').select('interests,tips').eq('user_id',member.id).maybeSingle();
+    const preferences = await database().from('account_preferences').select('interests,tips,personalization').eq('user_id',member.id).maybeSingle();
     if(preferences.error) throw preferences.error;
-    return json({ authenticated: true, databaseReady: true, preferences: preferences.data || {interests:[],tips:true}, isAdmin: isFounder(user.id, env('FOUNDER_WORKOS_USER_ID')), user: { id: member.id, avatar: result.data.avatar_path || '', displayName: result.data.display_name, label: result.data.identity_label, bio: result.data.bio, slug: result.data.slug, isPublic: result.data.is_public } });
+    return json({ authenticated: true, databaseReady: true, preferences: preferences.data || {interests:[],tips:true,personalization:true}, isAdmin: isFounder(user.id, env('FOUNDER_WORKOS_USER_ID')), user: { id: member.id, avatar: result.data.avatar_path || '', displayName: result.data.display_name, label: result.data.identity_label, bio: result.data.bio, slug: result.data.slug, isPublic: result.data.is_public } });
   } catch { return json({ error: 'Your profile could not be loaded. Please try again.' }, 503); }
 };
 
