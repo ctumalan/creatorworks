@@ -223,7 +223,7 @@ const creatorTips = [
 function dailyCreatorTip(now = new Date()) {
   const day = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
   const elapsed = Math.max(0, Math.floor((day - Date.UTC(2026, 8, 7)) / 86400000));
-  return `<aside class="creator-daily-tip" aria-labelledby="daily-tip-title"><div><h2 id="daily-tip-title">Tip of the day</h2><span>For people who make things</span></div><p>${esc(creatorTips[elapsed % creatorTips.length])}</p></aside>`;
+  return `<section class="community-maker-question" aria-labelledby="community-maker-question-title"><p class="eyebrow" id="community-maker-question-title">Question for makers</p><blockquote>${esc(creatorTips[elapsed % creatorTips.length])}</blockquote><p>Has this happened to you?</p></section>`;
 }
 function discover(communityFocused = false) {
   // Never fall back to the built-in catalog on the server; show loading/unavailable instead.
@@ -237,7 +237,6 @@ function discover(communityFocused = false) {
   }).sort((a, b) => state.sort === "reviewed" ? experienceCount(b) - experienceCount(a) || b.recentOrder - a.recentOrder : b.recentOrder - a.recentOrder);
   return `<section class="page-shell discover-page">
     <div class="page-intro"><p class="eyebrow">Discover</p><h1>Find solutions others have already made.</h1></div>
-    ${dailyCreatorTip()}
     <div class="catalog-controls">
       <label class="catalog-search"><span aria-hidden="true">⌕</span><input data-catalog-search value="${esc(state.query)}" aria-label="Search by problem or tool" placeholder="Search for a tool to solve an everyday problem" /></label>
       <label class="sort-control">Price <select data-price-select><option value="all" ${state.price === 'all' ? 'selected' : ''}>All prices</option><option value="free" ${state.price === 'free' ? 'selected' : ''}>Free</option><option value="paid" ${state.price === 'paid' ? 'selected' : ''}>Paid</option></select></label>
@@ -259,7 +258,7 @@ function communityRail(focused = false) {
   const relevantProjects = projects.filter(project => state.communityCategory === "All" || project.category === state.communityCategory);
   return `<aside class="community-rail ${focused ? "is-focused" : ""}" aria-label="Community activity" tabindex="-1">
     <header class="community-rail-header"><div><p class="eyebrow">Community</p><h2>What people are discovering</h2></div><label><span>Show</span><select data-community-filter><option value="All" ${state.communityCategory === "All" ? "selected" : ""}>Everything</option>${publishedCategories().map(category => `<option value="${esc(category.name)}" ${state.communityCategory === category.name ? "selected" : ""}>${esc(category.name)}</option>`).join("")}</select></label></header>
-    <div class="community-rail-body">${relevantPosts.length ? relevantPosts.slice(0, 5).map(post => experienceCard(post, true)).join("") : `<div class="community-rail-empty"><span>◌</span><strong>No one has shared an experience here yet.</strong><p>Try something, then tell its creator what happened.</p></div>`}
+    <div class="community-rail-body">${dailyCreatorTip()}${relevantPosts.length ? relevantPosts.slice(0, 5).map(post => experienceCard(post, true)).join("") : `<div class="community-rail-empty"><span>◌</span><strong>No one has shared an experience here yet.</strong><p>Try something, then tell its creator what happened.</p></div>`}
       <div class="community-rail-new"><p class="eyebrow">New from creators</p>${relevantProjects.slice(0, 3).map(project => `<button data-product="${project.slug}"><strong>${project.name}</strong><span>${esc(creatorFor(project).name)} · Built in-house</span></button>`).join("")}</div>
     </div>
     <footer><strong>Project-bound community</strong><span>Every note stays connected to something a person tried.</span></footer>
