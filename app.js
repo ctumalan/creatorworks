@@ -249,7 +249,7 @@ function discover(communityFocused = false) {
   return `<section class="page-shell discover-page">
     <div class="page-intro"><h1>Find apps that make everyday life easier.</h1><p>Made by independent creators to solve real-life problems.</p></div>
     <div class="catalog-controls">
-      <label class="catalog-search"><span aria-hidden="true">⌕</span><input data-catalog-search value="${esc(state.query)}" aria-label="Search by problem or tool" placeholder="Search for a tool to solve an everyday problem" /></label>
+      <label class="catalog-search"><span aria-hidden="true">⌕</span><input data-catalog-search value="${esc(state.query)}" aria-label="Search projects by task, need, or tool" placeholder="Search by task, need, or tool" /></label>
       <label class="sort-control">Price <select data-price-select><option value="all" ${state.price === 'all' ? 'selected' : ''}>All prices</option><option value="free" ${state.price === 'free' ? 'selected' : ''}>Free</option><option value="paid" ${state.price === 'paid' ? 'selected' : ''}>Paid</option></select></label>
       <label class="sort-control">Sort by <select data-sort-select><option value="recent" ${state.sort === "recent" ? "selected" : ""}>Most recent</option><option value="reviewed" ${state.sort === "reviewed" ? "selected" : ""}>Most reviewed</option></select></label>
     </div>
