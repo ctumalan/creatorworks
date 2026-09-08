@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 
 test('website uses the sun mark and platform icon links', () => {
@@ -13,10 +14,11 @@ test('website uses the sun mark and platform icon links', () => {
 
 test('app icon exports are square and opaque at all requested sizes', async () => {
   for (const size of [1024, 512, 192, 180]) {
-    const meta = await sharp(new URL(`../assets/brand/trymybuild-app-${size}.png`, import.meta.url).pathname).metadata();
+    const path = fileURLToPath(new URL(`../assets/brand/trymybuild-app-${size}.png`, import.meta.url));
+    const meta = await sharp(path).metadata();
     assert.equal(meta.width, size);
     assert.equal(meta.height, size);
-    const stats = await sharp(new URL(`../assets/brand/trymybuild-app-${size}.png`, import.meta.url).pathname).stats();
+    const stats = await sharp(path).stats();
     assert.equal(stats.isOpaque, true);
   }
 });
