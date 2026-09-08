@@ -17,6 +17,7 @@ const initialsOf = (name: string) => String(name || 'Member').split(/\s+/).filte
 
 export const PROJECT_FIELDS =
   'video_url,lock_version,id,slug,owner_user_id,title,category,summary,tagline,headline,help_text,first_try,purpose,audience,stage,price_label,is_free,external_url,link_note,outcome,note,preview_path,preview_public_url,benefits,access_note,creator_slug,is_studio,listing_status,ownership_status,submitted_at,published_at,updated_at,created_at';
+const PUBLIC_CATALOG_FIELDS = `${PROJECT_FIELDS},saved_projects(count)`;
 
 // Resolve the public attribution for a set of project rows in one query (studio rows need no lookup).
 async function attributions(db: any, rows: any[]) {
@@ -44,6 +45,8 @@ async function attributions(db: any, rows: any[]) {
 
 export function toClientProject(row: any, attributedBy: (row: any) => any, index = 0) {
   const benefits = Array.isArray(row.benefits) ? row.benefits : [];
+  const savedAggregate = Array.isArray(row.saved_projects) ? row.saved_projects[0] : row.saved_projects;
+  const saveCount = Math.max(0, Number(savedAggregate?.count) || 0);
   // Display-only rebrand of platform-authored launch notes; keep stored data and user copy intact.
   const studioCopy = (value: string) => row.is_studio
     ? value.replace(/\bCreator(?:\s+|-)?Works\b/g, 'TryMyBuild')
@@ -76,13 +79,14 @@ export function toClientProject(row: any, attributedBy: (row: any) => any, index
     creator: attributedBy(row),
     recentOrder: 1000 - index,
     reviewCount: 0,
+    saveCount,
   };
 }
 
 // Every published listing, newest first — the public catalog source.
 export async function listPublished() {
   const db = database();
-  const { data, error } = await db.from('projects').select(PROJECT_FIELDS)
+  const { data, error } = await db.from('projects').select(PUBLIC_CATALOG_FIELDS)
     .eq('listing_status', 'published').order('published_at', { ascending: false }).order('updated_at', { ascending: false }).limit(500);
   if (error) throw error;
   const attributedBy = await attributions(db, data || []);
@@ -92,7 +96,7 @@ export async function listPublished() {
 // One published listing by slug, or null. Used for shareable /?project=slug and detail hydration.
 export async function getPublishedProject(slug: string) {
   const db = database();
-  const { data, error } = await db.from('projects').select(PROJECT_FIELDS).eq('slug', slug).eq('listing_status', 'published').maybeSingle();
+  const { data, error } = await db.from('projects').select(PUBLIC_CATALOG_FIELDS).eq('slug', slug).eq('listing_status', 'published').maybeSingle();
   if (error) throw error;
   if (!data) return null;
   const attributedBy = await attributions(db, [data]);

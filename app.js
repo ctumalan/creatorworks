@@ -30,6 +30,7 @@ creators.push({ slug: "creatorworks-studio", name: "TryMyBuild Studio", initials
 projects.forEach((project, index) => {
   project.preview = `assets/previews/${project.slug}.png`;
   project.reviewCount = 0;
+  project.saveCount = 0;
   project.recentOrder = projects.length - index;
 });
 
@@ -236,6 +237,21 @@ function dailyCreatorTip(now = new Date()) {
   const draft=localStorage.getItem('trymybuild-daily-comment')||'',count=commentWordCount(draft);
   return `<section class="community-maker-question" aria-labelledby="community-maker-question-title"><p class="eyebrow" id="community-maker-question-title">Question for makers</p><blockquote>${esc(creatorTips[elapsed % creatorTips.length])}</blockquote><p>Has this happened to you?</p><form data-daily-discussion data-day="${dayKey}"><div class="daily-comment-compose"><div class="daily-comment-author">${identity}<span>${person?esc(person.displayName||'Your response'):'Your response'}</span></div><label><span class="visually-hidden">Your response</span><textarea name="message" maxlength="800" rows="3" placeholder="Share your perspective…" aria-describedby="daily-comment-guidance daily-comment-count">${esc(draft)}</textarea></label><div class="daily-comment-actions"><small id="daily-comment-count" data-daily-word-count class="word-counter ${count&&count<7?'invalid':''}">${count} / 7 words minimum</small><button type="submit" aria-label="Post response">Post</button></div></div><p id="daily-comment-guidance" class="comment-conduct"><strong>Be thoughtful. Be respectful.</strong> Discuss ideas, not people. No insults or abusive wording. <a href="/community-guidelines">Guidelines</a></p><p data-daily-status role="status"></p></form><div class="daily-comment-list">${state.dailyComments.map(dailyCommentCard).join('')}</div></section>`;
 }
+function projectSaveCount(project) {
+  const count = Number(project?.saveCount);
+  return Number.isFinite(count) && count > 0 ? count : 0;
+}
+function compareCatalogProjects(a, b, sort = state.sort) {
+  const newestFirst = (b.recentOrder || 0) - (a.recentOrder || 0);
+  if (sort === "saved") return projectSaveCount(b) - projectSaveCount(a) || newestFirst;
+  if (sort === "reviewed") return experienceCount(b) - experienceCount(a) || newestFirst;
+  return newestFirst;
+}
+function catalogSortLabel(sort = state.sort) {
+  if (sort === "saved") return "Most saved first.";
+  if (sort === "reviewed") return "Most reviewed first.";
+  return "Newest listings first.";
+}
 function discover(communityFocused = false) {
   // Never fall back to the built-in catalog on the server; show loading/unavailable instead.
   if (window.CW_SERVER && catalogState !== 'ready') return catalogStatusPanel();
@@ -245,17 +261,17 @@ function discover(communityFocused = false) {
     const isFree = product.price.trim().toLowerCase() === 'free';
     const priceMatch = state.price === 'all' || (state.price === 'free' ? isFree : !isFree);
     return categoryMatch && priceMatch && text.includes(state.query.toLowerCase());
-  }).sort((a, b) => state.sort === "reviewed" ? experienceCount(b) - experienceCount(a) || b.recentOrder - a.recentOrder : b.recentOrder - a.recentOrder);
+  }).sort((a, b) => compareCatalogProjects(a, b));
   return `<section class="page-shell discover-page">
     <div class="page-intro"><h1>Find apps that make everyday life easier.</h1><p>Made by independent creators to solve real-life problems.</p></div>
     <div class="catalog-controls">
       <label class="catalog-search"><span aria-hidden="true">⌕</span><input data-catalog-search value="${esc(state.query)}" aria-label="Search projects by task, need, or tool" placeholder="Search by task, need, or tool" /></label>
       <label class="sort-control">Price <select data-price-select><option value="all" ${state.price === 'all' ? 'selected' : ''}>All prices</option><option value="free" ${state.price === 'free' ? 'selected' : ''}>Free</option><option value="paid" ${state.price === 'paid' ? 'selected' : ''}>Paid</option></select></label>
-      <label class="sort-control">Sort by <select data-sort-select><option value="recent" ${state.sort === "recent" ? "selected" : ""}>Most recent</option><option value="reviewed" ${state.sort === "reviewed" ? "selected" : ""}>Most reviewed</option></select></label>
+      <label class="sort-control">Sort by <select data-sort-select><option value="recent" ${state.sort === "recent" ? "selected" : ""}>Most recent</option><option value="reviewed" ${state.sort === "reviewed" ? "selected" : ""}>Most reviewed</option><option value="saved" ${state.sort === "saved" ? "selected" : ""}>Most saved</option></select></label>
     </div>
     <div class="catalog-layout">
       <aside class="filter-panel"><div><strong>Filter by category</strong><button data-category-filter="All" class="${state.category === "All" ? "is-selected" : ""}"><span>All tools</span><b>${projects.length}</b></button>${publishedCategories().map(category => `<button data-category-filter="${esc(category.name)}" class="${state.category === category.name ? "is-selected" : ""}">${categoryIcon(category.name)}<span>${esc(category.name)}</span><b>${category.count}</b></button>`).join("")}</div><div class="filter-trust"><strong>Nothing paid its way here.</strong><p>Position follows the sorting choice above—not advertising.</p></div></aside>
-      <div class="catalog-results"><div class="results-heading"><strong>${filtered.length} ${filtered.length === 1 ? "solution" : "solutions"}</strong><span>${state.sort === "reviewed" ? "No reviews have been collected yet." : "Newest listings first."}</span></div><div class="catalog-list">${filtered.length ? filtered.map(product => catalogRow(product)).join("") : `<div class="empty-state"><h2>Nothing matched that search.</h2><p>Try fewer words or explore another category.</p><button class="secondary-button" data-clear-search>Clear search</button></div>`}</div></div>
+      <div class="catalog-results"><div class="results-heading"><strong>${filtered.length} ${filtered.length === 1 ? "solution" : "solutions"}</strong><span>${catalogSortLabel()}</span></div><div class="catalog-list">${filtered.length ? filtered.map(product => catalogRow(product)).join("") : `<div class="empty-state"><h2>Nothing matched that search.</h2><p>Try fewer words or explore another category.</p><button class="secondary-button" data-clear-search>Clear search</button></div>`}</div></div>
     </div>
     ${communityRail()}
   </section>`;
@@ -881,17 +897,20 @@ document.addEventListener("click", async event => {
   }
   const save = event.target.closest("[data-save]");
   if (save) {
+    const wasSaved = state.saved.has(save.dataset.save);
     if (window.CW_SERVER) {
       if (!state.session?.authenticated) { state.route = 'account'; render(); return; }
       save.disabled = true;
       try {
-        const response = await fetch('/api/saved', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: save.dataset.save, saved: !state.saved.has(save.dataset.save) }) });
+        const response = await fetch('/api/saved', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: save.dataset.save, saved: !wasSaved }) });
         const result = await response.json();
         if (!response.ok) throw new Error(result.error);
       } catch (error) { save.textContent = error.message || 'Could not save. Try again.'; save.disabled = false; return; }
       save.disabled = false;
     }
-    state.saved.has(save.dataset.save) ? state.saved.delete(save.dataset.save) : state.saved.add(save.dataset.save);
+    wasSaved ? state.saved.delete(save.dataset.save) : state.saved.add(save.dataset.save);
+    const savedProject = projects.find(project => project.slug === save.dataset.save);
+    if (savedProject) savedProject.saveCount = Math.max(0, projectSaveCount(savedProject) + (wasSaved ? -1 : 1));
     localStorage.setItem("creatorworks-saved", JSON.stringify([...state.saved]));
     if (save.closest(".detail-dialog")) {
       const isSaved = state.saved.has(save.dataset.save);
@@ -990,7 +1009,7 @@ function hydrateCatalog(list) {
       price: p.price || 'Free', url: p.url, outcome: p.outcome || (p.presentation && p.presentation.headline) || '',
       video: p.video || '', note: p.note || '', preview: p.preview, benefits: p.benefits || [],
       creatorSlug: (p.creator && p.creator.slug) || 'creator-' + p.slug, accessNote: p.accessNote || '',
-      reviewCount: p.reviewCount || 0, recentOrder: p.recentOrder != null ? p.recentOrder : (list.length - index),
+      reviewCount: p.reviewCount || 0, saveCount: projectSaveCount(p), recentOrder: p.recentOrder != null ? p.recentOrder : (list.length - index),
     });
     productBenefits[p.slug] = p.benefits || [];
     const pr = p.presentation || {};
