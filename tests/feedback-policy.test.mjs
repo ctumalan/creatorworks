@@ -1,15 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { feedbackInput,feedbackDestination,threadAccess,validId } from '../src/server/feedback-policy.mjs';
-const valid={slug:'mealmap',helpful:'yes',price:'free',visibility:'private',message:'  Thank you  '};
+import { feedbackInput,feedbackDestination,threadAccess,thoughtfulComment,validId,wordCount } from '../src/server/feedback-policy.mjs';
+const valid={slug:'mealmap',helpful:'yes',price:'free',visibility:'private',message:'  Search worked well and the filters felt clear.  '};
 test('feedback preserves explicit privacy and separates price from usefulness',()=>{
- assert.deepEqual(feedbackInput(valid),{project_slug:'mealmap',helpful:'yes',price:'free',visibility:'private',message:'Thank you'});
+ assert.deepEqual(feedbackInput(valid),{project_slug:'mealmap',helpful:'yes',price:'free',visibility:'private',message:'Search worked well and the filters felt clear.'});
  assert.equal(feedbackInput({...valid,price:'too_expensive'}).helpful,'yes');
- assert.equal(feedbackInput({...valid,message:''}).message,'');
+ assert.equal(wordCount(valid.message),8);
 });
 test('rejects unknown choices, unsafe slugs, missing consent and oversized text',()=>{
- for(const changes of [{helpful:'toString'},{price:'__proto__'},{visibility:undefined},{visibility:'published'},{slug:'../admin'},{message:'a'.repeat(801)},{message:null}])assert.equal(feedbackInput({...valid,...changes}),null);
+ for(const changes of [{helpful:'toString'},{price:'__proto__'},{visibility:undefined},{visibility:'published'},{slug:'../admin'},{message:'Only five words are written'},{message:'word '.repeat(151)},{message:'a'.repeat(801)},{message:null}])assert.equal(feedbackInput({...valid,...changes}),null);
+ assert.equal(thoughtfulComment('Seven clear words describe this useful project experience.'),true);
 });
 test('thread access is exact ownership or authorship, never a display label',()=>{
  assert.equal(threadAccess('author','author','creator'),true);

@@ -12,7 +12,7 @@ export const POST:APIRoute=async context=>{
   if(!user.emailVerified)return json({error:'Verify your email before posting.'},403);
   if(!await allowRequest(user.id,'feedback'))return json({error:'Please wait a minute before trying again.'},429);
   const raw=await context.request.text();if(raw.length>12000)return json({error:'Request too large.'},413);
-  const input=feedbackInput(Object.fromEntries(new URLSearchParams(raw)));if(!input)return json({error:'Choose usefulness, price and visibility; use no more than 800 characters.'},400);
+  const input=feedbackInput(Object.fromEntries(new URLSearchParams(raw)));if(!input)return json({error:'Choose usefulness, price and visibility, then write 7–150 words.'},400);
   slug=input.project_slug;
   const member=await ensureMember(user),db=database();
   const project=await db.from('projects').select('owner_user_id').eq('slug',slug).eq('visibility','public').maybeSingle();

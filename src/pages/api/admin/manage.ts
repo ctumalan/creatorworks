@@ -28,6 +28,8 @@ export const POST:APIRoute=async context=>{
    const prefs=await db.from('site_settings').delete().eq('key',notificationKey(f.id));if(prefs.error)throw prefs.error;
    const erasedProjects=await db.from('projects').select('id').eq('owner_user_id',f.id);if(erasedProjects.error)throw erasedProjects.error;
    if(erasedProjects.data.length){const builds=await db.from('site_settings').delete().in('key',erasedProjects.data.map(p=>'project-builds:'+p.id));if(builds.error)throw builds.error;}
+   const daily=await db.from('daily_discussion_comments').update({message:'[Removed by account deletion]',moderation_status:'hidden'}).eq('user_id',f.id);if(daily.error)throw daily.error;
+   for(const table of ['credit_ledger','feedback_requests','feedback_qualifications','project_slot_assignments','project_slot_grants']){const removed=await db.from(table).delete().eq('user_id',f.id);if(removed.error)throw removed.error;}
    const job=await db.from('erasure_jobs').select('*').eq('user_id',f.id).single();if(job.error)throw job.error;
    if(job.data.status!=='complete'){
     if(job.data.paths.length){const removed=await db.storage.from('project-previews').remove(job.data.paths);if(removed.error)throw removed.error;}

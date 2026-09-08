@@ -134,6 +134,7 @@ const state = {
   saved: new Set(JSON.parse(localStorage.getItem("creatorworks-saved") || "[]")),
   interests: new Set(JSON.parse(localStorage.getItem("creatorworks-interests") || "[]")),
   communityPosts: window.CW_SERVER ? [] : JSON.parse(localStorage.getItem("creatorworks-community-posts") || "[]"),
+  dailyComments: [],
   communityCategory: "All",
   profileSlug: null,
   creatorStep: 0,
@@ -223,7 +224,11 @@ const creatorTips = [
 function dailyCreatorTip(now = new Date()) {
   const day = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
   const elapsed = Math.max(0, Math.floor((day - Date.UTC(2026, 8, 7)) / 86400000));
-  return `<section class="community-maker-question" aria-labelledby="community-maker-question-title"><p class="eyebrow" id="community-maker-question-title">Question for makers</p><blockquote>${esc(creatorTips[elapsed % creatorTips.length])}</blockquote><p>Has this happened to you?</p></section>`;
+  const dayKey=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  const person=state.session?.user,initials=(person?.displayName||'You').split(/\s+/).slice(0,2).map(word=>word[0]).join('').toUpperCase();
+  const identity=person?avatar({avatar:person.avatar,initials},'small'):avatar({initials:'?'},'small');
+  const draft=localStorage.getItem('trymybuild-daily-comment')||'',count=commentWordCount(draft);
+  return `<section class="community-maker-question" aria-labelledby="community-maker-question-title"><p class="eyebrow" id="community-maker-question-title">Question for makers</p><blockquote>${esc(creatorTips[elapsed % creatorTips.length])}</blockquote><p>Has this happened to you?</p><form data-daily-discussion data-day="${dayKey}"><div class="daily-comment-compose">${identity}<label><span class="visually-hidden">Your response</span><textarea name="message" maxlength="800" rows="3" placeholder="Share your perspective…" aria-describedby="daily-comment-guidance daily-comment-count">${esc(draft)}</textarea></label><button type="submit" aria-label="Post response">Post</button></div><p id="daily-comment-guidance" class="comment-conduct"><strong>Be thoughtful. Be respectful.</strong> Discuss ideas, not people. Insults, harassment, and abusive wording aren’t welcome. <a href="/community-guidelines">Guidelines</a></p><small id="daily-comment-count" data-daily-word-count class="word-counter ${count&&count<7?'invalid':''}">${count} / 7 words minimum</small><p data-daily-status role="status"></p></form><div class="daily-comment-list">${state.dailyComments.map(dailyCommentCard).join('')}</div></section>`;
 }
 function discover(communityFocused = false) {
   // Never fall back to the built-in catalog on the server; show loading/unavailable instead.
@@ -367,7 +372,24 @@ function detailDrawer(product) {
   </div>`;
 }
 
+document.addEventListener('input', event => {
+  const field=event.target.closest('[data-daily-discussion] textarea');if(!field)return;
+  localStorage.setItem('trymybuild-daily-comment',field.value);const count=commentWordCount(field.value),counter=field.closest('form').querySelector('[data-daily-word-count]');
+  counter.textContent=`${count} / 7 words minimum`;counter.classList.toggle('invalid',count>0&&count<7);field.setCustomValidity(count>=7&&count<=150?'':'Write 7–150 words.');
+});
+document.addEventListener('input',event=>{
+  const field=event.target.closest('[data-feedback-response]');if(!field)return;const count=commentWordCount(field.value),output=field.closest('.feedback-card').querySelector('[data-feedback-word-count]');if(output){output.textContent=`${count} / 7 words minimum`;output.classList.toggle('invalid',count>0&&count<7);}
+});
 document.addEventListener('submit', async event => {
+  const daily=event.target.closest('[data-daily-discussion]');
+  if(daily){
+    event.preventDefault();const field=daily.elements.message,status=daily.querySelector('[data-daily-status]'),count=commentWordCount(field.value);
+    if(count<7||count>150){status.textContent='Write a thoughtful response of 7–150 words.';field.focus();return;}
+    if(!state.session?.authenticated){localStorage.setItem('trymybuild-daily-comment',field.value);location.href='/auth/sign-in?next=%2F';return;}
+    const button=daily.querySelector('button');button.disabled=true;status.textContent='Posting…';
+    try{const response=await fetch('/api/daily-comments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({day:daily.dataset.day,message:field.value.trim()})}),data=await response.json();if(!response.ok)throw Error(data.error||'Unable to post');localStorage.removeItem('trymybuild-daily-comment');field.value='';status.textContent=data.message;await loadDailyComments();}
+    catch(error){status.textContent=error.message||'Your response could not be saved.';}finally{button.disabled=false;}return;
+  }
   const form = event.target.closest('[data-project-comment]');
   if (!form) return;
   event.preventDefault();
@@ -416,7 +438,12 @@ function closeProductDetail(restoreFocus = true) {
 function experienceCard(post, showProject = false) {
   const project = projects.find(item => item.slug === post.projectSlug);
   if (!project) return "";
-  return `<article class="experience-card"><div class="experience-person"><span class="person-avatar small" aria-hidden="true">${esc(post.initials || "G")}</span><span><strong>${esc(post.author || "Guest participant")}</strong><small>${esc(post.label || "TryMyBuild participant")}</small></span></div>${showProject ? `<button class="experience-project" data-product="${project.slug}">Tried ${project.name} <span>→</span></button>` : ""}<p>${esc(post.response)}</p>${post.signals?.length ? `<div class="experience-signals">${post.signals.map(signal => `<span>${esc(signal)}</span>`).join("")}</div>` : ""}<small class="experience-time">Shared from this prototype · ${esc(post.createdAt || "Recently")}</small></article>`;
+  return `<article class="experience-card"><div class="experience-person">${avatar({avatar:post.avatar,initials:post.initials||'G'},'small')}<span><strong>${esc(post.author || "Guest participant")}</strong><small>${esc(post.label || "TryMyBuild participant")}</small></span></div>${showProject ? `<button class="experience-project" data-product="${project.slug}">Tried ${project.name} <span>→</span></button>` : ""}<p>${esc(post.response)}</p>${post.signals?.length ? `<div class="experience-signals">${post.signals.map(signal => `<span>${esc(signal)}</span>`).join("")}</div>` : ""}<small class="experience-time">Shared from this prototype · ${esc(post.createdAt || "Recently")}</small></article>`;
+}
+
+function commentWordCount(value) { return (String(value||'').match(/[\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*/gu)||[]).length; }
+function dailyCommentCard(post) {
+  return `<article class="daily-comment ${post.status==='pending'?'is-pending':''}"><div class="experience-person">${avatar({avatar:post.avatar,initials:post.initials||'M'},'small')}<span><strong>${esc(post.author||'Member')}</strong><small>${esc(post.label||'TryMyBuild member')}</small></span></div><p>${esc(post.response)}</p><small>${post.status==='pending'?'Awaiting review · ':''}${esc(new Date(post.createdAt).toLocaleDateString())}</small></article>`;
 }
 
 function communityPage() { return discover(true); }
@@ -430,8 +457,8 @@ function profilePage() {
 function feedbackPage() {
   const product = state.selected || projects[0];
   const creator = creatorFor(product);
-  if (window.CW_SERVER) return `<section class="page-shell feedback-page"><div class="feedback-card">${creatorLink(product, true)}<p class="eyebrow">Your experience with ${product.name}</p><h1>What happened when you tried it?</h1><p>Anyone who tries a project can respond. No invitation needed.</p>${state.session?.authenticated ? `<p>Sharing as ${esc(state.session.user.displayName)}.</p><div class="feedback-choices"><button data-feedback-choice>It helped me finish the task</button><button data-feedback-choice>I understood how it worked</button><button data-feedback-choice>I got stuck somewhere</button><button data-feedback-choice>I would use it again</button></div><label>Your observation<textarea data-feedback-response maxlength="800" placeholder="What worked? What could be better?"></textarea></label><p class="feedback-error" data-feedback-error aria-live="polite"></p><button class="primary-button" data-feedback-submit>Share my experience</button><p class="prototype-disclosure">Your name and observation will be public once reviewed. This feedback goes to TryMyBuild Studio.</p>` : '<p>Sign in so your observation has a person behind it.</p><a class="primary-button" href="/auth/sign-in">Sign in to respond</a>'}</div></section>`;
-  return `<section class="page-shell feedback-page"><div class="feedback-card">${creatorLink(product, true)}<p class="eyebrow">Your experience with ${product.name}</p><h1>What happened when you tried it?</h1><p>You do not need an invitation. Share something useful with ${esc(creator.name.split(" ")[0])} and with people considering this project.</p><div class="feedback-identity"><label>Name to show<input data-feedback-name maxlength="60" placeholder="Your name or public nickname" /></label><label>How you describe yourself<input data-feedback-label maxlength="60" placeholder="For example: Musician or Parent" /></label></div><div class="feedback-choices"><button data-feedback-choice>It helped me finish the task</button><button data-feedback-choice>I understood how it worked</button><button data-feedback-choice>I got stuck somewhere</button><button data-feedback-choice>I would use it again</button></div><label>What should the creator understand?<textarea data-feedback-response maxlength="800" placeholder="Tell them what worked, what surprised you, or what got in your way."></textarea></label><p class="feedback-error" data-feedback-error aria-live="polite"></p><div class="form-actions"><button class="secondary-button" data-product="${product.slug}">Not now</button><button class="primary-button" data-feedback-submit>Share my experience</button></div><p class="prototype-disclosure">Prototype note: this is not a verified account yet. Your response is saved only in this browser and can be cleared with browser data.</p></div></section>`;
+  if (window.CW_SERVER) return `<section class="page-shell feedback-page"><div class="feedback-card">${creatorLink(product, true)}<p class="eyebrow">Your experience with ${product.name}</p><h1>What happened when you tried it?</h1><p>Anyone who tries a project can respond. No invitation needed.</p>${state.session?.authenticated ? `<p>Sharing as ${esc(state.session.user.displayName)}.</p><div class="feedback-choices"><button data-feedback-choice>It helped me finish the task</button><button data-feedback-choice>I understood how it worked</button><button data-feedback-choice>I got stuck somewhere</button><button data-feedback-choice>I would use it again</button></div><label>Your observation<textarea data-feedback-response maxlength="800" placeholder="What worked? What could be better?"></textarea></label><p class="comment-conduct"><strong>Be thoughtful. Be respectful.</strong> Discuss the project, not the person. Insults, harassment, and abusive wording aren’t welcome. <a href="/community-guidelines">Guidelines</a></p><small data-feedback-word-count class="word-counter">0 / 7 words minimum</small><p class="feedback-error" data-feedback-error aria-live="polite"></p><button class="primary-button" data-feedback-submit>Share my experience</button><p class="prototype-disclosure">Your name and observation will be public once reviewed. This feedback goes to TryMyBuild Studio.</p>` : '<p>Sign in so your observation has a person behind it.</p><a class="primary-button" href="/auth/sign-in">Sign in to respond</a>'}</div></section>`;
+  return `<section class="page-shell feedback-page"><div class="feedback-card">${creatorLink(product, true)}<p class="eyebrow">Your experience with ${product.name}</p><h1>What happened when you tried it?</h1><p>You do not need an invitation. Share something useful with ${esc(creator.name.split(" ")[0])} and with people considering this project.</p><div class="feedback-identity"><label>Name to show<input data-feedback-name maxlength="60" placeholder="Your name or public nickname" /></label><label>How you describe yourself<input data-feedback-label maxlength="60" placeholder="For example: Musician or Parent" /></label></div><div class="feedback-choices"><button data-feedback-choice>It helped me finish the task</button><button data-feedback-choice>I understood how it worked</button><button data-feedback-choice>I got stuck somewhere</button><button data-feedback-choice>I would use it again</button></div><label>What should the creator understand?<textarea data-feedback-response maxlength="800" placeholder="Tell them what worked, what surprised you, or what got in your way."></textarea></label><p class="comment-conduct"><strong>Be thoughtful. Be respectful.</strong> Discuss the project, not the person. Insults, harassment, and abusive wording aren’t welcome. <a href="/community-guidelines">Guidelines</a></p><small data-feedback-word-count class="word-counter">0 / 7 words minimum</small><p class="feedback-error" data-feedback-error aria-live="polite"></p><div class="form-actions"><button class="secondary-button" data-product="${product.slug}">Not now</button><button class="primary-button" data-feedback-submit>Share my experience</button></div><p class="prototype-disclosure">Prototype note: this is not a verified account yet. Your response is saved only in this browser and can be cleared with browser data.</p></div></section>`;
 }
 
 function readListingDraft() {
@@ -694,7 +721,7 @@ document.addEventListener('click', async event => {
     if (saveBtn) { await saveServerListing(statusEl); }
     else if (publishBtn) { await saveServerListing(statusEl); const res = await fetch('/api/projects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'submit', id: listingDraft.serverId }) }); const data = await res.json(); if (!res.ok) throw new Error(data.error || 'Could not submit for review.'); listingDraft.serverStatus = data.project.status; saveListingDraft(); }
     else if (unpublishBtn) { const res = await fetch('/api/projects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'unpublish', id: listingDraft.serverId }) }); const data = await res.json(); if (!res.ok) throw new Error(data.error || 'Could not update.'); listingDraft.serverStatus = data.project.status; saveListingDraft(); }
-    render();
+    render();void loadDailyComments();
   } catch (error) { if (statusEl) statusEl.textContent = error.message || 'That did not work. Your draft is safe; please try again.'; button.disabled = false; }
 });
 document.addEventListener('click', event => {
@@ -863,7 +890,7 @@ document.addEventListener("click", async event => {
     const card = event.target.closest(".feedback-card");
     const response = card.querySelector("[data-feedback-response]").value.trim();
     const signals = [...card.querySelectorAll("[data-feedback-choice].is-selected")].map(button => button.textContent.trim());
-    if (!response && !signals.length) { card.querySelector("[data-feedback-error]").textContent = "Share one observation or choose one thing that happened."; return; }
+    if (commentWordCount(response)<7||commentWordCount(response)>150) { card.querySelector("[data-feedback-error]").textContent = "Write a thoughtful observation of 7–150 words."; return; }
     if (window.CW_SERVER) {
       if (!state.session?.authenticated) { state.route = 'account'; render(); return; }
       const button = card.querySelector('[data-feedback-submit]');
@@ -979,7 +1006,7 @@ if (window.CW_SERVER) {
     state.session = session;
     if (session.authenticated && session.databaseReady) fetch('/api/saved').then(r => r.json()).then(data => { if (Array.isArray(data.saved)) { state.saved = new Set(data.saved); if (state.route === 'discover' && !document.querySelector('.detail-dialog')) render(); } }).catch(() => {});
     if (session.authenticated) void syncListingProject();
-    render();
+    render();void loadDailyComments();
   }).catch(() => {
     state.session = { authenticated: false, authReady: false };
     render();
@@ -987,6 +1014,12 @@ if (window.CW_SERVER) {
   fetch('/api/experiences').then(r => r.json()).then(data => {
     if (Array.isArray(data.posts)) { state.communityPosts = data.posts; if (['discover', 'community'].includes(state.route) && !document.querySelector('.detail-dialog')) render(); }
   }).catch(() => {});
+  void loadDailyComments();
+}
+
+async function loadDailyComments(){
+  const now=new Date(),day=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  try{const response=await fetch('/api/daily-comments?day='+day),data=await response.json();if(response.ok&&Array.isArray(data.comments)){state.dailyComments=data.comments;if(['discover','community'].includes(state.route)&&!document.querySelector('.detail-dialog'))render();}}catch{}
 }
 
 

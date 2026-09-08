@@ -3,6 +3,7 @@ import type { APIRoute } from 'astro';
 import { currentUser, json, origin } from '../../server/auth';
 import { database, databaseReady, ensureMember } from '../../server/database';
 import { sameOrigin } from '../../server/security.mjs';
+import { thoughtfulComment } from '../../server/feedback-policy.mjs';
 
 export const GET: APIRoute = async () => {
   if (!databaseReady()) return json({ posts: [], connected: false });
@@ -27,7 +28,7 @@ export const POST: APIRoute = async context => {
   try {
     if (!await allowRequest(user.id, 'experiences')) return json({error:'Please wait a minute before trying again.'},429);
     const body = await context.request.json();
-    if (typeof body.response !== 'string' || !body.response.trim() || body.response.length > 800 || typeof body.slug !== 'string') return json({ error: 'Please share an observation under 800 characters.' }, 400);
+    if (!thoughtfulComment(body.response) || typeof body.slug !== 'string') return json({ error: 'Please share a thoughtful observation of 7–150 words.' }, 400);
     const member = await ensureMember(user);
     const db = database();
     const project = await db.from('projects').select('slug').eq('slug', body.slug).eq('visibility', 'public').maybeSingle();

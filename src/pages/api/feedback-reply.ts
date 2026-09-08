@@ -3,7 +3,7 @@ import type { APIRoute } from 'astro';
 import { currentUser,origin,json } from '../../server/auth';
 import { database,ensureMember } from '../../server/database';
 import { sameOrigin } from '../../server/security.mjs';
-import { validId,threadAccess } from '../../server/feedback-policy.mjs';
+import { thoughtfulComment,validId,threadAccess } from '../../server/feedback-policy.mjs';
 export const POST:APIRoute=async context=>{
  if(!sameOrigin(context.request,origin(context)))return json({error:'Request not allowed.'},403);
  const user=await currentUser(context);if(!user)return json({error:'Please sign in.'},401);
@@ -13,7 +13,7 @@ export const POST:APIRoute=async context=>{
   if(!await allowRequest(user.id,'feedback-reply'))return json({error:'Please wait a minute before trying again.'},429);
   const raw=await context.request.text();if(raw.length>12000)return json({error:'Request too large.'},413);
   const body=Object.fromEntries(new URLSearchParams(raw));
-  if(!validId(body.id)||!validId(body.requestId)||!body.message?.trim()||body.message.length>800)return json({error:'Write a reply under 800 characters.'},400);
+  if(!validId(body.id)||!validId(body.requestId)||!thoughtfulComment(body.message))return json({error:'Write a thoughtful reply of 7–150 words.'},400);
   id=body.id;const member=await ensureMember(user),db=database();
   const item=await db.from('creator_feedback').select('author_user_id,project_slug').eq('id',id).maybeSingle();
   if(item.error)throw item.error;

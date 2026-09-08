@@ -27,6 +27,7 @@ export const GET: APIRoute = async context => {
   let body = `<h1>${labels[sections.indexOf(section)]}</h1>`;
   body += '<p><a class="secondary-button" href="/admin/account-requests">Account deletion requests →</a></p>';
   body += '<p><a class="secondary-button" href="/admin/feedback">Tell the creator · Feedback review →</a></p>';
+  body += '<p><a class="secondary-button" href="/admin/community">Community credits &amp; daily discussion →</a></p>';
   const notice = context.url.searchParams.get('notice');
   if (notice) body += `<p class="admin-note" role="status">${notice === 'saved' ? 'Decision saved and recorded in the activity history.' : 'Nothing was confirmed. Reload and try again: the comment may have changed, or the review database setup may be incomplete.'}</p>`;
   try {
