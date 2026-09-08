@@ -6,6 +6,13 @@ import { stripTypeScriptTypes } from 'node:module';
 
 const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8');
 
+test('discovery introduces the apps once above search without a duplicate header tagline', () => {
+  assert.doesNotMatch(read('index.html'), /class="brand-promise"/);
+  const app = read('app.js');
+  assert.match(app, /<div class="page-intro"><h1>Find apps that make everyday life easier\.<\/h1><p>Made by independent creators to solve real-life problems\.<\/p><\/div>\s*<div class="catalog-controls">/);
+  assert.doesNotMatch(app, /Find solutions others have already made\./);
+});
+
 test('public wordmarks, accessible names, and page titles use TryMyBuild', () => {
   const html = read('index.html');
   assert.match(html, /<title>TryMyBuild/);
