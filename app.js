@@ -281,7 +281,7 @@ function communityRail() {
     <div class="category-conversations">${comments.length||posts.length?[...comments.map(dailyCommentCard),...posts.map(post=>experienceCard(post,true))].slice(0,state.discussionExpanded?Infinity:3).join(''):'<p class="category-community-empty">No conversations yet. What would make this part of your life easier?</p>'}</div>
     ${comments.length+posts.length>3?`<button class="text-button" data-more-conversations>${state.discussionExpanded?'Show fewer conversations':'See more conversations'}</button>`:''}
     ${state.discussionError?`<p role="status">${esc(state.discussionError)} <button class="text-button" data-retry-discussion>Try again</button></p>`:''}
-    <form data-daily-discussion data-category="${esc(category)}" data-day="${day}">
+    <form data-daily-discussion data-discussion-category="${esc(category)}" data-day="${day}">
       <div class="daily-comment-compose"><label for="category-comment">Share your experience or ask a question</label><textarea id="category-comment" name="message" maxlength="800" rows="3" placeholder="What has helped you, or what are you looking for?" aria-describedby="daily-comment-guidance daily-comment-count">${esc(draft)}</textarea>
       <div class="daily-comment-actions"><small id="daily-comment-count" data-daily-word-count class="word-counter">${count} / 7 words minimum</small><button type="submit">${state.session?.authenticated?'Post comment':'Sign up to post'}</button></div></div>
       <p class="comment-conduct">${state.session?.authenticated?'Your comment will appear after moderation review.':'Write first. Your draft stays private in this browser. Create an account or sign in, then return here to post. Comments appear after moderation review.'}</p>
@@ -394,7 +394,7 @@ function detailDrawer(product) {
 
 document.addEventListener('input', event => {
   const field=event.target.closest('[data-daily-discussion] textarea');if(!field)return;
-  saveDiscussionDraft(field.closest('form').dataset.category,field.value);const count=commentWordCount(field.value),counter=field.closest('form').querySelector('[data-daily-word-count]');
+  saveDiscussionDraft(field.closest('form').dataset.discussionCategory,field.value);const count=commentWordCount(field.value),counter=field.closest('form').querySelector('[data-daily-word-count]');
   counter.textContent=`${count} / 7 words minimum`;counter.classList.toggle('invalid',count>0&&count<7);field.setCustomValidity(count>=7&&count<=150?'':'Write 7–150 words.');
 });
 document.addEventListener('input',event=>{
@@ -405,10 +405,10 @@ document.addEventListener('submit', async event => {
   if(daily){
     event.preventDefault();const field=daily.elements.message,status=daily.querySelector('[data-daily-status]'),count=commentWordCount(field.value);
     if(count<7||count>150){status.textContent='Write a thoughtful response of 7–150 words.';field.focus();return;}
-    if(!saveDiscussionDraft(daily.dataset.category,field.value)){status.textContent='Your browser cannot save this draft. Copy your comment before signing in.';return;}
-    if(!state.session?.authenticated){const destination='/?category='+encodeURIComponent(daily.dataset.category)+'#category-community';location.href='/auth/sign-in?signup=1&next='+encodeURIComponent(destination);return;}
+    if(!saveDiscussionDraft(daily.dataset.discussionCategory,field.value)){status.textContent='Your browser cannot save this draft. Copy your comment before signing in.';return;}
+    if(!state.session?.authenticated){const destination='/?category='+encodeURIComponent(daily.dataset.discussionCategory)+'#category-community';location.href='/auth/sign-in?signup=1&next='+encodeURIComponent(destination);return;}
     const button=daily.querySelector('button');button.disabled=true;status.textContent='Posting…';
-    try{const response=await fetch('/api/daily-comments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({day:daily.dataset.day,category:daily.dataset.category,message:field.value.trim()})}),data=await response.json();if(!response.ok)throw Error(data.error||'Unable to post');saveDiscussionDraft(daily.dataset.category,'');field.value='';status.textContent=data.message;await loadDailyComments();}
+    try{const response=await fetch('/api/daily-comments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({day:daily.dataset.day,category:daily.dataset.discussionCategory,message:field.value.trim()})}),data=await response.json();if(!response.ok)throw Error(data.error||'Unable to post');saveDiscussionDraft(daily.dataset.discussionCategory,'');field.value='';status.textContent=data.message;await loadDailyComments();}
     catch(error){status.textContent=error.message||'Your response could not be saved.';}finally{button.disabled=false;}return;
   }
   const form = event.target.closest('[data-project-comment]');
@@ -831,7 +831,7 @@ document.addEventListener('submit', async event => {
   finally { button.disabled = false; }
 });
 
-function render() {
+function render(preserveScroll = false) {
   const focusedSearch = document.activeElement?.matches('[data-catalog-search]') ? { start: document.activeElement.selectionStart, end: document.activeElement.selectionEnd } : null;
   closeProductDetail(false);
   const routes = { discover, community: communityPage, profile: profilePage, feedback: feedbackPage, share: sharePage, account: accountPage };
@@ -850,7 +850,7 @@ function render() {
     if(state.session?.preferences) { state.personalization=state.session.preferences.personalization!==false;if(!state.preferencesHydrated){state.interests = new Set(state.session.preferences.interests || []);state.preferencesHydrated=true;} document.body.classList.toggle('hide-guidance', state.session.preferences.tips === false); }
   }
   if (focusedSearch) { const input = document.querySelector('[data-catalog-search]'); input?.focus({preventScroll:true}); input?.setSelectionRange(focusedSearch.start, focusedSearch.end); }
-  else window.scrollTo({ top: 0, behavior: "smooth" });
+  else if (!preserveScroll) window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 document.addEventListener("click", async event => {
@@ -1042,10 +1042,10 @@ if (window.CW_SERVER) {
 function selectDiscussionCategory(category) {
   state.category=category;state.dailyComments=[];state.discussionError='';state.discussionExpanded=false;
   const url=new URL(location.href);if(category==='All')url.searchParams.delete('category');else url.searchParams.set('category',category);
-  url.hash='';history.replaceState({},'',url);render();void loadDailyComments();
+  url.hash='';history.replaceState({},'',url);render(true);void loadDailyComments();
 }
 document.addEventListener('click',event=>{
-  if(event.target.closest('[data-more-conversations]')){state.discussionExpanded=!state.discussionExpanded;render();}
+  if(event.target.closest('[data-more-conversations]')){state.discussionExpanded=!state.discussionExpanded;render(true);}
   if(event.target.closest('[data-retry-discussion]'))void loadDailyComments();
 });
 let discussionRequest=0;

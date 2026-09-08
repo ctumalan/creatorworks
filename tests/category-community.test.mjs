@@ -13,7 +13,7 @@ function harness(){
 }
 test('All tools has no community panel; one selected category reveals a matching composer without a filter',()=>{
  const {context,state}=harness();assert.equal(context.communityRail(),'');
- state.category='Family life';const html=context.communityRail();assert.match(html,/Conversations about family life/);assert.match(html,/Sign up to post/);assert.doesNotMatch(html,/data-community-filter|<select/);
+ state.category='Family life';const html=context.communityRail();assert.match(html,/Conversations about family life/);assert.match(html,/Sign up to post/);assert.doesNotMatch(html,/data-community-filter|<select|\sdata-category=/);assert.match(html,/data-discussion-category="Family life"/);
  state.session={authenticated:true};assert.match(context.communityRail(),/Post comment/);
  state.category='All';assert.equal(context.communityRail(),'');
 });
