@@ -13,6 +13,6 @@ export const GET:APIRoute=async context=>{
   output.notificationPreferences=await notificationPreferences(m.db,m.member.id);
   for(const [t,k] of tables)output[t]=await read(t,k);
   output.projectBuilds=await Promise.all(output.projects.map(async(p:any)=>({project:p.slug,...await readBuilds(m.db,p.id)})));
-  return new Response(JSON.stringify(output,null,2),{headers:{'Content-Type':'application/json','Content-Disposition':'attachment; filename="creatorworks-my-data.json"','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});
+  return new Response(JSON.stringify(output,null,2),{headers:{'Content-Type':'application/json','Content-Disposition':'attachment; filename="trymybuild-my-data.json"','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});
  }catch{return new Response('Your export could not be completed. Please try again.',{status:503});}
 };

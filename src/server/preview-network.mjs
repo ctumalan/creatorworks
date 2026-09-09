@@ -26,7 +26,7 @@ export async function fetchPreviewAsset(value,budget,redirects=0,dependencies={}
  const address=await Promise.race([resolvePublic(url.hostname,dependencies.lookup||lookup),new Promise((_,reject)=>setTimeout(()=>reject(Error('DNS timeout')),1500).unref())]);
  const result=await new Promise((resolve,reject)=>{
   const request=(dependencies.request||(url.protocol==='https:'?https:http).request)(url,{
-   method:'GET',agent:false,headers:{'User-Agent':'CreatorWorksPreview/1.0','Accept':'text/html,text/css,image/*,font/*;q=0.9,*/*;q=0.5','Accept-Encoding':'identity'},
+   method:'GET',agent:false,headers:{'User-Agent':'TryMyBuildPreview/1.0','Accept':'text/html,text/css,image/*,font/*;q=0.9,*/*;q=0.5','Accept-Encoding':'identity'},
    // Pin the validated IP; never let a second DNS lookup bypass the SSRF check.
    lookup:(_host,options,callback)=>options.all?callback(null,[address]):callback(null,address.address,address.family),
   },response=>{
