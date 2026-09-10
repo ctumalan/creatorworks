@@ -3,16 +3,19 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 const source=readFileSync(new URL('../app.js',import.meta.url),'utf8');
-test('list and compact cards offer independent Share controls for every project',()=>{
+test('compact account cards offer Share while catalog cards open a detail view',()=>{
  const ctx=vm.createContext({state:{saved:new Set()},experienceCount:()=>0,creatorLink:()=>'',categoryIcon:()=>'',esc:String});
  vm.runInContext(source.slice(source.indexOf('function productCard('),source.indexOf('function discover('))+source.slice(source.indexOf('function catalogRow('),source.indexOf('const projectPresentation =')),ctx);
  const products=vm.runInNewContext(source.match(/^const projects = (\[[\s\S]*?\n\]);/)[1]);
- for(const p of products)for(const html of [ctx.catalogRow(p),ctx.productCard(p,true)]){
-  assert.ok(html.includes(`data-share-product="${p.slug}"`));
-  assert.ok(html.includes(`aria-label="Share ${p.name}"`));
-  assert.match(html,/data-share-status role="status"/);
-  assert.match(html,/<button type="button" class="secondary-button" data-share-product=/);
+ for(const p of products){
+  const compact=ctx.productCard(p,true),catalog=ctx.catalogRow(p);
+  assert.ok(compact.includes(`data-share-product="${p.slug}"`));
+  assert.ok(compact.includes(`aria-label="Share ${p.name}"`));
+  assert.doesNotMatch(catalog,/data-share-product/);
+  assert.ok(catalog.includes(`data-product="${p.slug}"`));
+  assert.ok(catalog.includes(`data-save="${p.slug}"`));
  }
+ assert.match(source,/class="detail-share" data-share-product=/);
 });
 test('shared project URLs lead to a dedicated recipient page',()=>{
  const ctx=vm.createContext({URL,location:{origin:'https://creatorworks.vercel.app'}});

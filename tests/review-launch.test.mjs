@@ -48,3 +48,23 @@ test('filter uses verified account data and preview pairs screenshot with descri
  assert.match(css,/listing-preview-hero>img\{position:static/);
  assert.match(app,/class="legal-agreement"[\s\S]*<span>I agree to the/);
 });
+test('creator filtering uses an aligned select and an optional accessible explanation',()=>{
+ const app=read('app.js');
+ assert.match(app,/<label for="creator-filter">Creators<\/label>/);
+ assert.match(app,/<select id="creator-filter" data-verified-select>/);
+ assert.match(app,/state\.verifiedOnly = event\.target\.value === 'verified'/);
+ assert.match(app,/aria-label="About creator verification" aria-expanded="false" aria-controls="creator-verification-help"/);
+ assert.match(app,/id="creator-verification-help" class="creator-verification-help" hidden/);
+ assert.match(app,/Verification confirms creator identity, not app quality\./);
+ assert.doesNotMatch(app,/Results follow your sorting choice—not advertising\./);
+});
+test('discovery keeps categories above a responsive compact project grid',()=>{
+ const app=read('app.js'),css=read('launch-refinements.css');
+ assert.match(app,/<nav class="category-strip" aria-label="Filter projects by category">/);
+ assert.match(app,/class="category-strip-scroll"/);
+ assert.doesNotMatch(app,/<aside class="filter-panel">/);
+ assert.match(app,/<div class="catalog-controls">[\s\S]*<nav class="category-strip"[\s\S]*<div class="catalog-results">/);
+ assert.match(css,/\.discover-page \.catalog-list,.profile-work \.catalog-list\{display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+ assert.match(css,/@media\(max-width:1050px\)\{\.discover-page \.catalog-list,.profile-work \.catalog-list\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ assert.match(css,/@media\(max-width:680px\)[\s\S]*\.discover-page \.catalog-list,.profile-work \.catalog-list\{grid-template-columns:minmax\(0,1fr\)/);
+});

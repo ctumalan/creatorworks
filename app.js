@@ -275,12 +275,11 @@ function discover(communityFocused = false) {
       <details class="catalog-filter-menu" ${state.filterOpen?'open':''}><summary>Filter &amp; sort${state.verifiedOnly || state.price !== 'all' ? ' · active' : ''}</summary><div class="catalog-filter-options">
       <label class="sort-control">Price <select data-price-select><option value="all" ${state.price === 'all' ? 'selected' : ''}>All prices</option><option value="free" ${state.price === 'free' ? 'selected' : ''}>Free</option><option value="paid" ${state.price === 'paid' ? 'selected' : ''}>Paid</option></select></label>
       <label class="sort-control">Sort by <select data-sort-select><option value="recent" ${state.sort === "recent" ? "selected" : ""}>Most recent</option><option value="reviewed" ${state.sort === "reviewed" ? "selected" : ""}>Most reviewed</option><option value="saved" ${state.sort === "saved" ? "selected" : ""}>Most saved</option></select></label>
-      <label><input type="checkbox" data-verified-select ${state.verifiedOnly ? 'checked' : ''}> Verified creators only</label><small>Verification checks creator identity, not app quality. Results follow your sorting choice—not advertising.</small></div></details>
+      <div class="sort-control creator-filter-row"><span class="creator-filter-label"><label for="creator-filter">Creators</label><button type="button" class="creator-filter-info" data-verification-info aria-label="About creator verification" aria-expanded="false" aria-controls="creator-verification-help">?</button></span><select id="creator-filter" data-verified-select><option value="all" ${!state.verifiedOnly ? 'selected' : ''}>All creators</option><option value="verified" ${state.verifiedOnly ? 'selected' : ''}>Verified creators only</option></select></div>
+      <p id="creator-verification-help" class="creator-verification-help" hidden>Verification confirms creator identity, not app quality.</p></div></details>
     </div>
-    <div class="catalog-layout">
-      <aside class="filter-panel"><div><strong>Filter by category</strong><button data-category-filter="All" class="${state.category === "All" ? "is-selected" : ""}"><span>All tools</span><b>${projects.length}</b></button>${publishedCategories().map(category => `<button data-category-filter="${esc(category.name)}" class="${state.category === category.name ? "is-selected" : ""}">${categoryIcon(category.name)}<span>${esc(category.name)}</span><b>${category.count}</b></button>`).join("")}</div></aside>
-      <div class="catalog-results"><div class="results-heading"><strong>${filtered.length} ${filtered.length === 1 ? "solution" : "solutions"}</strong><span>${catalogSortLabel()}</span></div><div class="catalog-list">${filtered.length ? filtered.map(product => catalogRow(product)).join("") : `<div class="empty-state"><h2>Nothing matched that search.</h2><p>Try fewer words or explore another category.</p><button class="secondary-button" data-clear-search>Clear search</button></div>`}</div></div>
-    </div>
+    <nav class="category-strip" aria-label="Filter projects by category"><div class="category-strip-scroll"><button data-category-filter="All" class="${state.category === "All" ? "is-selected" : ""}"><span>All tools</span><b>${projects.length}</b></button>${publishedCategories().map(category => `<button data-category-filter="${esc(category.name)}" class="${state.category === category.name ? "is-selected" : ""}">${categoryIcon(category.name)}<span>${esc(category.name)}</span><b>${category.count}</b></button>`).join("")}</div></nav>
+    <div class="catalog-results"><div class="results-heading"><strong>${filtered.length} ${filtered.length === 1 ? "solution" : "solutions"}</strong><span>${catalogSortLabel()}</span></div><div class="catalog-list">${filtered.length ? filtered.map(product => catalogRow(product)).join("") : `<div class="empty-state"><h2>Nothing matched that search.</h2><p>Try fewer words or explore another category.</p><button class="secondary-button" data-clear-search>Clear search</button></div>`}</div></div>
     ${communityRail()}
   </section>`;
 }
@@ -317,7 +316,7 @@ function communityRail() {
 function catalogRow(product) {
   const saved = state.saved.has(product.slug);
   const count = experienceCount(product);
-  return `<article class="catalog-row"><button class="row-preview" data-product="${product.slug}"><img src="${product.preview}" alt="Preview of the ${product.name} website" loading="lazy" /></button><div class="row-copy"><div class="product-meta"><span>${product.category}</span><span>${product.stage}</span></div><button class="row-title" data-product="${product.slug}">${product.name}</button><p>${product.summary}</p>${creatorLink(product, true)}<div class="row-facts"><strong>${product.price}</strong><small>${count} ${count === 1 ? "experience" : "experiences"} shared · Added recently</small></div></div><div class="row-actions"><button class="save-button-row ${saved ? "is-saved" : ""}" data-save="${product.slug}">${saved ? "♥ Saved" : "♡ Save"}</button><button class="secondary-button" data-product="${product.slug}">View details</button><button type="button" class="secondary-button" data-share-product="${product.slug}" aria-label="Share ${esc(product.name)}">Share</button><span class="card-share-status" data-share-status role="status" aria-live="polite"></span></div></article>`;
+  return `<article class="catalog-row"><div class="row-media"><button class="row-preview" data-product="${product.slug}" aria-label="View ${esc(product.name)} details"><img src="${product.preview}" alt="Preview of the ${product.name} website" loading="lazy" /></button><button class="save-button-row ${saved ? "is-saved" : ""}" data-save="${product.slug}" aria-label="${saved ? "Remove" : "Save"} ${esc(product.name)}">${saved ? "♥ Saved" : "♡ Save"}</button></div><div class="row-copy"><div class="product-meta"><span>${product.category}</span><span>${product.stage}</span></div><button class="row-title" data-product="${product.slug}">${product.name}</button><p>${product.summary}</p>${creatorLink(product, true)}<div class="row-facts"><strong>${product.price}</strong><small>${count} ${count === 1 ? "experience" : "experiences"} shared</small></div></div></article>`;
 }
 
 const projectPresentation = {
@@ -880,6 +879,13 @@ function render(preserveScroll = false) {
 }
 
 document.addEventListener("click", async event => {
+  const verificationInfo = event.target.closest('[data-verification-info]');
+  if (verificationInfo) {
+    const expanded = verificationInfo.getAttribute('aria-expanded') !== 'true';
+    verificationInfo.setAttribute('aria-expanded', String(expanded));
+    document.getElementById(verificationInfo.getAttribute('aria-controls')).hidden = !expanded;
+    return;
+  }
   if (event.target.closest("[data-detail-close]")) { closeProductDetail(); return; }
   const profile = event.target.closest("[data-profile]");
   if (profile) { state.profileSlug = profile.dataset.profile; state.route = "profile"; render(); return; }
@@ -999,7 +1005,7 @@ document.addEventListener("change", event => {
 document.addEventListener("change", event => {
   if (event.target.matches("[data-category-select]")) { state.category = event.target.value; render(); }
   if (event.target.matches("[data-sort-select]")) { state.sort = event.target.value; render(); document.querySelector('[data-sort-select]')?.focus(); }
-  if (event.target.matches("[data-verified-select]")) { state.verifiedOnly = event.target.checked; render(); document.querySelector('[data-verified-select]')?.focus(); }
+  if (event.target.matches("[data-verified-select]")) { state.verifiedOnly = event.target.value === 'verified'; render(); document.querySelector('[data-verified-select]')?.focus(); }
   if (event.target.matches("[data-price-select]")) { state.price = event.target.value; render(); document.querySelector('[data-price-select]')?.focus(); }
 });
 
