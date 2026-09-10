@@ -6,6 +6,8 @@ import { sameOrigin } from '../../../server/security.mjs';
 import { validProof } from '../../../server/account-security.mjs';
 import { allowRequest } from '../../../server/abuse';
 async function finishErasure(db:any,id:string){
+ const reads=await db.from('feedback_reads').delete().eq('user_id',id);if(reads.error)throw reads.error;
+ const ratings=await db.from('feedback_ratings').update({reason:'[Removed by account deletion]'}).or('creator_user_id.eq.'+id+',reviewer_user_id.eq.'+id);if(ratings.error)throw ratings.error;
  const prefs=await db.from('site_settings').delete().eq('key',notificationKey(id));if(prefs.error)throw prefs.error;
  const erasedProjects=await db.from('projects').select('id').eq('owner_user_id',id);if(erasedProjects.error)throw erasedProjects.error;
  if(erasedProjects.data.length){const builds=await db.from('site_settings').delete().in('key',erasedProjects.data.map((p:any)=>'project-builds:'+p.id));if(builds.error)throw builds.error;}
@@ -19,8 +21,8 @@ async function finishErasure(db:any,id:string){
  }
 }
 export const POST:APIRoute=async context=>{
- if(!sameOrigin(context.request,origin(context)))return new Response('Forbidden',{status:403});let tab='overview',caseId='';
- const back=(ok:boolean)=>context.redirect(`/admin/workspace?tab=${tab}&${ok?'saved':'error'}=1${caseId?'&case='+caseId:''}`,303);
+ if(!sameOrigin(context.request,origin(context)))return new Response('Forbidden',{status:403});let tab='overview',caseId='',failure='save';
+ const back=(ok:boolean)=>context.redirect(`/admin/workspace?tab=${tab}&${ok?'saved=1':'error='+failure}${caseId?'&case='+caseId:''}`,303);
  try{
   const m=await memberContext(context);if(!m?.admin||!m.user.emailVerified)return new Response('Forbidden',{status:403});
   if(!await allowRequest(m.user.id,'admin-manage',20))return new Response('Please wait',{status:429});
@@ -35,15 +37,23 @@ export const POST:APIRoute=async context=>{
   }else if(f.action==='reply'){
    if(!/^[0-9a-f-]{36}$/.test(f.request)||!/^\d{1,9}$/.test(f.revision))return back(false);caseId=f.id;
    r=await db.rpc('cw_case_reply',{p_actor:member.id,p_case:f.id,p_request:f.request,p_message:f.message,p_staff:true,p_founder:env('FOUNDER_WORKOS_USER_ID'),p_revision:Number(f.revision),p_status:f.status});
-  }else if(f.action==='erase'){
+  }else if(f.action==='erase'||f.action==='retry-erasure'){
+   if(!validProof(context.cookies.get('cw_security_fresh')?.value,m.user.id,'fresh',env('WORKOS_COOKIE_PASSWORD'))){failure='reauth';return back(false);}
+   if(f.action==='retry-erasure'){
+    if(f.confirmation!=='DELETE')return back(false);
+    const job=await db.from('erasure_jobs').select('status').eq('user_id',f.id).maybeSingle();const target=await db.from('users').select('account_status').eq('id',f.id).maybeSingle();
+    if(job.error||target.error||!job.data||target.data?.account_status!=='deleted')return back(false);
+    failure='cleanup';await finishErasure(db,f.id);return back(true);
+   }
    if(f.confirmation!=='DELETE'||!validProof(context.cookies.get('cw_security_fresh')?.value,m.user.id,'fresh',env('WORKOS_COOKIE_PASSWORD')))return back(false);
    r=await db.rpc('cw_erase_account',{p_actor:member.id,p_user:f.id,p_founder:env('FOUNDER_WORKOS_USER_ID')});if(r.error)return back(false);
-   await finishErasure(db,f.id);
+   failure='cleanup';await finishErasure(db,f.id);
    r=await db.from('account_deletion_requests').update({status:'complete',updated_at:new Date().toISOString()}).eq('user_id',f.id);
   }else if(f.action==='admin-erase'){
+   if(!validProof(context.cookies.get('cw_security_fresh')?.value,m.user.id,'fresh',env('WORKOS_COOKIE_PASSWORD'))){failure='reauth';return back(false);}
    if(f.confirmation!=='DELETE'||String(f.reason||'').trim().length<10||!validProof(context.cookies.get('cw_security_fresh')?.value,m.user.id,'fresh',env('WORKOS_COOKIE_PASSWORD')))return back(false);
    r=await db.rpc('cw_admin_erase_account',{p_actor:member.id,p_user:f.id,p_founder:env('FOUNDER_WORKOS_USER_ID'),p_reason:f.reason});if(r.error)return back(false);
-   await finishErasure(db,f.id);r={error:null};
+   failure='cleanup';await finishErasure(db,f.id);r={error:null};
   }else return back(false);
   return back(!r?.error);
  }catch{return back(false);}

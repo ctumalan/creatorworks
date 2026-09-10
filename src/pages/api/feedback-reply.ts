@@ -22,6 +22,6 @@ export const POST:APIRoute=async context=>{
   if(!item.data||!project.data||!threadAccess(member.id,item.data.author_user_id,project.data.owner_user_id))return json({error:'Conversation not found.'},404);
   const result=await db.rpc('cw_feedback_reply',{p_actor:member.id,p_id:id,p_message:body.message.trim(),p_request:body.requestId});
   if(result.error)throw result.error;
-  return context.redirect(`/dashboard/thread/${id}?sent=1`,303);
- }catch{return context.redirect(id?`/dashboard/thread/${id}?error=1`:'/dashboard?error=1',303);}
+  return context.redirect(`/dashboard/messages?thread=${id}&sent=1`,303);
+ }catch{return context.redirect(id?`/dashboard/messages?thread=${id}&error=1`:'/dashboard?error=1',303);}
 };

@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { adminUser } from '../../server/admin';
 import { database } from '../../server/database';
-import { surface, unavailable, e, feedbackCard, pageNumber, pages } from '../../server/feedback-ui';
+import { surface, adminSurface, unavailable, e, feedbackCard, pageNumber, pages } from '../../server/feedback-ui';
 export const GET:APIRoute=async context=>{
  if(!await adminUser(context))return surface('Private administration','<h1>Administrator access required.</h1>','',403);
  try{
@@ -21,6 +21,6 @@ export const GET:APIRoute=async context=>{
    html+=result.data.map(row=>feedbackCard(row,row.project_slug,'Community member',false)+`<form class="cw-panel" action="/api/admin/feedback-review" method="post"><input type="hidden" name="id" value="${e(row.id)}"><input type="hidden" name="previous" value="${e(row.moderation_status)}"><label>Decision<select name="status" required><option value="">Choose a decision</option><option value="published">Publish</option><option value="hidden">Hide</option><option value="pending">Return to review</option></select></label><label>Reason<input type="text" name="reason" minlength="3" maxlength="300" required></label><label><input type="checkbox" name="confirm" value="yes" required> I reviewed this feedback and confirm my decision.</label><p><button class="primary-button" type="submit">Save decision</button></p></form>`).join('')||'<p class="cw-panel">No feedback in this queue.</p>';
    html+=pages('/admin/feedback?status='+status,page,result.count||0);
   }
-  return surface('Feedback review',html);
+  return adminSurface('Feedback review',html,'feedback');
  }catch{return unavailable();}
 };

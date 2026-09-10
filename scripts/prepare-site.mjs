@@ -18,3 +18,4 @@ for (const dir of ['assets', 'projects']) {
   await cp(path.join(root, dir), path.join(output, dir), { recursive: true, filter: source => !path.basename(source).startsWith('.') });
 }
 console.log('Prepared website assets.');
+await copyFile(path.join(root, 'launch-refinements.css'), path.join(output, 'launch-refinements.css'));

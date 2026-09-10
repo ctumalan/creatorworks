@@ -1,7 +1,7 @@
 import type {APIRoute} from 'astro';
 import {adminUser} from '../../server/admin';
 import {database} from '../../server/database';
-import {surface,e,unavailable} from '../../server/feedback-ui';
+import {surface,e,unavailable,adminSurface} from '../../server/feedback-ui';
 export const GET:APIRoute=async context=>{
  const user=await adminUser(context);if(!user)return surface('Private administration','<h1>Administrator access required.</h1>','',403);
  try{const db=database(),kind=context.url.searchParams.get('kind')==='daily'?'daily':'credits';let html='<a href="/admin">← Administration</a><h1>Community review</h1><nav class="cw-row"><a href="?kind=credits">Credit qualifications</a><a href="?kind=daily">Daily discussion</a></nav>';
@@ -14,6 +14,6 @@ export const GET:APIRoute=async context=>{
    const r=await db.from('daily_discussion_comments').select('*').eq('moderation_status','pending').order('created_at').limit(100);if(r.error)throw r.error;const ids=[...new Set(r.data.map((x:any)=>x.user_id))],profiles=ids.length?await db.from('profiles').select('user_id,display_name').in('user_id',ids):{data:[],error:null};if(profiles.error)throw profiles.error;
    html+='<p>Publishing displays the response and member identity in its category conversation or original daily discussion.</p>'+r.data.map((x:any)=>`<article class="cw-panel"><h2>${e(profiles.data.find((p:any)=>p.user_id===x.user_id)?.display_name||'Member')}</h2><p>${e(x.message)}</p><p class="cw-meta">${e(x.day_key)} · ${x.category?e(x.category):`Daily question ${x.tip_index+1}`}</p><form method="post" action="/api/admin/community-review"><input type="hidden" name="kind" value="daily"><input type="hidden" name="id" value="${e(x.id)}"><input type="hidden" name="previous" value="${e(x.moderation_status)}"><label>Decision<select name="status"><option value="published">Publish</option><option value="hidden">Hide</option></select></label><label>Reason<input name="reason" minlength="3" maxlength="300" required></label><button class="primary-button">Save decision</button></form></article>`).join('')||'<p class="cw-panel">No daily responses need review.</p>';
   }
-  return surface('Community review',html,'',200,true);
+  return adminSurface('Community review',html,'community');
  }catch{return unavailable();}
 };
