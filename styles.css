@@ -176,6 +176,16 @@ img { display: block; max-width: 100%; }
 .mealmap-feedback small { display: block; margin-top: 12px; font-size: .8rem; color: var(--muted); }
 .mealmap-feedback label { display: block; margin-bottom: 12px; font-size: 1rem; }
 .mealmap-feedback textarea { display: block; width: 100%; min-height: 100px; margin-bottom: 16px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: white; color: var(--ink); font: inherit; resize: vertical; }
+.detail-comment-form { max-width: 680px; margin-top: 22px; padding: 20px; border: 1px solid var(--line); border-radius: 18px; background: #f8faf7; }
+.detail-comment-compose { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; align-items: start; }
+.detail-comment-compose > .person-avatar { width: 40px; height: 40px; }
+.detail-comment-entry { min-width: 0; }
+.mealmap-feedback .detail-comment-entry label { margin: 0 0 8px; font-weight: 700; color: var(--ink); }
+.mealmap-feedback .detail-comment-entry textarea { box-sizing: border-box; min-height: 112px; margin: 0; }
+.detail-comment-actions { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 12px; }
+.detail-comment-actions .word-counter { margin: 0; }
+.detail-comment-actions .primary-button { min-height: 42px; padding: 0 17px; }
+.detail-comment-form [data-comment-status] { min-height: 1.4em; margin: 9px 0 0; color: var(--green); font-size: .84rem; }
 .mealmap-comments { margin-top: 24px; }
 @media (max-width: 540px) {
   .mealmap-top { padding: 18px; }
@@ -185,6 +195,10 @@ img { display: block; max-width: 100%; }
   .mealmap-example li { grid-template-columns: 32px 1fr; gap: 8px; }
   .mealmap-example li small { grid-column: 2; }
   .mealmap-after { padding: 0 22px; }
+  .detail-comment-form { padding: 16px; }
+  .detail-comment-compose { grid-template-columns: 34px minmax(0, 1fr); gap: 10px; }
+  .detail-comment-compose > .person-avatar { width: 34px; height: 34px; }
+  .detail-comment-actions { align-items: flex-start; flex-direction: column; }
 }
 .detail-scroll { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 48px; }
 .detail-product-header { min-height: 178px; padding: 30px 34px 25px; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 24px; align-items: start; background: var(--white); }

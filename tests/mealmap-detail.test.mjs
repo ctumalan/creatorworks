@@ -7,7 +7,7 @@ test('All eleven projects use the approved presentation with their own action ta
   const source = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
   const firstListener = Math.min(...["document.addEventListener('input'", "document.addEventListener('submit'"].map(marker=>source.indexOf(marker)).filter(index=>index>0));
   const functions = source.slice(source.indexOf('const projectPresentation ='), firstListener);
-  const context = vm.createContext({ videoPlayer: () => '', similarSection: () => '', state: { saved: new Set(), communityPosts: [] }, esc: value => String(value ?? ''), creatorLink: () => 'TryMyBuild Studio', creatorFor: () => ({ slug: 'creatorworks-studio', name: 'TryMyBuild Studio' }) });
+  const context = vm.createContext({ videoPlayer: () => '', similarSection: () => '', state: { saved: new Set(), communityPosts: [], session: null }, esc: value => String(value ?? ''), avatar: () => '<span class="person-avatar"></span>', creatorLink: () => 'TryMyBuild Studio', creatorFor: () => ({ slug: 'creatorworks-studio', name: 'TryMyBuild Studio' }) });
   vm.runInContext(functions, context);
   const product = { slug: 'mealmap', url: 'https://meal-map-cw.tumalanct.chatgpt.site', preview: 'assets/previews/mealmap.png', note: 'New listing', benefits: [] };
   const markup = context.detailDrawer(product);
@@ -15,7 +15,9 @@ test('All eleven projects use the approved presentation with their own action ta
   assert.match(markup, /How does it help me\?/);
   assert.match(markup, /What feature should I try first\?/);
   assert.doesNotMatch(markup, /Illustrative plan|mealmap-screenshot|mealmap-lead/);
-  assert.match(markup, /href="\/tell\/mealmap"/);
+  assert.match(markup, /data-project-comment="mealmap"/);
+  assert.match(markup, /data-project-comment-field/);
+  assert.doesNotMatch(markup, /href="\/tell\/mealmap"/);
   assert.match(markup, /data-save="mealmap"/);
   assert.ok(markup.includes(product.url));
   const slugs = vm.runInContext('Object.keys(projectPresentation)', context);
@@ -23,7 +25,7 @@ test('All eleven projects use the approved presentation with their own action ta
   for (const slug of slugs) {
     const explanation = vm.runInContext(`projectPresentation[${JSON.stringify(slug)}][2]`, context);
     const html = context.detailDrawer({ ...product, slug, name: slug, preview: `assets/previews/${slug}.png`, url: `https://example.com/${slug}` });
-    assert.ok(html.includes(`href="/tell/${slug}"`));
+    assert.ok(html.includes(`data-project-comment="${slug}"`));
     assert.ok(html.includes(`>${explanation}</h2>`));
     assert.doesNotMatch(html, /What does it do\?/);
     assert.ok(html.includes(`data-save="${slug}"`));

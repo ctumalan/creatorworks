@@ -33,5 +33,6 @@ export function feedbackDestination(value) {
   if (value === '/dashboard' || value === '/dashboard?view=creator' || value === '/dashboard/profile') return value;
   if(typeof value==='string' && /^\/projects\/[a-z0-9-]{1,80}$/.test(value))return value;
   if (typeof value === 'string' && /^\/tell\/[a-z0-9-]{1,80}$/.test(value)) return value;
+  if (typeof value === 'string' && /^\/\?project=[a-z0-9-]{1,80}$/.test(value)) return value;
   return '/?account=1';
 }

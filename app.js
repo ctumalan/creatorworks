@@ -399,6 +399,26 @@ const projectPresentation = {
   ]
 };
 
+function commentWordCount(value) { return (String(value||'').match(/[\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*/gu)||[]).length; }
+function projectCommentDraftKey(slug) { return 'trymybuild-project-comment:' + encodeURIComponent(slug); }
+function projectCommentDraft(slug) {
+  try { return localStorage.getItem(projectCommentDraftKey(slug)) || ''; } catch { return ''; }
+}
+function saveProjectCommentDraft(slug, value) {
+  try { localStorage.setItem(projectCommentDraftKey(slug), value); return true; } catch { return false; }
+}
+function projectCommentComposer(product) {
+  const draft = projectCommentDraft(product.slug);
+  const count = commentWordCount(draft);
+  const person = state.session?.authenticated ? state.session.user : null;
+  const name = person?.displayName || 'Your comment';
+  const initials = name.split(/\s+/).slice(0, 2).map(word => word[0]).join('').toUpperCase() || '?';
+  return `<form id="project-comment" class="detail-comment-form" data-project-comment="${esc(product.slug)}">
+    <div class="detail-comment-compose">${avatar({avatar:person?.avatar||'',initials},'small')}<div class="detail-comment-entry"><label for="project-comment-${esc(product.slug)}">Add your comment</label><textarea id="project-comment-${esc(product.slug)}" name="comment" maxlength="800" rows="4" required data-project-comment-field placeholder="What worked, what was confusing, or what should improve?" aria-describedby="project-comment-guidance-${esc(product.slug)} project-comment-count-${esc(product.slug)}">${esc(draft)}</textarea><div class="detail-comment-actions"><small id="project-comment-count-${esc(product.slug)}" data-project-comment-count class="word-counter ${count&&count<7?'invalid':''}">${count} / 7 words minimum</small><button class="primary-button" type="submit">Post comment</button></div></div></div>
+    <p id="project-comment-guidance-${esc(product.slug)}" class="comment-conduct"><strong>Be thoughtful. Be respectful.</strong> Discuss the project, not the person. Use clear, considerate language. <a href="/community-guidelines">Guidelines</a></p><p data-comment-status role="status" aria-live="polite"></p>
+  </form>`;
+}
+
 function detailDrawer(product) {
   const copy = projectPresentation[product.slug];
   const saved = state.saved.has(product.slug);
@@ -409,13 +429,15 @@ function detailDrawer(product) {
         <header class="mealmap-top"><span class="mealmap-wordmark">${esc(product.name)} <small>${esc(product.category)} · ${esc(product.stage)} · ${esc(product.price)}</small></span><div class="detail-header-controls"><button class="detail-save ${saved ? "is-saved" : ""}" data-save="${product.slug}">${saved ? "♥ Saved" : "♡ Save"}</button><button type="button" class="detail-share" data-share-product="${product.slug}" aria-label="Share ${esc(product.name)}">Share</button><span class="detail-share-status" data-share-status role="status"></span><button class="detail-close" data-detail-close aria-label="Close ${esc(product.name)} details">×</button></div></header>
         <div class="mealmap-intro" style="--project-wallpaper: url('${product.preview}')"><p class="eyebrow">${esc(copy[0])}</p><h2 id="detail-title-${product.slug}">${esc(copy[2])}</h2></div>
         <section class="mealmap-answers" aria-label="About ${esc(product.name)}"><div class="mealmap-action"><a class="primary-button" href="${product.url}" target="_blank" rel="noopener">Open ${esc(product.name)} <span aria-hidden="true">↗</span></a><p class="mealmap-access">${esc(product.accessNote || (product.slug === "afterschooltogether" ? "No sign-in needed to try it" : product.slug === "mealmap" ? "ChatGPT sign-in required" : "Opens a separate site; sign-in may be required"))}</p></div><div class="mealmap-answer-grid"><article><h3>How does it help me?</h3><p>${esc(copy[3])}</p></article><article><h3>What feature should I try first?</h3><p>${esc(copy[4])}</p></article></div></section>
-        ${videoPlayer(product.video)}<div class="mealmap-after"><section class="mealmap-maker"><p class="eyebrow">Meet the creator</p>${creatorLink(product)}<p>${creatorFor(product).slug === "creatorworks-studio" ? "Part of our in-house launch collection. We’re sharing it early so the people who try it can help shape what comes next." : "Shared by " + esc(creatorFor(product).name) + ". Try it and tell them what worked and what would make it better."}</p></section><section class="mealmap-feedback"><h3>Tell the creator</h3><p>Did it help? Was the price right? Start a conversation.</p><a class="primary-button" href="/tell/${product.slug}">Tell the creator →</a><div class="mealmap-comments">${state.communityPosts.filter(post => post.projectSlug === product.slug).length ? state.communityPosts.filter(post => post.projectSlug === product.slug).map(post => `<article class="experience-card"><strong>${esc(post.author)}</strong><small> · ${esc(new Date(post.createdAt).toLocaleDateString())}</small><p>${esc(post.response)}</p></article>`).join('') : '<p>Start the conversation.</p>'}</div></section><details class="detail-more"><summary>Good to know <span aria-hidden="true">＋</span></summary><div><p>${product.note}</p><p>${product.slug === "afterschooltogether" ? "This tool opens here on TryMyBuild." : "This tool opens on a separate website."} Saving it on TryMyBuild saves the listing, not the work you create in the tool.</p></div></details></div>${similarSection(product)}
+        ${videoPlayer(product.video)}<div class="mealmap-after"><section class="mealmap-maker"><p class="eyebrow">Meet the creator</p>${creatorLink(product)}<p>${creatorFor(product).slug === "creatorworks-studio" ? "Part of our in-house launch collection. We’re sharing it early so the people who try it can help shape what comes next." : "Shared by " + esc(creatorFor(product).name) + ". Try it and tell them what worked and what would make it better."}</p></section><section class="mealmap-feedback"><h3>Tell the creator</h3><p>Did it help? Was the price right? Start a conversation.</p>${projectCommentComposer(product)}<div class="mealmap-comments">${state.communityPosts.filter(post => post.projectSlug === product.slug).length ? state.communityPosts.filter(post => post.projectSlug === product.slug).map(post => experienceCard(post)).join('') : '<p>Start the conversation.</p>'}</div></section><details class="detail-more"><summary>Good to know <span aria-hidden="true">＋</span></summary><div><p>${product.note}</p><p>${product.slug === "afterschooltogether" ? "This tool opens here on TryMyBuild." : "This tool opens on a separate website."} Saving it on TryMyBuild saves the listing, not the work you create in the tool.</p></div></details></div>${similarSection(product)}
       </div>
     </section>
   </div>`;
 }
 
 document.addEventListener('input', event => {
+  const projectField=event.target.closest('[data-project-comment-field]');
+  if(projectField){const form=projectField.closest('[data-project-comment]'),count=commentWordCount(projectField.value),counter=form.querySelector('[data-project-comment-count]');saveProjectCommentDraft(form.dataset.projectComment,projectField.value);counter.textContent=`${count} / 7 words minimum`;counter.classList.toggle('invalid',count>0&&(count<7||count>150));projectField.setCustomValidity(count>=7&&count<=150?'':'Write 7–150 words.');return;}
   const field=event.target.closest('[data-daily-discussion] textarea');if(!field)return;
   saveDiscussionDraft(field.closest('form').dataset.discussionCategory,field.value);const count=commentWordCount(field.value),counter=field.closest('form').querySelector('[data-daily-word-count]');
   counter.textContent=`${count} / 7 words minimum`;counter.classList.toggle('invalid',count>0&&count<7);field.setCustomValidity(count>=7&&count<=150?'':'Write 7–150 words.');
@@ -437,20 +459,28 @@ document.addEventListener('submit', async event => {
   const form = event.target.closest('[data-project-comment]');
   if (!form) return;
   event.preventDefault();
+  const field = form.elements.comment;
   const status = form.querySelector('[data-comment-status]');
+  const count = commentWordCount(field.value);
+  if(count<7||count>150){status.textContent='Write a thoughtful comment of 7–150 words.';field.focus();return;}
+  if(!saveProjectCommentDraft(form.dataset.projectComment,field.value)){status.textContent='Your browser cannot save this draft. Copy your comment before joining.';return;}
+  if(window.CW_SERVER&&!state.session){status.textContent='Checking your account…';try{state.session=await (await fetch('/api/me')).json();}catch{state.session={authenticated:false};}}
   if (!state.session?.authenticated) {
-    status.innerHTML = 'Please <a href="/auth/sign-in">sign in</a> before posting. Copy your comment first so you can return to it.';
+    if(window.CW_SERVER){const destination='/?project='+encodeURIComponent(form.dataset.projectComment);location.href='/auth/sign-in?signup=1&next='+encodeURIComponent(destination);}
+    else{state.route='account';render();}
     return;
   }
-  const button = form.querySelector('button');
+  const button = form.querySelector('button[type="submit"]');
   button.disabled = true;
   status.textContent = 'Sending…';
   try {
-    const response = await fetch('/api/experiences', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: form.dataset.projectComment, response: form.elements.comment.value.trim() }) });
-    if (!response.ok) throw new Error('Unable to send');
-    status.textContent = 'Your comment was sent for review.';
-    form.reset();
-  } catch { status.textContent = 'Your comment could not be sent. Please try again.'; }
+    const response = await fetch('/api/experiences', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: form.dataset.projectComment, response: field.value.trim() }) });
+    if(response.status===401){location.href='/auth/sign-in?signup=1&next='+encodeURIComponent('/?project='+encodeURIComponent(form.dataset.projectComment));return;}
+    const data=await response.json();if (!response.ok) throw new Error(data.error||'Unable to send');
+    saveProjectCommentDraft(form.dataset.projectComment,'');status.textContent = data.message||'Your comment was sent for review.';
+    form.reset();field.value='';
+    form.querySelector('[data-project-comment-count]').textContent='0 / 7 words minimum';field.setCustomValidity('');
+  } catch(error) { status.textContent = error.message||'Your comment could not be sent. Please try again.'; }
   finally { button.disabled = false; }
 });
 
@@ -485,7 +515,6 @@ function experienceCard(post, showProject = false) {
   return `<article class="experience-card"><div class="experience-person">${avatar({avatar:post.avatar,initials:post.initials||'G'},'small')}<span><strong>${esc(post.author || "Guest participant")}</strong><small>${esc(post.label || "TryMyBuild participant")}</small></span></div>${showProject ? `<button class="experience-project" data-product="${project.slug}">Tried ${project.name} <span>→</span></button>` : ""}<p>${esc(post.response)}</p>${post.signals?.length ? `<div class="experience-signals">${post.signals.map(signal => `<span>${esc(signal)}</span>`).join("")}</div>` : ""}<small class="experience-time">Shared from this prototype · ${esc(post.createdAt || "Recently")}</small></article>`;
 }
 
-function commentWordCount(value) { return (String(value||'').match(/[\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*/gu)||[]).length; }
 function dailyCommentCard(post) {
   return `<article class="daily-comment ${post.status==='pending'?'is-pending':''}"><div class="experience-person">${avatar({avatar:post.avatar,initials:post.initials||'M'},'small')}<span><strong>${esc(post.author||'Member')}</strong><small>${esc(post.label||'TryMyBuild member')}</small></span></div><p>${esc(post.response)}</p><small>${post.status==='pending'?'Awaiting review · ':''}${esc(new Date(post.createdAt).toLocaleDateString())}</small></article>`;
 }
@@ -1064,7 +1093,7 @@ if (window.CW_SERVER) {
     state.session = session;
     if (session.authenticated && session.databaseReady) fetch('/api/saved').then(r => r.json()).then(data => { if (Array.isArray(data.saved)) { state.saved = new Set(data.saved); if (state.route === 'discover' && !document.querySelector('.detail-dialog')) render(); } }).catch(() => {});
     if (session.authenticated) void syncListingProject();
-    render();void loadDailyComments();
+    render();openLinkedProject();void loadDailyComments();
   }).catch(() => {
     state.session = { authenticated: false, authReady: false };
     render();

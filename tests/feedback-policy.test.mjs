@@ -19,10 +19,10 @@ test('thread access is exact ownership or authorship, never a display label',()=
  assert.equal(threadAccess('stranger','author',null),false);
 });
 test('sign-in destinations are allowlisted same-origin routes',()=>{
- for(const path of ['/tell/mealmap','/dashboard','/dashboard?view=creator'])assert.equal(feedbackDestination(path),path);
+ for(const path of ['/tell/mealmap','/?project=mealmap','/dashboard','/dashboard?view=creator'])assert.equal(feedbackDestination(path),path);
  assert.equal(feedbackDestination('listing'),'/?listing=settings');
  assert.equal(feedbackDestination('/?listing=settings'),'/?listing=settings');
- for(const path of ['//evil.com','https://evil.com','/admin','/tell/../admin','/tell/%2f%2fevil.com','/dashboard?view=creator&next=https://evil.com',null])assert.equal(feedbackDestination(path),'/?account=1');
+ for(const path of ['//evil.com','https://evil.com','/admin','/tell/../admin','/tell/%2f%2fevil.com','/?project=../admin','/?project=mealmap&next=https://evil.com','/dashboard?view=creator&next=https://evil.com',null])assert.equal(feedbackDestination(path),'/?account=1');
 });
 test('canonical thread IDs only',()=>{
  assert.equal(validId('12345678-1234-1234-1234-123456789abc'),true);
