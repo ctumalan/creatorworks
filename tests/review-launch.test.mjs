@@ -40,23 +40,39 @@ test('review navigation shares the admin shell',()=>{
  for(const page of ['index','community','feedback','project'])assert.match(read('src/pages/admin/'+page+'.ts'),/adminSurface/);
  assert.match(read('src/server/feedback-ui.ts'),/\['messages','\/dashboard\/messages','Messages'\]/);
 });
-test('filter uses verified account data and preview pairs screenshot with description',()=>{
+test('filter uses creator type and verified account data and preview pairs screenshot with description',()=>{
  const app=read('app.js'),css=read('launch-refinements.css');
- assert.match(app,/verifiedMatch[\s\S]*creator\.slug === product.creatorSlug/);
+ assert.match(app,/creatorMatchesFilters\(creatorFor\(product\), state\.creatorType, state\.verifiedOnly\)/);
  assert.match(app,/Filter &amp; sort/);assert.doesNotMatch(app,/filter-trust/);
  assert.match(app,/Minimum: 4 words · Maximum: 10 words/);
  assert.match(css,/listing-preview-hero>img\{position:static/);
  assert.match(app,/class="legal-agreement"[\s\S]*<span>I agree to the/);
 });
-test('creator filtering uses an aligned select and an optional accessible explanation',()=>{
+test('creator type and earned builder verification are separate accessible filters',()=>{
  const app=read('app.js');
  assert.match(app,/<label for="creator-filter">Creators<\/label>/);
- assert.match(app,/<select id="creator-filter" data-verified-select>/);
- assert.match(app,/state\.verifiedOnly = event\.target\.value === 'verified'/);
- assert.match(app,/aria-label="About creator verification" aria-expanded="false" aria-controls="creator-verification-help"/);
+ assert.match(app,/<select id="creator-filter" data-creator-type-select>/);
+ assert.match(app,/>All creators<\/option><option[^>]+>Independent<\/option><option[^>]+>Companies<\/option>/);
+ assert.doesNotMatch(app,/>Verified creators only<\/option>/);
+ assert.match(app,/id="verified-builder-filter" type="checkbox" data-verified-select/);
+ assert.match(app,/state\.creatorType = event\.target\.value/);
+ assert.match(app,/state\.verifiedOnly = event\.target\.checked/);
+ assert.match(app,/aria-label="About builder verification" aria-expanded="false" aria-controls="creator-verification-help"/);
  assert.match(app,/id="creator-verification-help" class="creator-verification-help" hidden/);
- assert.match(app,/Verification confirms creator identity, not app quality\./);
+ assert.match(app,/Verified Builder is earned by independent creators after qualifying contributions and confirmation that they own their published app\./);
  assert.doesNotMatch(app,/Results follow your sorting choice—not advertising\./);
+});
+
+test('creator filters compose without treating companies as verified builders',()=>{
+ const app=read('app.js');
+ const source=app.slice(app.indexOf('function creatorMatchesFilters'),app.indexOf('function experienceCount'));
+ const context={};
+ Function('context',`${source};context.match=creatorMatchesFilters;`)(context);
+ assert.equal(context.match({type:'independent',verified:false},'all',false),true);
+ assert.equal(context.match({type:'company',verified:true},'company',false),true);
+ assert.equal(context.match({type:'independent',verified:true},'independent',true),true);
+ assert.equal(context.match({type:'company',verified:true},'all',true),false);
+ assert.equal(context.match({type:'independent',verified:true},'company',false),false);
 });
 test('discovery keeps categories above a responsive compact project grid',()=>{
  const app=read('app.js'),css=read('launch-refinements.css');

@@ -5,6 +5,7 @@ import { database } from './database';
 
 const STUDIO = {
   slug: 'creatorworks-studio',
+  type: 'company',
   name: 'TryMyBuild Studio',
   initials: 'TMB',
   label: 'In-house creator · Founded by Christian Tumalán',
@@ -29,9 +30,10 @@ async function attributions(db: any, rows: any[]) {
   return (row: any) => {
     if (row.is_studio || !row.owner_user_id) return { ...STUDIO, verificationNote: studioNote };
     const p: any = byUser.get(row.owner_user_id);
-    if (!p) return { slug: '', name: 'A TryMyBuild creator', initials: 'C', label: 'TryMyBuild creator', bio: '', verified: false };
+    if (!p) return { slug: '', type: 'independent', name: 'A TryMyBuild creator', initials: 'C', label: 'TryMyBuild creator', bio: '', verified: false };
     return {
       slug: p.is_public ? p.slug : '',
+      type: 'independent',
       name: p.display_name,
       avatar: p.avatar_path || '',
       initials: initialsOf(p.display_name),

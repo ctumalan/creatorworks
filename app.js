@@ -15,6 +15,7 @@ const projects = [
 const creators = [
   {
     slug: "christian-tumalan",
+    type: "independent",
     name: "Christian Tumalán",
     initials: "CT",
     label: "Musician · Founder of TryMyBuild",
@@ -24,6 +25,7 @@ const creators = [
 
 // The launch collection is attributed to its actual in-house studio.
 creators.push({ slug: "creatorworks-studio", name: "TryMyBuild Studio", initials: "TMB",
+  type: "company",
   label: "In-house creator · Founded by Christian Tumalán",
   bio: "Our launch collection of practical tools, built in-house at TryMyBuild. Try something useful and tell us what worked, what confused you, and what would make it better." });
 
@@ -133,6 +135,7 @@ const state = {
   category: new URLSearchParams(location.search).get("category") || "All",
   sort: "recent",
   price: "all",
+  creatorType: "all",
   verifiedOnly: false,
   filterOpen: false,
   query: "",
@@ -163,6 +166,12 @@ const esc = value => String(value ?? "").replace(/[&<>'"]/g, char => ({"&":"&amp
 
 function creatorFor(project) {
   return creators.find(creator => creator.slug === project.creatorSlug) || creators[0];
+}
+
+function creatorMatchesFilters(creator, creatorType = 'all', verifiedOnly = false) {
+  const type = creator?.type === 'company' ? 'company' : 'independent';
+  return (creatorType === 'all' || type === creatorType)
+    && (!verifiedOnly || (type === 'independent' && creator?.verified === true));
 }
 
 function experienceCount(project) {
@@ -265,18 +274,19 @@ function discover(communityFocused = false) {
     const text = `${product.name} ${product.category} ${product.summary} ${product.purpose} ${product.audience}`.toLowerCase();
     const isFree = product.price.trim().toLowerCase() === 'free';
     const priceMatch = state.price === 'all' || (state.price === 'free' ? isFree : !isFree);
-    const verifiedMatch = !state.verifiedOnly || creators.find(creator => creator.slug === product.creatorSlug)?.verified === true || (!window.CW_SERVER && product.creatorSlug === 'creatorworks-studio');
-    return categoryMatch && priceMatch && verifiedMatch && text.includes(state.query.toLowerCase());
+    const creatorMatch = creatorMatchesFilters(creatorFor(product), state.creatorType, state.verifiedOnly);
+    return categoryMatch && priceMatch && creatorMatch && text.includes(state.query.toLowerCase());
   }).sort((a, b) => compareCatalogProjects(a, b));
   return `<section class="page-shell discover-page">
     <h1 class="visually-hidden">Find apps that make life easier</h1>
     <div class="catalog-controls">
       <label class="catalog-search"><span aria-hidden="true">⌕</span><input data-catalog-search value="${esc(state.query)}" aria-label="Search projects by task, need, or tool" placeholder="Search by task, need, or tool" /></label>
-      <details class="catalog-filter-menu" ${state.filterOpen?'open':''}><summary>Filter &amp; sort${state.verifiedOnly || state.price !== 'all' ? ' · active' : ''}</summary><div class="catalog-filter-options">
+      <details class="catalog-filter-menu" ${state.filterOpen?'open':''}><summary>Filter &amp; sort${state.creatorType !== 'all' || state.verifiedOnly || state.price !== 'all' ? ' · active' : ''}</summary><div class="catalog-filter-options">
       <label class="sort-control">Price <select data-price-select><option value="all" ${state.price === 'all' ? 'selected' : ''}>All prices</option><option value="free" ${state.price === 'free' ? 'selected' : ''}>Free</option><option value="paid" ${state.price === 'paid' ? 'selected' : ''}>Paid</option></select></label>
       <label class="sort-control">Sort by <select data-sort-select><option value="recent" ${state.sort === "recent" ? "selected" : ""}>Most recent</option><option value="reviewed" ${state.sort === "reviewed" ? "selected" : ""}>Most reviewed</option><option value="saved" ${state.sort === "saved" ? "selected" : ""}>Most saved</option></select></label>
-      <div class="sort-control creator-filter-row"><span class="creator-filter-label"><label for="creator-filter">Creators</label><button type="button" class="creator-filter-info" data-verification-info aria-label="About creator verification" aria-expanded="false" aria-controls="creator-verification-help">?</button></span><select id="creator-filter" data-verified-select><option value="all" ${!state.verifiedOnly ? 'selected' : ''}>All creators</option><option value="verified" ${state.verifiedOnly ? 'selected' : ''}>Verified creators only</option></select></div>
-      <p id="creator-verification-help" class="creator-verification-help" hidden>Verification confirms creator identity, not app quality.</p></div></details>
+      <div class="sort-control creator-filter-row"><label for="creator-filter">Creators</label><select id="creator-filter" data-creator-type-select><option value="all" ${state.creatorType === 'all' ? 'selected' : ''}>All creators</option><option value="independent" ${state.creatorType === 'independent' ? 'selected' : ''}>Independent</option><option value="company" ${state.creatorType === 'company' ? 'selected' : ''}>Companies</option></select></div>
+      <div class="verified-builder-option"><label for="verified-builder-filter"><input id="verified-builder-filter" type="checkbox" data-verified-select ${state.verifiedOnly ? 'checked' : ''}> <span>Verified builders only</span></label><button type="button" class="creator-filter-info" data-verification-info aria-label="About builder verification" aria-expanded="false" aria-controls="creator-verification-help">?</button></div>
+      <p id="creator-verification-help" class="creator-verification-help" hidden>Verified Builder is earned by independent creators after qualifying contributions and confirmation that they own their published app. It does not rate app quality.</p></div></details>
     </div>
     <nav class="category-strip" aria-label="Filter projects by category"><div class="category-strip-scroll"><button data-category-filter="All" class="${state.category === "All" ? "is-selected" : ""}"><span>All published tools</span><b>${projects.length}</b></button>${publishedCategories().map(category => `<button data-category-filter="${esc(category.name)}" class="${state.category === category.name ? "is-selected" : ""}">${categoryIcon(category.name)}<span>${esc(category.name)}</span><b>${category.count}</b></button>`).join("")}</div></nav>
     <div class="catalog-results"><div class="results-heading"><strong>${filtered.length} ${filtered.length === 1 ? "solution" : "solutions"}</strong><span>${catalogSortLabel()}</span></div><div class="catalog-list">${filtered.length ? filtered.map(product => catalogRow(product)).join("") : `<div class="empty-state"><h2>Nothing matched that search.</h2><p>Try fewer words or explore another category.</p><button class="secondary-button" data-clear-search>Clear search</button></div>`}</div></div>
@@ -968,7 +978,7 @@ document.addEventListener("click", async event => {
     } else render();
     return;
   }
-  if (event.target.closest("[data-clear-search]")) { state.query = ""; state.category = "All"; state.price = 'all'; state.verifiedOnly = false; render(); return; }
+  if (event.target.closest("[data-clear-search]")) { state.query = ""; state.category = "All"; state.price = 'all'; state.creatorType = 'all'; state.verifiedOnly = false; render(); return; }
   const feedback = event.target.closest("[data-feedback]");
   if (feedback && window.CW_SERVER) { location.href = '/tell/' + encodeURIComponent(feedback.dataset.feedback); return; }
   if (feedback) { state.selected = projects.find(product => product.slug === feedback.dataset.feedback); state.route = "feedback"; render(); return; }
@@ -1034,7 +1044,8 @@ document.addEventListener("change", event => {
 document.addEventListener("change", event => {
   if (event.target.matches("[data-category-select]")) { state.category = event.target.value; render(); }
   if (event.target.matches("[data-sort-select]")) { state.sort = event.target.value; render(); document.querySelector('[data-sort-select]')?.focus(); }
-  if (event.target.matches("[data-verified-select]")) { state.verifiedOnly = event.target.value === 'verified'; render(); document.querySelector('[data-verified-select]')?.focus(); }
+  if (event.target.matches("[data-creator-type-select]")) { state.creatorType = event.target.value; render(); document.querySelector('[data-creator-type-select]')?.focus(); }
+  if (event.target.matches("[data-verified-select]")) { state.verifiedOnly = event.target.checked; render(); document.querySelector('[data-verified-select]')?.focus(); }
   if (event.target.matches("[data-price-select]")) { state.price = event.target.value; render(); document.querySelector('[data-price-select]')?.focus(); }
 });
 
@@ -1062,7 +1073,7 @@ function hydrateCatalog(list) {
     projectPresentation[p.slug] = [pr.eyebrow || p.category || '', '', pr.headline || p.summary || p.name, pr.help || '', pr.firstTry || ''];
     if (p.creator && (p.creator.slug || p.creator.name)) {
       const slug = p.creator.slug || 'creator-' + p.slug;
-      const data = { slug, avatar: p.creator.avatar || '', name: p.creator.name, initials: p.creator.initials || String(p.creator.name || 'C').slice(0, 2).toUpperCase(), label: p.creator.label || 'TryMyBuild creator', bio: p.creator.bio || '', verified: !!p.creator.verified };
+      const data = { slug, type: p.creator.type === 'company' ? 'company' : 'independent', avatar: p.creator.avatar || '', name: p.creator.name, initials: p.creator.initials || String(p.creator.name || 'C').slice(0, 2).toUpperCase(), label: p.creator.label || 'TryMyBuild creator', bio: p.creator.bio || '', verified: !!p.creator.verified };
       const existing = creators.find(c => c.slug === slug);
       if (existing) Object.assign(existing, data); else creators.push(data);
     }
