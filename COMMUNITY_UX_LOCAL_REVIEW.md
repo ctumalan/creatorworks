@@ -42,3 +42,12 @@ Verification: 135 automated tests, type check and build passed. Browser checked 
 - Dropdown changes preserve position and focus. Invalid listing answers receive red highlighting and clear when corrected.
 - Signup interests remain visible checkboxes with “Click as many as you want.” Contact button shows just the email address.
 - Production migrations 016 and 017 applied together transactionally to the existing creatorworks database; verified `community_wishes` exists and `sharing_preference` is present. Deployment verification follows separately. No real signup, wish, or comment is submitted as release test data.
+
+## Production release completed
+
+- Application commit: `e90043b`, pushed to `origin/main`.
+- Production deployment: `dpl_667KA6WnX1BNmcF8D8V2sZ1oC3j4`, READY and aliased to https://trymybuild.com.
+- Live catalog returns 11 published projects. Live `app.js` and `community-entry.js` SHA-256 hashes match the committed files.
+- Production smoke testing identified missing server-role privileges on the new wish table. Applied migration 018 to grant the existing service role access while retaining RLS and denying direct browser-role access. `/api/wishes` now returns HTTP 200 with an empty wish list.
+- Final automated suite: 149 tests pass. No test accounts, comments or public wishes were created. Temporary downloaded deployment configuration was removed.
+- Authenticated end-to-end signup, wish creation and notification delivery were not exercised against real users as part of release verification.

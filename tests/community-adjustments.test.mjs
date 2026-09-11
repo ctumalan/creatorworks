@@ -54,3 +54,8 @@ test('wish persistence protects writes and participates in account deletion',()=
  assert.match(sql,/delete from community_wishes where user_id=new.id/);
  assert.match(read('scripts/prepare-site.mjs'),/'community-entry.js'/);
 });
+test('wish table access is limited to the server role',()=>{
+ const migration=readFileSync(new URL('../database/018_community_wishes_service_access.sql',import.meta.url),'utf8');
+ assert.match(migration,/grant select, insert, update, delete on public\.community_wishes to service_role/);
+ assert.doesNotMatch(migration,/to anon|to authenticated|disable row level security/i);
+});
