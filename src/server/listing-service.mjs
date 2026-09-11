@@ -65,6 +65,7 @@ export async function submit(store, { ownerId, id }) {
   if (!row) return { status: 404, error: 'That project was not found in your account.' };
   if (row.listing_status === 'in_review' || row.listing_status === 'published') return { status: 200, project: row, idempotent: true };
   const readiness = publishReadiness(row);
+  if(row.sharing_preference && row.sharing_preference!=='public')return {status:400,error:'Choose Publicly in sharing preferences before submitting for public review.'};
   if (!readiness.ready) return { status: 400, error: `Add ${readiness.missing.join(', ')} before publishing.`, missing: readiness.missing };
   const updated = await store.updateOwnedGuarded(id, ownerId, { status: row.listing_status, lockVersion: row.lock_version }, { listing_status: 'in_review', submitted_at: new Date().toISOString() });
   if (!updated) return { status: 409, error: 'This listing changed. Reload and try again.' };

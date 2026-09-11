@@ -270,19 +270,62 @@ function catalogSortLabel(sort = state.sort) {
   if (sort === "reviewed") return "Most reviewed first.";
   return "Newest listings first.";
 }
+let homeView = 'find';
+function homeViewTabs(active) {
+  return `<div class="home-view-tabs" role="tablist" aria-label="What would you like to do?">${[['find','Find an app'],['test','Get feedback on my app']].map(([key,label])=>`<button type="button" role="tab" id="home-tab-${key}" data-home-view="${key}" aria-controls="home-panel" aria-selected="${active===key}" tabindex="${active===key?'0':'-1'}">${label}</button>`).join('')}</div>`;
+}
+function selectHomeView(view) {
+  homeView = view === 'test' ? 'test' : 'find';
+  state.route = 'discover'; render();
+  const tab = document.getElementById('home-tab-'+homeView);
+  tab?.focus({preventScroll:true}); tab?.scrollIntoView({block:'nearest'});
+}
+function homeHowItWorks() {
+  return `<section class="home-how" aria-labelledby="home-how-title"><p class="eyebrow">How it works</p><h2 id="home-how-title">Small contributions. Better projects.</h2><ol><li><span>1</span><div><h3>Share your project</h3><p>Bring what you’re building and explain what someone should try.</p><button class="text-button" data-route="share">Share my app →</button></div></li><li><span>2</span><div><h3>Try someone else’s</h3><p>Explore a project. Share what worked, what confused you, or what could improve.</p><button class="text-button" data-home-view="find">Find an app →</button></div></li><li><span>3</span><div><h3>Learn and improve together</h3><p>Keep the conversation going and turn honest feedback into your next improvement.</p><a href="/dashboard/messages">Your conversations →</a></div></li></ol></section>`;
+}
+function catalogSearchWords(value) {
+  const filler = new Set('i me my we our you your have has a an the with for to of in on is it that this need want looking find app apps tool tools help problem can do something please'.split(' '));
+  return [...new Set(String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().match(/[a-z0-9]+/g) || [])].filter(word => !filler.has(word));
+}
+function catalogWordsClose(a,b) {
+  if(a===b)return true;
+  if(a.length<4||b.length<4||Math.abs(a.length-b.length)>1)return false;
+  if(a.length===b.length){
+    const differences=[];for(let i=0;i<a.length;i++)if(a[i]!==b[i])differences.push(i);
+    return differences.length===1 || (differences.length===2 && differences[1]===differences[0]+1 && a[differences[0]]===b[differences[1]] && a[differences[1]]===b[differences[0]]);
+  }
+  const shorter=a.length<b.length?a:b,longer=a.length<b.length?b:a;
+  let i=0,j=0;while(i<shorter.length&&j<longer.length){if(shorter[i]===longer[j])i++;j++;if(j-i>1)return false;}return true;
+}
+function rankCatalogSearch(candidates,query) {
+  const terms=catalogSearchWords(query);
+  if(!query.trim())return {items:[...candidates].sort(compareCatalogProjects),suggestions:false};
+  const ranked=candidates.map(product=>{
+    const title=catalogSearchWords(product.name);
+    const words=catalogSearchWords([product.name,product.category,product.summary,product.purpose,product.audience].filter(Boolean).join(' '));
+    const score=terms.reduce((total,term)=>total+(title.includes(term)?6:words.includes(term)?3:words.some(word=>catalogWordsClose(term,word))?1:0),0);
+    return {product,score};
+  }).sort((a,b)=>b.score-a.score||compareCatalogProjects(a.product,b.product));
+  const relevant=ranked.filter(result=>result.score>0);
+  return {items:(relevant.length?relevant:ranked.slice(0,6)).map(result=>result.product),suggestions:!relevant.length};
+}
 function discover(communityFocused = false) {
   // Never fall back to the built-in catalog on the server; show loading/unavailable instead.
-  if (window.CW_SERVER && catalogState !== 'ready') return catalogStatusPanel();
-  const filtered = projects.filter(product => {
+  const activeView = communityFocused ? 'test' : homeView;
+  const tabs = homeViewTabs(activeView);
+  if (activeView === 'test') return `<section class="page-shell discover-page home-creator-view">${tabs}<div id="home-panel" role="tabpanel" aria-labelledby="home-tab-test">${listingJourney()}${window.CW_SERVER && catalogState !== 'ready' ? catalogStatusPanel() : membershipPromo()+communityRail()}</div></section>`;
+  if (window.CW_SERVER && catalogState !== 'ready') return `<section class="page-shell discover-page">${tabs}<div id="home-panel" role="tabpanel" aria-labelledby="home-tab-find">${catalogStatusPanel()}</div></section>`;
+  const candidates = projects.filter(product => {
     const categoryMatch = state.category === "All" || product.category === state.category;
-    const text = `${product.name} ${product.category} ${product.summary} ${product.purpose} ${product.audience}`.toLowerCase();
     const isFree = product.price.trim().toLowerCase() === 'free';
     const priceMatch = state.price === 'all' || (state.price === 'free' ? isFree : !isFree);
     const creatorMatch = creatorMatchesFilters(creatorFor(product), state.creatorType, state.verifiedOnly);
-    return categoryMatch && priceMatch && creatorMatch && text.includes(state.query.toLowerCase());
-  }).sort((a, b) => compareCatalogProjects(a, b));
+    return categoryMatch && priceMatch && creatorMatch;
+  });
+  const searchResults=rankCatalogSearch(candidates,state.query);
+  const filtered=searchResults.items;
   return `<section class="page-shell discover-page">
-    <h1 class="visually-hidden">Find apps that make life easier</h1>
+    ${tabs}<div id="home-panel" role="tabpanel" aria-labelledby="home-tab-find"><h1 class="visually-hidden">Find an app</h1>
     <div class="catalog-controls">
       <label class="catalog-search"><span aria-hidden="true">⌕</span><input data-catalog-search value="${esc(state.query)}" aria-label="Search projects by task, need, or tool" placeholder="Search by task, need, or tool" /></label>
       <details class="catalog-filter-menu" ${state.filterOpen?'open':''}><summary>Filter &amp; sort${state.creatorType !== 'all' || state.verifiedOnly || state.price !== 'all' ? ' · active' : ''}</summary><div class="catalog-filter-options">
@@ -293,9 +336,9 @@ function discover(communityFocused = false) {
       <p id="creator-verification-help" class="creator-verification-help" hidden>Verified Builder is earned by independent creators after qualifying contributions and confirmation that they own their published app. It does not rate app quality.</p></div></details>
     </div>
     <nav class="category-strip" aria-label="Filter projects by category"><div class="category-strip-scroll"><button data-category-filter="All" class="${state.category === "All" ? "is-selected" : ""}"><span>All published tools</span><b>${projects.length}</b></button>${publishedCategories().map(category => `<button data-category-filter="${esc(category.name)}" class="${state.category === category.name ? "is-selected" : ""}">${categoryIcon(category.name)}<span>${esc(category.name)}</span><b>${category.count}</b></button>`).join("")}</div></nav>
-    <div class="catalog-results"><div class="results-heading"><strong>${filtered.length} ${filtered.length === 1 ? "solution" : "solutions"}</strong><span>${catalogSortLabel()}</span></div><div class="catalog-list">${filtered.length ? filtered.map(product => catalogRow(product)).join("") : `<div class="empty-state"><h2>Nothing matched that search.</h2><p>Try fewer words or explore another category.</p><button class="secondary-button" data-clear-search>Clear search</button></div>`}</div></div>
-    ${communityRail()}
-  </section>`;
+    <div class="catalog-results"><div class="results-heading"><strong>${state.query.trim()?'Closest matches':`${filtered.length} ${filtered.length === 1 ? 'solution' : 'solutions'}`}</strong><span>${state.query.trim()&&!searchResults.suggestions?'Most relevant first.':catalogSortLabel()}</span></div>${state.query.trim()?`<p class="search-guidance">${searchResults.suggestions?'Try describing a specific task. Here are some apps to explore within your filters.':'Explore these apps, or tell creators what you still need.'} <button class="text-button" data-wish-focus>Submit a wish</button></p>`:''}<div class="catalog-list">${filtered.length ? filtered.map(product => catalogRow(product)).join("") : `<div class="empty-state"><h2>${state.query.trim()?'Explore more possibilities':'More apps are on the way'}</h2><p>There are no published apps within these filters yet. Broaden your filters or share what you need.</p><button class="secondary-button" data-clear-search>Browse all apps</button><button class="primary-button" data-wish-focus>Submit a wish</button></div>`}</div></div>
+    ${wishListSection()}
+  </div></section>`;
 }
 
 function discussionDraftKey(category = state.category) {
@@ -327,10 +370,17 @@ function communityRail() {
   </section>`;
 }
 
+function projectFirstStep(product) {
+  return projectPresentation[product.slug]?.[4] || 'Try one feature and share what worked or what got in your way.';
+}
+function homeCommunity() {
+  const candidates = [...projects].sort((a,b) => Number(creatorFor(a).type === 'company') - Number(creatorFor(b).type === 'company')).slice(0,2);
+  return `<section class="home-community" id="home-community" tabindex="-1" aria-labelledby="home-community-title"><p class="eyebrow">Community</p><div class="home-community-heading"><div><h2 id="home-community-title">Help a creator move forward</h2><p>A few minutes of your time can make the next version better.</p></div><a href="/dashboard/community#credit-rules">How feedback credits work →</a></div><div class="home-community-grid">${candidates.length ? candidates.map(p=>`<article class="home-community-card">${creatorLink(p,true)}<h3>${esc(p.name)}</h3><p class="community-step-label">A first step to try</p><p>${esc(projectFirstStep(p))}</p><button class="text-button" data-product="${esc(p.slug)}">Try &amp; give feedback →</button></article>`).join('') : '<div class="home-community-empty"><h3>Bring the first conversation.</h3><p>Share a project you’re working on and invite people to try it.</p><button class="secondary-button" data-route="share">Share my app</button></div>'}</div><p class="home-community-note">Try a first task, then share what worked, what confused you, or what could improve.</p></section>`;
+}
 function catalogRow(product) {
   const saved = state.saved.has(product.slug);
   const count = experienceCount(product);
-  return `<article class="catalog-row"><div class="row-media"><button class="row-preview" data-product="${product.slug}" aria-label="View ${esc(product.name)} details"><img src="${product.preview}" alt="Preview of the ${product.name} website" loading="lazy" /></button><button class="save-button-row ${saved ? "is-saved" : ""}" data-save="${product.slug}" aria-label="${saved ? "Remove" : "Save"} ${esc(product.name)}">${saved ? "♥ Saved" : "♡ Save"}</button></div><div class="row-copy"><div class="product-meta"><span>${product.category}</span><span>${product.stage}</span></div><button class="row-title" data-product="${product.slug}">${product.name}</button><p>${product.summary}</p>${creatorLink(product, true)}<div class="row-facts"><strong>${product.price}</strong><small>${count} ${count === 1 ? "experience" : "experiences"} shared</small></div></div></article>`;
+  return `<article class="catalog-row"><div class="row-media"><button class="row-preview" data-product="${product.slug}" aria-label="View ${esc(product.name)} details"><img src="${product.preview}" alt="Preview of the ${product.name} website" loading="lazy" /></button><button class="save-button-row ${saved ? "is-saved" : ""}" data-save="${product.slug}" aria-label="${saved ? "Remove" : "Save"} ${esc(product.name)}">${saved ? "♥ Saved" : "♡ Save"}</button></div><div class="row-copy"><div class="product-meta"><span>${product.category}</span><span>${product.stage}</span></div><button class="row-title" data-product="${product.slug}">${product.name}</button><p>${product.summary}</p>${creatorLink(product, true)}<div class="row-facts"><strong>${product.price}</strong><small>${count} ${count === 1 ? "experience" : "experiences"} shared</small></div><button class="project-review-action" data-product="${esc(product.slug)}">Try &amp; give feedback <span aria-hidden="true">→</span></button><section class="card-comments" aria-label="Comments on ${esc(product.name)}">${state.communityPosts.filter(post=>post.projectSlug===product.slug).slice(0,2).map(post=>experienceCard(post)).join('')}${projectCommentComposer(product, true)}</section></div></article>`;
 }
 
 const projectPresentation = {
@@ -421,16 +471,13 @@ function projectCommentDraft(slug) {
 function saveProjectCommentDraft(slug, value) {
   try { localStorage.setItem(projectCommentDraftKey(slug), value); return true; } catch { return false; }
 }
-function projectCommentComposer(product) {
+function projectCommentComposer(product, compact = false) {
   const draft = projectCommentDraft(product.slug);
   const count = commentWordCount(draft);
-  const person = state.session?.authenticated ? state.session.user : null;
-  const name = person?.displayName || 'Your comment';
-  const initials = name.split(/\s+/).slice(0, 2).map(word => word[0]).join('').toUpperCase() || '?';
-  return `<form id="project-comment" class="detail-comment-form" data-project-comment="${esc(product.slug)}">
-    <div class="detail-comment-compose">${avatar({avatar:person?.avatar||'',initials},'small')}<div class="detail-comment-entry"><label for="project-comment-${esc(product.slug)}">Add your comment</label><textarea id="project-comment-${esc(product.slug)}" name="comment" maxlength="800" rows="4" required data-project-comment-field placeholder="What worked, what was confusing, or what should improve?" aria-describedby="project-comment-guidance-${esc(product.slug)} project-comment-count-${esc(product.slug)}">${esc(draft)}</textarea><div class="detail-comment-actions"><small id="project-comment-count-${esc(product.slug)}" data-project-comment-count class="word-counter ${count&&count<7?'invalid':''}">${count} / 7 words minimum</small><button class="primary-button" type="submit">Post comment</button></div></div></div>
-    <p id="project-comment-guidance-${esc(product.slug)}" class="comment-conduct"><strong>Be thoughtful. Be respectful.</strong> Discuss the project, not the person. Use clear, considerate language. <a href="/community-guidelines">Guidelines</a></p><p data-comment-status role="status" aria-live="polite"></p>
-  </form>`;
+  const id = (compact ? 'card-' : 'detail-') + product.slug;
+  const empty = !state.communityPosts.some(post=>post.projectSlug===product.slug);
+  const placeholder = compact && empty ? 'Be the first one to review this project' : 'What is the first thing you liked? Was the price right? What was confusing? Mention one or two improvements.';
+  return `<form class="detail-comment-form compact-comment" data-project-comment="${esc(product.slug)}"><div class="comment-input-wrap"><label class="visually-hidden" for="comment-${esc(id)}">Add your comment</label><textarea id="comment-${esc(id)}" name="comment" maxlength="800" rows="2" required data-project-comment-field placeholder="${placeholder}">${esc(draft)}</textarea><button class="comment-send" type="submit" aria-label="Send comment" ${draft.trim()?'':'hidden'}>➤</button></div><details class="inline-help"><summary aria-label="Comment guidelines">?</summary><p><strong>Be thoughtful. Be respectful.</strong> Discuss the project, not the person. Use clear, considerate language. <a href="/community-guidelines">Guidelines</a>. Write 7–150 words.</p></details><small data-project-comment-count class="visually-hidden">${count} / 7 words minimum</small><p data-comment-status role="status" aria-live="polite"></p></form>`;
 }
 
 function detailDrawer(product) {
@@ -440,10 +487,10 @@ function detailDrawer(product) {
     <button class="detail-backdrop" data-detail-close aria-label="Close product details"></button>
     <section class="detail-dialog mealmap-detail" role="dialog" aria-modal="true" aria-labelledby="detail-title-${product.slug}" tabindex="-1">
       <div class="detail-scroll">
-        <header class="mealmap-top"><span class="mealmap-wordmark">${esc(product.name)} <small>${esc(product.category)} · ${esc(product.stage)} · ${esc(product.price)}</small></span><div class="detail-header-controls"><button class="detail-save ${saved ? "is-saved" : ""}" data-save="${product.slug}">${saved ? "♥ Saved" : "♡ Save"}</button><details class="save-explainer"><summary aria-label="What saving does">?</summary><p>Save bookmarks this listing, not work you create inside the tool.</p></details><button type="button" class="detail-share" data-share-product="${product.slug}" aria-label="Share ${esc(product.name)}">Share</button><span class="detail-share-status" data-share-status role="status"></span><button class="detail-close" data-detail-close aria-label="Close ${esc(product.name)} details">×</button></div></header>
+        <header class="mealmap-top"><span class="mealmap-wordmark">${esc(product.name)} <span class="project-byline">by <button class="text-button" data-profile="${esc(creatorFor(product).slug)}">${esc(creatorFor(product).name)}</button></span><small>${esc(product.category)} · ${esc(product.stage)} · ${esc(product.price)}</small></span><div class="detail-header-controls"><button class="detail-save ${saved ? "is-saved" : ""}" data-save="${product.slug}">${saved ? "♥ Saved" : "♡ Save"}</button><details class="save-explainer"><summary aria-label="What saving does">?</summary><p>Save this project to find it later. This won’t save any work you do inside the app.</p></details><button type="button" class="detail-share" data-share-product="${product.slug}" aria-label="Share ${esc(product.name)}">Share</button><span class="detail-share-status" data-share-status role="status"></span><button class="detail-close" data-detail-close aria-label="Close ${esc(product.name)} details">×</button></div></header>
         <div class="mealmap-intro"><div class="project-intro-copy"><p class="eyebrow">${esc(copy[0])}</p><h2 id="detail-title-${product.slug}">${esc(copy[2])}</h2></div><img class="project-screenshot" src="${esc(product.preview)}" alt="Screenshot of ${esc(product.name)}" /></div>
-        <section class="mealmap-answers" aria-label="About ${esc(product.name)}"><div class="mealmap-action"><a class="primary-button" href="${product.url}" target="_blank" rel="noopener">Open ${esc(product.name)} <span aria-hidden="true">↗</span></a><p class="project-destination">${projectDestination(product.url)}</p><p class="mealmap-access">${esc(product.accessNote || (product.slug === "afterschooltogether" ? "No sign-in needed to try it" : product.slug === "mealmap" ? "ChatGPT sign-in required" : "Opens a separate site; sign-in may be required"))}</p></div><div class="mealmap-answer-grid"><article><h3>How does it help me?</h3><p>${esc(copy[3])}</p></article><article><h3>What feature should I try first?</h3><p>${esc(copy[4])}</p></article></div></section>
-        ${videoPlayer(product.video)}<div class="mealmap-after"><section class="mealmap-maker"><p class="eyebrow">Meet the creator</p>${creatorLink(product)}<p>${creatorFor(product).slug === "creatorworks-studio" ? "Part of our in-house launch collection. We’re sharing it early so the people who try it can help shape what comes next." : "Shared by " + esc(creatorFor(product).name) + ". Try it and tell them what worked and what would make it better."}</p></section><section class="mealmap-feedback"><h3>Tell the creator</h3><p>Did it help? Was the price right? Start a conversation.</p>${projectCommentComposer(product)}<div class="mealmap-comments">${state.communityPosts.filter(post => post.projectSlug === product.slug).length ? state.communityPosts.filter(post => post.projectSlug === product.slug).map(post => experienceCard(post)).join('') : '<p>No reviews yet. Start the conversation.</p>'}</div></section></div>${similarSection(product)}
+        <section class="mealmap-answers" aria-label="About ${esc(product.name)}"><div class="mealmap-action"><a class="primary-button" href="${product.url}" target="_blank" rel="noopener">Open ${esc(product.name)} <span aria-hidden="true">↗</span></a><details class="inline-help"><summary aria-label="About opening this app">?</summary><div><p>${projectDestination(product.url)}</p><p>${esc(product.accessNote || (product.slug === "afterschooltogether" ? "No sign-in needed to try it" : product.slug === "mealmap" ? "ChatGPT sign-in required" : "Opens a separate site; sign-in may be required"))}</p></div></details></div><div class="mealmap-answer-grid"><article><h3>How does it help me?</h3><p>${esc(copy[3])}</p></article><article><h3>What feature should I try first?</h3><p>${esc(copy[4])}</p></article></div></section>
+        ${videoPlayer(product.video)}<div class="mealmap-after"><section class="mealmap-feedback">${projectCommentComposer(product)}<div class="mealmap-comments">${state.communityPosts.filter(post => post.projectSlug === product.slug).length ? state.communityPosts.filter(post => post.projectSlug === product.slug).map(post => experienceCard(post)).join('') : '<p>No reviews yet. Start the conversation.</p>'}</div></section></div>${similarSection(product)}
       </div>
     </section>
   </div>`;
@@ -451,7 +498,7 @@ function detailDrawer(product) {
 
 document.addEventListener('input', event => {
   const projectField=event.target.closest('[data-project-comment-field]');
-  if(projectField){const form=projectField.closest('[data-project-comment]'),count=commentWordCount(projectField.value),counter=form.querySelector('[data-project-comment-count]');saveProjectCommentDraft(form.dataset.projectComment,projectField.value);counter.textContent=`${count} / 7 words minimum`;counter.classList.toggle('invalid',count>0&&(count<7||count>150));projectField.setCustomValidity(count>=7&&count<=150?'':'Write 7–150 words.');return;}
+  if(projectField){const form=projectField.closest('[data-project-comment]'),count=commentWordCount(projectField.value),counter=form.querySelector('[data-project-comment-count]');saveProjectCommentDraft(form.dataset.projectComment,projectField.value);form.querySelector('[type="submit"]').hidden=!projectField.value.trim();counter.textContent=`${count} / 7 words minimum`;counter.classList.toggle('invalid',count>0&&(count<7||count>150));projectField.setCustomValidity(count>=7&&count<=150?'':'Write 7–150 words.');return;}
   const field=event.target.closest('[data-daily-discussion] textarea');if(!field)return;
   saveDiscussionDraft(field.closest('form').dataset.discussionCategory,field.value);const count=commentWordCount(field.value),counter=field.closest('form').querySelector('[data-daily-word-count]');
   counter.textContent=`${count} / 7 words minimum`;counter.classList.toggle('invalid',count>0&&count<7);field.setCustomValidity(count>=7&&count<=150?'':'Write 7–150 words.');
@@ -492,7 +539,7 @@ document.addEventListener('submit', async event => {
     if(response.status===401){location.href='/auth/sign-in?signup=1&next='+encodeURIComponent('/?project='+encodeURIComponent(form.dataset.projectComment));return;}
     const data=await response.json();if (!response.ok) throw new Error(data.error||'Unable to send');
     saveProjectCommentDraft(form.dataset.projectComment,'');status.textContent = data.message||'Your comment was sent for review.';
-    form.reset();field.value='';
+    form.reset();field.value='';button.hidden=true;
     form.querySelector('[data-project-comment-count]').textContent='0 / 7 words minimum';field.setCustomValidity('');
   } catch(error) { status.textContent = error.message||'Your comment could not be sent. Please try again.'; }
   finally { button.disabled = false; }
@@ -549,7 +596,7 @@ function feedbackPage() {
 }
 
 function readListingDraft() {
-  const defaults = { title: '', url: '', does: '', helps: '', firstTry: '', stage: 'Ready for a first try', category: 'Technology', visibility: 'draft', image: '', imageData: '', imageSourceUrl: '', imageMode: '', imageCapturedAt: '', imageTheme: '', serverId: '', serverSlug: '', serverStatus: '', imported: '', imageUploadedFor: '', clientToken: '', video: '', accountOwner: '' };
+  const defaults = { title: '', url: '', does: '', helps: '', firstTry: '', stage: 'Ready for a first try', category: 'Technology', visibility: 'draft', sharingPreference: 'not_sure', image: '', imageData: '', imageSourceUrl: '', imageMode: '', imageCapturedAt: '', imageTheme: '', serverId: '', serverSlug: '', serverStatus: '', imported: '', imageUploadedFor: '', clientToken: '', video: '', accountOwner: '' };
   try {
     const saved = JSON.parse(localStorage.getItem('creatorworks-listing-draft-v1') || '{}');
     for (const key of Object.keys(defaults)) if (typeof saved[key] === 'string') defaults[key] = key === 'imageData' ? CWPreviewUtils.imageData(saved[key]) : saved[key].slice(0, 2000);
@@ -562,7 +609,7 @@ let listingSettings = new URLSearchParams(location.search).get('listing') === 's
 let listingCategoryOtherOpen = !primaryCategoryNames.includes(normalizeCategory(listingDraft.category));
 // Start a brand-new listing (independent of any existing draft), used by "＋ New listing".
 function resetListingDraft() {
-  Object.assign(listingDraft, { title: '', url: '', does: '', helps: '', firstTry: '', stage: 'Ready for a first try', category: 'Technology', visibility: 'draft', image: '', imageData: '', imageSourceUrl: '', imageMode: '', imageCapturedAt: '', imageTheme: '', serverId: '', serverSlug: '', serverStatus: '', imported: '', imageUploadedFor: '', clientToken: '', video: '', accountOwner: '' });
+  Object.assign(listingDraft, { title: '', url: '', does: '', helps: '', firstTry: '', stage: 'Ready for a first try', category: 'Technology', visibility: 'draft', sharingPreference: 'not_sure', image: '', imageData: '', imageSourceUrl: '', imageMode: '', imageCapturedAt: '', imageTheme: '', serverId: '', serverSlug: '', serverStatus: '', imported: '', imageUploadedFor: '', clientToken: '', video: '', accountOwner: '' });
   try { localStorage.removeItem('creatorworks-listing-draft-v1'); } catch {}
 }
 if (new URLSearchParams(location.search).get('new') === '1') { resetListingDraft(); listingSettings = false; const url = new URL(location.href); url.searchParams.delete('new'); history.replaceState({}, '', url); }
@@ -656,14 +703,15 @@ function listingField(key, label, placeholder, multiline = false) {
   return `<label class="listing-field">${label}${control}</label>`;
 }
 function listingCategoryPicker() {
-  const selected = normalizeCategory(listingDraft.category);
-  const choice = listingCategoryOtherOpen || !primaryCategoryNames.includes(selected) ? '__other__' : selected;
+  const normalized = normalizeCategory(listingDraft.category);
+  const selected = categoryCatalog.find(c=>c.name.toLowerCase()===normalized.toLowerCase())?.name || normalized;
+  const choice = listingCategoryOtherOpen || !categoryCatalog.some(c=>c.name===selected) ? '__other__' : selected;
   return `<fieldset class="listing-category-field"><legend>Category</legend>
     <label class="listing-field"><span class="sr-only">Choose a common category or Other</span><select data-listing-category-choice>
-      ${primaryCategoryNames.map(name => `<option value="${esc(name)}" ${choice === name ? 'selected' : ''}>${esc(name)}</option>`).join('')}
+      ${categoryCatalog.map(({name}) => `<option value="${esc(name)}" ${choice === name ? 'selected' : ''}>${esc(name)}</option>`).join('')}
       <option value="__other__" ${choice === '__other__' ? 'selected' : ''}>Other…</option>
     </select></label>
-    ${choice === '__other__' ? `<label class="listing-field listing-category-search">Search or add a category
+    ${choice === '__other__' ? `<label class="listing-field listing-category-search">Suggest a category
       <input data-listing-category-custom list="creatorworks-category-catalog" value="${esc(selected)}" maxlength="48" autocomplete="off" placeholder="Start typing, for example: Music & audio" required aria-describedby="listing-category-help" />
       <datalist id="creatorworks-category-catalog">${categoryCatalog.map(category => `<option value="${esc(category.name)}"></option>`).join('')}</datalist>
     </label><p class="share-name-hint" id="listing-category-help">Choose a match when possible. If none fits, enter a short category people would naturally search for.</p>` : ''}
@@ -693,14 +741,18 @@ function listingSettingsPage() {
       : status === 'in_review'
         ? '<button class="secondary-button" data-listing-unpublish>Withdraw from review</button>'
         : '<button class="primary-button" data-listing-publish>Publish — submit for review</button>'}<a class="share-browse-link" href="/dashboard?view=creator">Go to My projects →</a></div><p class="privacy-note">Publishing sends your listing for a quick founder review before it appears publicly. You can unpublish anytime.</p></div>`;
-  return `<section class="page-shell listing-review"><p class="eyebrow">Your project · Settings</p><h1>Make it yours.</h1><p>Signed in as ${name}.</p><form data-listing-settings>${listingField('title', 'Project name', 'Your project name')}${listingField('url', 'Project link', 'https://your-project.com')}${listingCategoryPicker()}${listingField('does','What does your project do?','Describe your project in 4–10 words.',true)}${listingField('helps','How does it help people?','Explain the benefit in 4–10 words.',true)}${listingField('firstTry','What should someone try first?','Suggest one action in 4–10 words.',true)}${videoField()}<p class="share-name-hint">Each answer needs 4–10 words. Edit your screenshot in the preview below. Categories appear in homepage filters only when a listing is published. Drafts never create public filters.</p><p data-video-status class="video-status" role="status"></p><div class="form-actions share-start-actions"><button class="primary-button" type="submit">${hasServer ? 'Save changes' : 'Save draft'}</button><button class="secondary-button" type="button" data-listing-review>Back</button><button type="button" class="secondary-button listing-reset-button" data-listing-reset>Start over</button></div><p data-listing-status role="status"></p></form>${importCard}${publishControls}${listingPreview()}</section>`;
+  return `<section class="page-shell listing-review"><p class="eyebrow">Your project · Settings</p><h1>Make it yours.</h1><p>Signed in as ${name}.</p><form data-listing-settings>${sharingPreferenceFields()}${listingField('title', 'Project name', 'Your project name')}${listingField('url', 'Project link', 'https://your-project.com')}${listingCategoryPicker()}${listingField('does','What does your project do?','Describe your project in 4–10 words.',true)}${listingField('helps','How does it help people?','Explain the benefit in 4–10 words.',true)}${listingField('firstTry','What should someone try first?','Suggest one action in 4–10 words.',true)}${videoField()}<p class="share-name-hint">Each answer needs 4–10 words. Edit your screenshot in the preview below. Categories appear in homepage filters only when a listing is published. Drafts never create public filters.</p><p data-video-status class="video-status" role="status"></p><div class="form-actions share-start-actions"><button class="primary-button" type="submit">${hasServer ? 'Save changes' : 'Save draft'}</button><button class="secondary-button" type="button" data-listing-review>Back</button><button type="button" class="secondary-button listing-reset-button" data-listing-reset>Start over</button></div><p data-listing-status role="status"></p></form>${importCard}${publishControls}${listingPreview()}</section>`;
 }
 function listingAccountPage() {
   return `<section class="page-shell listing-review"><p class="eyebrow">Keep your project yours</p><h1>Create your creator account.</h1><p>Your draft is ready. Sign up or sign in to continue to project settings.</p><form method="get" action="/auth/sign-in" class="legal-signup"><input type="hidden" name="signup" value="1"><input type="hidden" name="next" value="listing"><label class="legal-agreement"><input type="checkbox" required> <span>I agree to the <a href="/terms" target="_blank" rel="noopener">Terms of Service</a> and <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a>.</span></label><button class="primary-button" type="submit">Create my account</button></form><div class="form-actions share-start-actions"><a class="share-browse-link" href="/auth/sign-in?next=listing">Already have an account? Sign in</a><button class="share-browse-link" data-listing-review>Back</button></div><p class="privacy-note">Your draft stays on this device through sign-in. Nothing is public yet.</p></section>`;
 }
 function sharePage() {
+  return `<section class="page-shell">${homeViewTabs('test')}${listingJourney()}</section>`;
+}
+function listingJourney() {
   if (listingSettings) return listingSettingsPage();
   if (listingStep === 4) return listingAccountPage();
+  if (listingStep < 3) return inlineListingForm();
   if (listingStep === 3) return `<section class="page-shell listing-review"><p class="eyebrow">4 · Preview your listing</p><h1>Preview your listing.</h1><p>Check the three things visitors need to know before they try it.</p>${listingPreview()}<section class="video-editor"><h2>Project video <span>(optional)</span></h2>${videoField()}<p data-video-status class="video-status" role="status"></p></section><div class="form-actions share-start-actions"><button class="primary-button" data-listing-share>Share now</button><button class="secondary-button" data-listing-back>Back</button><button type="button" class="secondary-button listing-reset-button" data-listing-reset>Start over</button></div><p class="privacy-note">Next: sign up or sign in, then choose your project settings. Nothing is published yet.</p><p data-listing-status role="status"></p></section>`;
   const content = [
     { headline: 'You have an idea. How do you know if it’s good?', note: 'Start with a link. You’ll preview the listing before creating your account.', image: 'creatorworks-idea-v1.png', title: 'What are you building?', copy: 'Add a name and a link people can open.', fields: listingField('title','Project name','For example: MealMap') + listingField('url','Project link','https://your-project.com') },
@@ -718,7 +770,7 @@ document.addEventListener('input', event => {
   const field = event.target.closest('[data-listing-field]');
   if (field) { const changed = listingDraft[field.dataset.listingField] !== field.value; listingDraft[field.dataset.listingField] = field.value; if (changed && field.dataset.listingField === 'url') invalidateListingCapture(); if(changed && field.dataset.listingField === 'image') listingDraft.imageData = ''; saveListingDraft(); if (changed && field.dataset.listingField === 'video') refreshListingPreview(); }
   const category = event.target.closest('[data-listing-category-custom]');
-  if (category) { listingDraft.category = category.value; saveListingDraft(); }
+  if (category) { listingDraft.category = category.value; category.setCustomValidity(normalizeCategory(category.value)?'':'Enter a short, recognizable category name.'); saveListingDraft(); }
 });
 document.addEventListener('change', event => {
   const field = event.target.closest('[data-listing-field]');
@@ -727,8 +779,8 @@ document.addEventListener('change', event => {
   if (choice) {
     listingCategoryOtherOpen = choice.value === '__other__';
     if (!listingCategoryOtherOpen) listingDraft.category = normalizeCategory(choice.value);
-    else if (primaryCategoryNames.includes(normalizeCategory(listingDraft.category))) listingDraft.category = '';
-    saveListingDraft(); render();
+    else if (categoryCatalog.some(c=>c.name.toLowerCase()===normalizeCategory(listingDraft.category).toLowerCase())) listingDraft.category = '';
+    saveListingDraft(); renderMenuChange('[data-listing-category-choice]');
   }
   const category = event.target.closest('[data-listing-category-custom]');
   if (category) {
@@ -736,14 +788,37 @@ document.addEventListener('change', event => {
     if (normalized) { listingDraft.category = normalized; category.value = normalized; saveListingDraft(); }
   }
 });
+function markListingFieldsForAttention(form) {
+  form.dataset.validationAttempted = 'true';
+  let firstInvalid = null;
+  form.querySelectorAll('[data-listing-field]').forEach(field => {
+    const key = field.dataset.listingField;
+    const invalid = ['does','helps','firstTry'].includes(key)
+      ? !CWListingRules.valid(field.value)
+      : key === 'url' ? !listingUrl(field.value) : !field.validity.valid;
+    field.setAttribute('aria-invalid', String(invalid));
+    if (invalid && !firstInvalid) firstInvalid = field;
+  });
+  return firstInvalid;
+}
+document.addEventListener('invalid', event => {
+  const form = event.target.closest('[data-listing-step], [data-listing-settings]');
+  if (form) markListingFieldsForAttention(form);
+}, true);
+document.addEventListener('input', event => {
+  const form = event.target.closest('[data-listing-step], [data-listing-settings]');
+  if (form?.dataset.validationAttempted) markListingFieldsForAttention(form);
+});
 document.addEventListener('submit', event => {
   const form = event.target.closest('[data-listing-step], [data-listing-settings]');
   if (!form) return;
   event.preventDefault();
   const status = form.querySelector('[data-listing-status]');
-  const fields = form.hasAttribute('data-listing-settings') || listingStep === 0 ? ['title','url'] : listingStep === 1 ? ['does','helps','firstTry'] : [];
+  const firstInvalidField = markListingFieldsForAttention(form);
+  const fields = form.hasAttribute('data-inline-listing') ? ['title','url','does','helps','firstTry'] : form.hasAttribute('data-listing-settings') || listingStep === 0 ? ['title','url'] : listingStep === 1 ? ['does','helps','firstTry'] : [];
+  if (form.hasAttribute('data-inline-listing') && !normalizeCategory(listingDraft.category)) { status.textContent='Choose or suggest a category before continuing.'; return; }
   if (fields.some(key => !listingDraft[key].trim())) { status.textContent = 'Please add a short answer to each field.'; return; }
-  if ((listingStep === 1 || form.hasAttribute('data-listing-settings')) && ['does','helps','firstTry'].some(key=>!CWListingRules.valid(listingDraft[key]))) { status.textContent='Each of the three project answers must contain 4–10 words.'; return; }
+  if ((form.hasAttribute('data-inline-listing') || listingStep === 1 || form.hasAttribute('data-listing-settings')) && ['does','helps','firstTry'].some(key=>!CWListingRules.valid(listingDraft[key]))) { status.textContent='Each of the three project answers must contain 4–10 words.'; firstInvalidField?.focus(); return; }
   if (!listingUrl(listingDraft.url)) { status.textContent = 'Enter a complete http or https project link.'; return; }
   if (form.hasAttribute('data-listing-settings')) {
     const normalizedCategory = normalizeCategory(listingDraft.category);
@@ -767,7 +842,7 @@ document.addEventListener('submit', event => {
     return;
   }
   if (listingStep === 0) void ensureListingScreenshot();
-  listingStep = Math.min(3,listingStep+1); render();
+  listingStep = form.hasAttribute('data-inline-listing') ? 3 : Math.min(3,listingStep+1); render();
 });
 
 // Server-backed listing persistence. The on-device draft is never cleared until the server confirms,
@@ -775,7 +850,7 @@ document.addEventListener('submit', event => {
 async function saveServerListing(statusEl) {
   if (listingDraft.accountOwner && listingDraft.accountOwner !== state.session?.user?.id) throw new Error('This draft belongs to another account. Open a project from My projects or choose Start over.');
   if (listingDraft.video && !CWMedia.videoUrl(listingDraft.video)) throw new Error('Use a YouTube, Vimeo, or Loom video URL or iframe embed.');
-  const body = { action: 'save', title: listingDraft.title, url: listingDraft.url, does: listingDraft.does, helps: listingDraft.helps, firstTry: listingDraft.firstTry, category: normalizeCategory(listingDraft.category), stage: listingDraft.stage, video: listingDraft.video };
+  const body = { action: 'save', title: listingDraft.title, url: listingDraft.url, does: listingDraft.does, helps: listingDraft.helps, firstTry: listingDraft.firstTry, sharingPreference: listingDraft.sharingPreference, category: normalizeCategory(listingDraft.category), stage: listingDraft.stage, video: listingDraft.video };
   if (listingDraft.serverId) body.id = listingDraft.serverId;
   else {
     // Stable per-draft identity → retrying a create returns the same project instead of duplicating it.
@@ -808,7 +883,7 @@ document.addEventListener('click', async event => {
   button.disabled = true;
   try {
     if (saveBtn) { await saveServerListing(statusEl); }
-    else if (publishBtn) { await saveServerListing(statusEl); const res = await fetch('/api/projects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'submit', id: listingDraft.serverId }) }); const data = await res.json(); if (!res.ok) throw new Error(data.error || 'Could not submit for review.'); listingDraft.serverStatus = data.project.status; saveListingDraft(); }
+    else if (publishBtn) { if(listingDraft.sharingPreference && listingDraft.sharingPreference!=='public')throw new Error('Choose Publicly in sharing preferences before submitting for public review.'); await saveServerListing(statusEl); const res = await fetch('/api/projects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'submit', id: listingDraft.serverId }) }); const data = await res.json(); if (!res.ok) throw new Error(data.error || 'Could not submit for review.'); listingDraft.serverStatus = data.project.status; saveListingDraft(); }
     else if (unpublishBtn) { const res = await fetch('/api/projects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'unpublish', id: listingDraft.serverId }) }); const data = await res.json(); if (!res.ok) throw new Error(data.error || 'Could not update.'); listingDraft.serverStatus = data.project.status; saveListingDraft(); }
     render();void loadDailyComments();
   } catch (error) { if (statusEl) statusEl.textContent = error.message || 'That did not work. Your draft is safe; please try again.'; button.disabled = false; }
@@ -868,14 +943,13 @@ function optionButtons(options, selected, field) {
 
 function accountPage() {
   if (window.CW_SERVER) return (state.session?.authenticated ? '<nav class="page-shell account-actions" aria-label="My workspaces"><a class="primary-button" href="/dashboard">For me →</a><a class="secondary-button" href="/dashboard?view=creator">Creator workspace →</a></nav>' : '') + serverAccountPage();
-  const saved = projects.filter(product => state.saved.has(product.slug));
-  return `<section class="page-shell account-page"><div class="account-hero"><p class="eyebrow">My TryMyBuild</p><h1>Use things. Make things. Or both.</h1><p>One identity follows every way you take part.</p><div class="account-actions"><button class="primary-button">Create my account</button><button class="secondary-button">Sign in</button></div><p>This prototype does not create a real account yet.</p></div><div class="account-benefits"><article><strong>For you</strong><p>Save tools, return after trying them, and keep your feedback together.</p></article><article><strong>For what you make</strong><p>Invite people, collect honest observations, and build evidence before selling.</p></article></div><section class="saved-section"><div class="section-heading"><h2>Saved for later</h2></div>${saved.length ? `<div class="product-grid">${saved.map(product => productCard(product, true)).join("")}</div>` : `<div class="empty-saved"><p>You have not saved anything yet.</p><button class="text-button" data-route="discover">Explore the catalog →</button></div>`}</section></section>`;
+  return welcomeAccountPage();
 }
 
 function serverAccountPage() {
   const session = state.session;
   if (!session) return `<section class="account-hero"><h1>Your TryMyBuild</h1><p>Checking your sign-in…</p></section>`;
-  if (!session.authenticated) return `<section class="account-hero"><p class="eyebrow">My TryMyBuild</p><h1>Use things. Make things. Or both.</h1><p>One account for the work you discover and the things you create.</p><div class="account-actions"><a class="primary-button" href="/auth/sign-in?signup=1">Create my account</a><a class="secondary-button" href="/auth/sign-in">Sign in</a></div>${session.authReady ? '' : '<p>Sign-in is being connected. You can browse the projects now.</p>'}</section>`;
+  if (!session.authenticated) return welcomeAccountPage();
   const person = session.user;
   return `<section class="page-shell feedback-page"><div class="feedback-card">${session.isAdmin ? '<p><a class="secondary-button" href="/admin">Administration →</a></p>' : ""}<p class="eyebrow">Your TryMyBuild</p><h1>Welcome, ${esc(person.displayName)}.</h1>${session.databaseReady ? `<form data-profile-form><div class="feedback-identity"><label>Your public name<input name="displayName" value="${esc(person.displayName)}" maxlength="60" required></label><label>How you describe yourself<input name="label" value="${esc(person.label || '')}" maxlength="60" placeholder="Musician, Parent, Engineer…"></label></div><label>A little about you<textarea name="bio" maxlength="500">${esc(person.bio || '')}</textarea></label><label class="profile-visibility"><input type="checkbox" name="isPublic" ${person.isPublic ? 'checked' : ''}> Make my profile public</label><p data-profile-status role="status"></p><button class="primary-button" type="submit">Save my profile</button></form>` : '<p>You are signed in. Profile saving is being connected; changes are not available yet.</p>'}<form action="/auth/sign-out" method="post"><button class="secondary-button" type="submit">Sign out</button></form><p>Not your account? Sign out first, then sign in or create an account with your own email.</p></div></section>`;
 }
@@ -899,16 +973,28 @@ document.addEventListener('submit', async event => {
   finally { button.disabled = false; }
 });
 
+function renderMenuChange(selector) {
+  const before = document.querySelector(selector);
+  const top = before?.getBoundingClientRect().top;
+  const scrollY = window.scrollY, scrollX = window.scrollX;
+  render(true);
+  const after = document.querySelector(selector);
+  after?.focus({preventScroll:true});
+  // Anchor to the control, since filtering can change the content height above it.
+  const delta = top !== undefined && after ? after.getBoundingClientRect().top - top : 0;
+  window.scrollTo({left:scrollX, top:after && top !== undefined ? window.scrollY + delta : scrollY, behavior:'instant'});
+}
 function render(preserveScroll = false) {
   const focusedSearch = document.activeElement?.matches('[data-catalog-search]') ? { start: document.activeElement.selectionStart, end: document.activeElement.selectionEnd } : null;
   closeProductDetail(false);
-  const routes = { discover, community: communityPage, profile: profilePage, feedback: feedbackPage, share: sharePage, account: accountPage };
+  const routes = { discover, community: communityPage, profile: profilePage, feedback: feedbackPage, share: sharePage, account: accountPage, about: aboutPage, contact: contactPage };
   app.innerHTML = (routes[state.route] || discover)();
+  syncQuoteVisibility();
   document.querySelectorAll(".site-nav [data-route]").forEach(button => button.classList.toggle("is-active", button.dataset.route === state.route));
   nav.classList.remove("is-open");
-  menu.setAttribute("aria-expanded", "false");
+  menu?.setAttribute("aria-expanded", "false");
   if (window.CW_SERVER) {
-    document.querySelectorAll('[data-route="share"]').forEach(el => { el.hidden = !!state.session?.authenticated; });
+    document.querySelectorAll('[data-route="share"]').forEach(el => { el.hidden = false; });
     const profile = document.querySelector('.profile-button');
     if (profile) { profile.innerHTML = state.session?.authenticated ? avatar({ initials: (state.session.user?.displayName || 'M').slice(0,1).toUpperCase(), avatar: state.session.user?.avatar }) : state.session ? 'Sign in' : 'Checking account…';
     profile.setAttribute('aria-label', state.session?.authenticated ? 'My account' : 'Sign in to TryMyBuild');
@@ -921,7 +1007,19 @@ function render(preserveScroll = false) {
   else if (!preserveScroll) window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+document.addEventListener('keydown', event => {
+  if (!event.target.matches('[role="tab"][data-home-view]')) return;
+  if (!['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) return;
+  event.preventDefault();
+  selectHomeView(event.key === 'Home' ? 'find' : event.key === 'End' ? 'test' : event.target.dataset.homeView === 'find' ? 'test' : 'find');
+});
 document.addEventListener("click", async event => {
+  const viewButton = event.target.closest('[data-home-view]');
+  if (viewButton) { selectHomeView(viewButton.dataset.homeView); return; }
+  const homeSection = event.target.closest('[data-home-section]');
+  if (homeSection) {
+    selectHomeView(homeSection.dataset.homeSection === 'home-community' ? 'test' : 'find'); return;
+  }
   const verificationInfo = event.target.closest('[data-verification-info]');
   if (verificationInfo) {
     const expanded = verificationInfo.getAttribute('aria-expanded') !== 'true';
@@ -934,7 +1032,7 @@ document.addEventListener("click", async event => {
   if (profile) { state.profileSlug = profile.dataset.profile; state.route = "profile"; render(); return; }
   const route = event.target.closest("[data-route]");
   if (route?.dataset.route === 'account' && window.CW_SERVER && state.session?.authenticated) { location.assign('/dashboard'); return; }
-  if (route) { state.route = route.dataset.route; if (state.route === "share" && route.dataset.route === "share") { state.creatorStep = 0; listingStep = 0; listingSettings = false; } render(); return; }
+  if (route) { event.preventDefault(); state.route = route.dataset.route; if (state.route === 'share') homeView = 'test'; render(); return; }
   const productButton = event.target.closest("[data-product]");
   if (productButton) {
     const product = projects.find(item => item.slug === productButton.dataset.product);
@@ -1037,7 +1135,9 @@ document.addEventListener("input", event => {
   if (event.target.matches("[data-catalog-search]")) { state.query = event.target.value;
     const template = document.createElement('template'); template.innerHTML = discover();
     const results = document.querySelector('.catalog-results');
-    if (results) results.replaceWith(template.content.querySelector('.catalog-results')); }
+    if (results) results.replaceWith(template.content.querySelector('.catalog-results'));
+    const wishes=document.getElementById('wish-list');
+    if(wishes) wishes.replaceWith(template.content.querySelector('#wish-list')); }
   if (event.target.matches("[data-creator-field]")) state.creator[event.target.dataset.creatorField] = event.target.value;
 });
 
@@ -1046,14 +1146,14 @@ document.addEventListener("change", event => {
 });
 
 document.addEventListener("change", event => {
-  if (event.target.matches("[data-category-select]")) { state.category = event.target.value; render(); }
-  if (event.target.matches("[data-sort-select]")) { state.sort = event.target.value; render(); document.querySelector('[data-sort-select]')?.focus(); }
-  if (event.target.matches("[data-creator-type-select]")) { state.creatorType = event.target.value; render(); document.querySelector('[data-creator-type-select]')?.focus(); }
-  if (event.target.matches("[data-verified-select]")) { state.verifiedOnly = event.target.checked; render(); document.querySelector('[data-verified-select]')?.focus(); }
-  if (event.target.matches("[data-price-select]")) { state.price = event.target.value; render(); document.querySelector('[data-price-select]')?.focus(); }
+  if (event.target.matches("[data-category-select]")) { state.category = event.target.value; renderMenuChange('[data-category-select]'); }
+  if (event.target.matches("[data-sort-select]")) { state.sort = event.target.value; renderMenuChange('[data-sort-select]'); }
+  if (event.target.matches("[data-creator-type-select]")) { state.creatorType = event.target.value; renderMenuChange('[data-creator-type-select]'); }
+  if (event.target.matches("[data-verified-select]")) { state.verifiedOnly = event.target.checked; renderMenuChange('[data-verified-select]'); }
+  if (event.target.matches("[data-price-select]")) { state.price = event.target.value; renderMenuChange('[data-price-select]'); }
 });
 
-menu.addEventListener("click", () => {
+menu?.addEventListener("click", () => {
   const open = nav.classList.toggle("is-open");
   menu.setAttribute("aria-expanded", String(open));
 });
@@ -1158,7 +1258,7 @@ function productShareUrl(slug) { return new URL('/projects/'+encodeURIComponent(
 // or refresh the current draft's server status. Never attaches to an account on its own.
 function loadOwnedProjectIntoDraft(p) {
   listingDraft.serverId = p.id; listingDraft.serverSlug = p.slug; listingDraft.serverStatus = p.status; listingDraft.imported = 'yes';
-  listingDraft.video = p.video || ''; listingDraft.accountOwner = state.session?.user?.id || '';
+  listingDraft.video = p.video || ''; listingDraft.sharingPreference = p.sharingPreference || 'not_sure'; listingDraft.accountOwner = state.session?.user?.id || '';
   listingDraft.title = p.title || ''; listingDraft.url = p.url || ''; listingDraft.category = p.category || 'Technology';
   listingDraft.stage = p.stage || 'Ready for a first try'; listingDraft.does = p.headline || ''; listingDraft.helps = p.help || ''; listingDraft.firstTry = p.firstTry || '';
   if (p.preview) { listingDraft.image = p.preview; listingDraft.imageData = ''; listingDraft.imageSourceUrl = listingUrl(p.url); listingDraft.imageUploadedFor = p.slug; }

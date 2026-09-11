@@ -6,10 +6,12 @@ import { stripTypeScriptTypes } from 'node:module';
 
 const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8');
 
-test('discovery uses the compact header slogan without a duplicate visible hero', () => {
-  assert.match(read('index.html'), /class="brand-promise">Find apps that make life easier/);
+test('discovery introduces both project discovery and creator participation', () => {
+  assert.doesNotMatch(read('index.html'), /class="brand-promise"/);
   const app = read('app.js');
-  assert.match(app, /<h1 class="visually-hidden">Find apps that make life easier<\/h1>/);
+  assert.match(app, /Find an app/);
+  assert.match(app, /Get feedback on my app/);
+  assert.doesNotMatch(app, /Discover useful projects\.|Find your next useful discovery/);
   assert.doesNotMatch(app, /Made by independent creators to solve real-life problems/);
   assert.doesNotMatch(app, /Find solutions others have already made\./);
 });

@@ -70,6 +70,10 @@ export function normalizeDraft(body) {
     first_try: paragraph(body.firstTry ?? body.first_try, 500),
     summary: text(body.summary ?? body.does ?? body.headline, 160),
   };
+  if(body.sharingPreference !== undefined){
+    if(!['private','public','not_sure'].includes(body.sharingPreference))return {error:'Choose how you would like to share your app.'};
+    value.sharing_preference=body.sharingPreference;
+  }
   if ((body.video || body.video_url) && !value.video_url) return { error: 'Use a YouTube, Vimeo, or Loom video URL or iframe embed.' };
   if (body.url != null && String(body.url).trim() && !value.external_url) return { error: 'Enter a complete http or https project link.' };
   if (value.category === '' && (body.category ?? '') !== '') return { error: 'Choose a clearer category, or pick a common one.' };

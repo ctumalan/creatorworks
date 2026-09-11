@@ -1,7 +1,11 @@
 window.CWAccountMenu = {
  mount(session) {
   document.querySelectorAll('[data-account-nav], .profile-button').forEach(anchor => {
-   if (!session.authenticated) { anchor.textContent='Sign in'; return; }
+   if (!session.authenticated) {
+    const root=document.createElement('details');root.className='account-menu';
+    root.innerHTML='<summary class="account-avatar" aria-label="Open account menu">T</summary><div class="account-menu-panel"><a href="/?welcome=1" data-route="account">Create my account</a><a href="/auth/sign-in">Sign in</a><a href="/?page=contact" data-route="contact">Contact</a><a href="/?page=about" data-route="about">About</a></div>';
+    anchor.replaceWith(root);return;
+   }
    let root=anchor.closest('.account-menu');
    if(!root){root=document.createElement('details');root.className='account-menu';anchor.replaceWith(root);}
    root.replaceChildren();
@@ -21,6 +25,7 @@ window.CWAccountMenu = {
 document.addEventListener('click',event=>document.querySelectorAll('.account-menu[open]').forEach(el=>{if(!el.contains(event.target))el.open=false;}));
 document.addEventListener('keydown',event=>{if(event.key==='Escape')document.querySelectorAll('.account-menu[open]').forEach(el=>{el.open=false;el.querySelector('summary').focus();});});
 (async () => {
+  if(!window.CW_SERVER && document.querySelector('#app')){window.CWAccountMenu.mount({authenticated:false});return;}
   try {
     const r = await fetch('/api/me'); if (!r.ok) return; const session = await r.json();
     window.CWAccountMenu.mount(session);
@@ -31,7 +36,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape')document.que
         const notice = document.createElement('p'); notice.className = 'cw-notice'; notice.setAttribute('role','status'); notice.textContent = 'Saving your project draft to your account…'; document.querySelector('main')?.prepend(notice);
         try {
           draft.clientToken ||= crypto.randomUUID(); localStorage.setItem('creatorworks-listing-draft-v1', JSON.stringify(draft));
-          const saved = await fetch('/api/projects', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'save',clientToken:draft.clientToken,title:draft.title,url:draft.url,does:draft.does,helps:draft.helps,firstTry:draft.firstTry,category:draft.category,stage:draft.stage,video:draft.video})});
+          const saved = await fetch('/api/projects', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'save',clientToken:draft.clientToken,title:draft.title,url:draft.url,does:draft.does,helps:draft.helps,firstTry:draft.firstTry,category:draft.category,stage:draft.stage,video:draft.video,sharingPreference:draft.sharingPreference||'not_sure'})});
           const result = await saved.json(); if(!saved.ok || !result.project) throw new Error();
           Object.assign(draft,{serverId:result.project.id,serverSlug:result.project.slug,serverStatus:result.project.status,accountOwner:session.user.id,imported:'yes'});
           localStorage.setItem('creatorworks-listing-draft-v1',JSON.stringify(draft));

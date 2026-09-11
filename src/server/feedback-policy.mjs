@@ -29,6 +29,7 @@ export function feedbackDestination(value) {
     }
   }
   if (['/','/dashboard/community','/dashboard/security','/dashboard/overview','/dashboard/preferences','/dashboard/notifications','/dashboard/privacy','/dashboard/help'].includes(value)) return value;
+  if (value === '/?welcome=1' || value === '/?wish=1#wish-list') return value;
   if (value === 'listing' || value === '/?listing=settings') return '/?listing=settings';
   if (value === '/dashboard' || value === '/dashboard?view=creator' || value === '/dashboard/profile') return value;
   if(typeof value==='string' && /^\/projects\/[a-z0-9-]{1,80}$/.test(value))return value;

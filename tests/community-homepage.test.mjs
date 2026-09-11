@@ -1,0 +1,65 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
+const app=read('app.js');
+test('header keeps only the account menu and footer retains consistent gateways',()=>{
+ const html=read('index.html');
+ assert.equal((html.match(/data-home-view="find">Find an app/g)||[]).length,1);
+ assert.equal((html.match(/data-home-view="test">Get feedback on my app/g)||[]).length,1);
+ const header=html.slice(html.indexOf('<header'),html.indexOf('</header>'));
+ assert.doesNotMatch(header,/data-home-view|menu-toggle/);
+ assert.match(header,/profile-button.*data-route="account"/);
+ assert.doesNotMatch(html,/>Explore projects<|>Community<|>Get feedback</);
+ assert.doesNotMatch(app,/>Get feedback →|>Find a project →|>Get feedback on your project</);
+});
+test('homepage offers functioning paths for visitors and makers',()=>{
+ assert.match(app,/let homeView = 'find'/);
+ assert.match(app,/id="home-community"/);
+ assert.match(app,/data-home-section/);
+ assert.match(app,/state.route = 'discover'; render\(\)/);
+ assert.match(app,/data-route="share">Share my app/);
+ assert.doesNotMatch(app,/el.hidden = !!state.session\?\.authenticated/);
+});
+test('community suggestions use actual first-step content and handle an empty catalog',()=>{
+ const ctx=vm.createContext({projects:[{slug:'real-project',name:'Real project'}],projectPresentation:{'real-project':['','','','','Test the search filters.']},creatorFor:()=>({type:'independent'}),creatorLink:()=>'<span>Actual creator</span>',esc:s=>String(s).replaceAll('<','&lt;')});
+ vm.runInContext(app.slice(app.indexOf('function projectFirstStep('),app.indexOf('function catalogRow(')),ctx);
+ const html=ctx.homeCommunity();
+ assert.match(html,/Test the search filters\./);
+ assert.match(html,/data-product="real-project"/);
+ assert.doesNotMatch(html,/FocusFold|Habit Harbour|Priya|Daniel|Looking for first testers/);
+ ctx.projects=[];
+ assert.match(ctx.homeCommunity(),/Bring the first conversation/);
+});
+test('new logo is an outlined sun with two violet technology paths',()=>{
+ const svg=read('assets/brand/trymybuild-mark.svg');
+ assert.match(svg,/stroke="#FF8C49"/);
+ assert.match(svg,/stroke="#6035AA"/);
+ assert.equal((svg.match(/<path /g)||[]).length,4);
+ assert.doesNotMatch(svg,/#FFF9ED/);
+});
+test('home tabs separate discovery from community and preserve search',()=>{
+ const ctx=vm.createContext({wishListSection:()=>'',listingJourney:()=>'<form>Listing form</form>',window:{CW_SERVER:false},catalogState:'ready',document:{addEventListener(){},getElementById(){return null;}},render(){},state:{category:'All',price:'all',creatorType:'all',query:'',sort:'recent'},projects:Array.from({length:5},(_,i)=>({name:`App ${i}`,price:'Free',category:'Tools'})),esc:String,creatorFor:()=>({}),creatorMatchesFilters:()=>true,compareCatalogProjects:()=>0,publishedCategories:()=>[],catalogSortLabel:()=>'',catalogRow:p=>`<article>${p.name}</article>`,membershipPromo:()=>'<section>COMMUNITY CONTENT</section>',communityRail:()=>'',catalogStatusPanel:()=>'<p>CATALOG UNAVAILABLE</p>'});
+ vm.runInContext(app.slice(app.indexOf("let homeView = 'find'"),app.indexOf('function discussionDraftKey(')),ctx);
+ let html=ctx.discover();
+ assert.match(html,/data-catalog-search/);
+ assert.equal((html.match(/<article>/g)||[]).length,5);
+ assert.doesNotMatch(html,/COMMUNITY CONTENT|Small contributions/);
+ ctx.state.query='App 2';
+ ctx.selectHomeView('test');
+ html=ctx.discover();
+ assert.match(html,/COMMUNITY CONTENT/);
+ assert.doesNotMatch(html,/Small contributions\. Better projects/);
+ assert.doesNotMatch(html,/data-catalog-search/);
+ assert.match(html,/id="home-tab-test"[^>]*aria-selected="true"/);
+ ctx.selectHomeView('find');
+ assert.equal(ctx.state.query,'App 2');
+ assert.equal((ctx.discover().match(/<article>/g)||[]).length,1);
+ ctx.window.CW_SERVER=true;ctx.catalogState='loading';
+ for(const view of ['find','test']){
+  ctx.selectHomeView(view);html=ctx.discover();
+  assert.match(html,/CATALOG UNAVAILABLE/);
+  assert.doesNotMatch(html,/COMMUNITY CONTENT|<article>/);
+ }
+});

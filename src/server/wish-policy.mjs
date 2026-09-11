@@ -1,0 +1,4 @@
+export const wishCategories = ["Family life","Technology","Sports & teams","Teaching & learning","Shopping","Money","Personal planning","Food & home","Travel","Creative work","AI & automation","Business & operations","Developer tools","Design","Communication","Data & analytics","Customer support","Health & wellness","Marketing & sales","Music & audio","Productivity","Social & community","Security & privacy","HR & recruiting","Legal","Real estate","Events","Gaming","Media & entertainment","Science & research","Sustainability","Accessibility","Utilities"];
+export function validWish(category, description) {
+ return wishCategories.includes(category) && typeof description === 'string' && description.length <= 180 && ((description.match(/[\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*/gu)||[]).length >= 4) && ((description.match(/[\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*/gu)||[]).length <= 11);
+}

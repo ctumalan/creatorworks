@@ -12,7 +12,7 @@ import { publicationAccess } from '../../server/community-credits';
 
 function ownedView(row: any) {
   return {
-    video: row.video_url || '', id: row.id, slug: row.slug, title: row.title, category: row.category, stage: row.stage,
+    sharingPreference: row.sharing_preference || 'not_sure', video: row.video_url || '', id: row.id, slug: row.slug, title: row.title, category: row.category, stage: row.stage,
     status: row.listing_status, statusLabel: (PROJECT_STATUS_LABELS as Record<string, string>)[row.listing_status] || row.listing_status,
     headline: row.headline, help: row.help_text, firstTry: row.first_try, url: row.external_url,
     preview: row.preview_public_url || '', hasImage: !!row.preview_path,

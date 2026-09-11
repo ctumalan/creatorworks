@@ -19,12 +19,8 @@
       <button class="brand" type="button" data-route="discover" aria-label="TryMyBuild catalog">
         <img class="brand-mark" src="assets/brand/trymybuild-mark.svg" width="40" height="40" alt="" />
         <span class="brand-name">TryMy<span class="brand-name-works">Build</span></span>
-        <span class="brand-promise">Find apps that make life easier</span>
       </button>
-      <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false">Menu</button>
-      <nav class="site-nav" aria-label="Main navigation">
-        <button data-route="discover">Browse tools</button>
-        <button class="nav-share" data-route="share">List your project</button>
+      <nav class="site-nav account-only-nav" aria-label="User menu">
         <button class="profile-button" data-route="account" aria-label="My TryMyBuild">T</button>
       </nav>
     </header>
@@ -33,12 +29,12 @@
 
     <footer class="site-footer">
       <button class="footer-brand" data-route="discover"><img class="brand-mark" src="assets/brand/trymybuild-mark.svg" width="40" height="40" alt="" /><span>TryMy<span class="brand-name-works">Build</span></span></button>
-      <p>Find apps that make life easier.</p>
-      <div><button data-route="discover">Discover</button><button data-route="share">List your project</button><a href="/terms">Terms</a><a href="/privacy">Privacy</a></div>
+      <p>For curious people and the people who build.</p>
+      <div><button data-home-view="find">Find an app</button><button data-home-view="test">Get feedback on my app</button><a href="/?page=about" data-route="about">About</a><a href="/?page=contact" data-route="contact">Contact</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a></div>
     </footer>
 
     <script src="preview-utils.js"></script>
     <script src="listing-rules.js"></script><script src="share-invitation.js" defer></script><script src="project-media.js"></script><script src="notification-bell.js" defer></script><script src="account-nav.js" defer></script>
-  <script src="app.js"></script>
+  <script src="community-entry.js"></script><script src="app.js"></script>
   <script src="analytics.js" defer></script></body>
 </html>

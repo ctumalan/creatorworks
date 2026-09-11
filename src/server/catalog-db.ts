@@ -17,7 +17,7 @@ const studioNote = 'Founder-confirmed: Christian Tumalán confirmed control of T
 const initialsOf = (name: string) => String(name || 'Member').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase() || 'M';
 
 export const PROJECT_FIELDS =
-  'video_url,lock_version,id,slug,owner_user_id,title,category,summary,tagline,headline,help_text,first_try,purpose,audience,stage,price_label,is_free,external_url,link_note,outcome,note,preview_path,preview_public_url,benefits,access_note,creator_slug,is_studio,listing_status,ownership_status,submitted_at,published_at,updated_at,created_at';
+  'sharing_preference,video_url,lock_version,id,slug,owner_user_id,title,category,summary,tagline,headline,help_text,first_try,purpose,audience,stage,price_label,is_free,external_url,link_note,outcome,note,preview_path,preview_public_url,benefits,access_note,creator_slug,is_studio,listing_status,ownership_status,submitted_at,published_at,updated_at,created_at';
 const PUBLIC_CATALOG_FIELDS = `${PROJECT_FIELDS},saved_projects(count)`;
 
 // Resolve the public attribution for a set of project rows in one query (studio rows need no lookup).
