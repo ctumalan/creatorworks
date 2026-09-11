@@ -65,7 +65,7 @@ export const POST: APIRoute = async context => {
     }
     if (body.action === 'submit') {
       const access=await publicationAccess(database(),member.id,String(body.id||''));
-      if(!access.allowed)return json({error:`You are using ${access.used} of ${access.slots} project slots. Help five different projects to unlock another slot.`,href:'/dashboard/community'},403);
+      if(!access.allowed)return json({error:`You are using ${access.used} of ${access.slots} project slots. Help five different creators to unlock another slot.`,href:'/dashboard/community'},403);
       return reply(await submit(store, { ownerId: member.id, id: body.id }));
     }
     if (body.action === 'unpublish') return reply(await unpublish(store, { ownerId: member.id, id: body.id }));

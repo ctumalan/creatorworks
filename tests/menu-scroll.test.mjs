@@ -14,9 +14,11 @@ test('menu refresh anchors the replacement control and restores focus without sm
  ctx.renderMenuChange('[data-wish-category-filter]');
  assert.equal(focused,true);assert.equal(scroll.top,1300);assert.equal(scroll.behavior,'instant');
 });
-test('wish and catalog dropdowns use anchored refreshes',()=>{
+test('wish filter updates its own results; catalog dropdowns use anchored refreshes',()=>{
  const entry=readFileSync(new URL('../community-entry.js',import.meta.url),'utf8');
- assert.match(entry,/renderMenuChange\('\[data-wish-category-filter\]'\)/);
+ assert.ok(entry.includes('wishCategory=event.target.value;refreshWishResults();'));
+ assert.doesNotMatch(entry,/state\.category\s*=/);
+ assert.ok(entry.includes("section.querySelector('.wish-items').replaceWith"));
  for(const name of ['sort-select','creator-type-select','verified-select','price-select','listing-category-choice'])
   assert.ok(source.includes(`renderMenuChange('[data-${name}]')`));
 });

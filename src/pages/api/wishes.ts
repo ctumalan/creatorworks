@@ -8,7 +8,7 @@ import { validWish } from '../../server/wish-policy.mjs';
 export const GET: APIRoute = async () => {
  try {
   if(!databaseReady())return json({error:'Wish lists are not connected yet.'},503);
-  const result=await database().from('community_wishes').select('id,category,description,created_at').order('created_at',{ascending:false}).limit(200);
+  const result=await database().from('community_wishes').select('id,category,description,created_at').eq('moderation_status','published').order('created_at',{ascending:false}).limit(200);
   if(result.error)throw result.error;
   return json({wishes:result.data});
  }catch{return json({error:'Wish lists are temporarily unavailable.'},503);}
@@ -22,8 +22,9 @@ export const POST: APIRoute = async context => {
   const raw=await context.request.text();if(raw.length>2000)return json({error:'Wish is too long.'},413);
   const body=JSON.parse(raw),description=typeof body.description==='string'?body.description.trim():'';
   if(!validWish(body.category,description))return json({error:'Choose a category and describe your wish in 4–11 words.'},400);
-  const result=await m.db.from('community_wishes').upsert({user_id:m.member.id,category:body.category,description},{onConflict:'user_id,category,description',ignoreDuplicates:true});
+  const result=await m.db.rpc('cw_submit_wish',{p_user:m.member.id,p_category:body.category,p_description:description});
   if(result.error)throw result.error;
-  return json({saved:true});
+  if(result.data?.outcome==='limit')return json({error:'You can have up to 10 wishes awaiting review or published. Contact us if you need to withdraw an older wish.'},409);
+  return json({saved:true,...result.data});
  }catch{return json({error:'Your wish could not be submitted. Your draft is still on this device.'},503);}
 };

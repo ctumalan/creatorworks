@@ -8,6 +8,9 @@ test('All eleven projects use the approved presentation with their own action ta
   const firstListener = Math.min(...["document.addEventListener('input'", "document.addEventListener('submit'"].map(marker=>source.indexOf(marker)).filter(index=>index>0));
   const functions = source.slice(source.indexOf('const projectPresentation ='), firstListener);
   const context = vm.createContext({ videoPlayer: () => '', similarSection: () => '', projectDestination: url => /^https?:\/\//i.test(url) ? 'Opens external website' : 'Opens here on TryMyBuild', state: { saved: new Set(), communityPosts: [], session: null }, esc: value => String(value ?? ''), avatar: () => '<span class="person-avatar"></span>', creatorLink: () => 'TryMyBuild Studio', creatorFor: () => ({ slug: 'creatorworks-studio', name: 'TryMyBuild Studio' }) });
+  context.URL=URL;
+  context.location={origin:'https://trymybuild.com'};
+  vm.runInContext(source.slice(source.indexOf('function safeProjectUrl'),source.indexOf('function ',source.indexOf('function safeProjectUrl')+9)),context);
   vm.runInContext(functions, context);
   const product = { slug: 'mealmap', url: 'https://meal-map-cw.tumalanct.chatgpt.site', preview: 'assets/previews/mealmap.png', note: 'New listing', benefits: [] };
   const markup = context.detailDrawer(product);

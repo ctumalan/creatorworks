@@ -126,7 +126,8 @@ function publishedCategories() {
     .sort((a, b) => (categoryCatalog.findIndex(c => c.name === a.name) + 1 || 999) - (categoryCatalog.findIndex(c => c.name === b.name) + 1 || 999) || a.name.localeCompare(b.name));
 }
 
-const storedCategoryClicks = typeof localStorage==='undefined'?{}:JSON.parse(localStorage.getItem('trymybuild-category-clicks-v1') || '{}');
+function readGuestPersonalization() { try { return localStorage.getItem('trymybuild-guest-personalization') !== 'off'; } catch { return false; } }
+const storedCategoryClicks = (()=>{try{const value=JSON.parse(localStorage.getItem('trymybuild-category-clicks-v1')||'{}');return value&&typeof value==='object'&&!Array.isArray(value)?value:{};}catch{return {};}})();
 const rankedStoredCategories = Object.entries(storedCategoryClicks).sort((a,b)=>b[1]-a[1]).map(([name])=>name);
 const state = {
   route: new URLSearchParams(location.search).get('listing') === 'settings' ? "share" : new URLSearchParams(location.search).has('account') ? "account" : "discover",
@@ -140,8 +141,8 @@ const state = {
   filterOpen: false,
   query: "",
   saved: new Set(JSON.parse(localStorage.getItem("creatorworks-saved") || "[]")),
-  interests: new Set(rankedStoredCategories),
-  personalization: true,
+  interests: new Set(readGuestPersonalization()?rankedStoredCategories:[]),
+  personalization: readGuestPersonalization(),
   preferencesHydrated: false,
   communityPosts: window.CW_SERVER ? [] : JSON.parse(localStorage.getItem("creatorworks-community-posts") || "[]"),
   dailyComments: [],
@@ -156,6 +157,7 @@ const state = {
 // On the server the database is authoritative: the built-in list is NOT shown as a fallback. It stays
 // only for the offline/no-server prototype. 'loading' until /api/catalog answers; 'error' shows a retry.
 let catalogState = window.CW_SERVER ? 'loading' : 'ready';
+let discussionRequest=0;
 const app = document.querySelector("#app");
 const nav = document.querySelector(".site-nav");
 const menu = document.querySelector(".menu-toggle");
@@ -163,6 +165,14 @@ document.addEventListener('toggle',event=>{if(event.target.matches?.('.catalog-f
 let detailReturnFocus = null;
 let detailScrollY = 0;
 const esc = value => String(value ?? "").replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char]));
+// Navigation must be validated as well as HTML-escaped.
+function safeProjectUrl(value) {
+  try {
+    if(!String(value || '').trim())return '#';
+    const url = new URL(String(value), location.origin + '/');
+    return ['https:', 'http:'].includes(url.protocol) && !url.username && !url.password ? url.href : '#';
+  } catch { return '#'; }
+}
 
 function creatorFor(project) {
   return creators.find(creator => creator.slug === project.creatorSlug) || creators[0];
@@ -179,7 +189,7 @@ function experienceCount(project) {
 }
 
 function avatar(creator, className = "") {
-  return `<span class="person-avatar ${creator.color || ""} ${className}" aria-hidden="true">${creator.avatar ? `<img src="${esc(creator.avatar)}" alt="" />` : esc(creator.initials)}</span>`;
+  return `<span class="person-avatar ${esc(creator.color || "")} ${className}" aria-hidden="true">${creator.avatar ? `<img src="${esc(creator.avatar)}" alt="" />` : esc(creator.initials)}</span>`;
 }
 
 const studioVerification = 'Founder-confirmed: Christian Tumalán confirmed control of TryMyBuild Studio and its 11 listed projects on September 4, 2026. This is not independent verification or a guarantee of product quality.';
@@ -192,7 +202,7 @@ function creatorVerificationBadge(creator) {
 
 function creatorLink(project, compact = false) {
   const creator = creatorFor(project);
-  return `<button class="creator-link ${compact ? "is-compact" : ""}" data-profile="${creator.slug}">${avatar(creator)}<span><strong>${esc(creator.name)}</strong>${creatorVerificationBadge(creator)}<small>${esc(creator.label)}</small></span></button>`;
+  return `<button class="creator-link ${compact ? "is-compact" : ""}" data-profile="${esc(creator.slug)}">${avatar(creator)}<span><strong>${esc(creator.name)}</strong>${creatorVerificationBadge(creator)}<small>${esc(creator.label)}</small></span></button>`;
 }
 
 function projectDestination(url) {
@@ -218,17 +228,17 @@ function categoryIcon(category) {
 function productCard(product, compact = false) {
   const saved = state.saved.has(product.slug);
   return `<article class="product-card ${compact ? "compact" : ""}">
-    <button class="save-button ${saved ? "is-saved" : ""}" data-save="${product.slug}" aria-label="${saved ? "Remove" : "Save"} ${product.name}">${saved ? "♥" : "♡"}</button>
-    <button class="product-card-main" data-product="${product.slug}">
-      <span class="product-preview"><img src="${product.preview}" alt="Preview of the ${product.name} website" loading="lazy" /></span>
-      <span class="product-icon ${product.color}">${categoryIcon(product.category)}</span>
-      <span class="product-meta"><span>${product.category}</span><span>${product.stage}</span></span>
-      <strong>${product.name}</strong>
-      <p>${product.summary}</p>
-      <span class="product-outcome">You can: ${product.outcome}</span>
+    <button class="save-button ${saved ? "is-saved" : ""}" data-save="${esc(product.slug)}" aria-label="${saved ? "Remove" : "Save"} ${esc(product.name)}">${saved ? "♥" : "♡"}</button>
+    <button class="product-card-main" data-product="${esc(product.slug)}">
+      <span class="product-preview"><img src="${esc(product.preview)}" alt="Preview of the ${esc(product.name)} website" loading="lazy" /></span>
+      <span class="product-icon ${esc(product.color)}">${categoryIcon(product.category)}</span>
+      <span class="product-meta"><span>${esc(product.category)}</span><span>${esc(product.stage)}</span></span>
+      <strong>${esc(product.name)}</strong>
+      <p>${esc(product.summary)}</p>
+      <span class="product-outcome">You can: ${esc(product.outcome)}</span>
     </button>
     <div class="product-card-creator">${creatorLink(product, true)}</div>
-    <div class="product-card-foot"><span>${product.price}</span><button data-product="${product.slug}">See how it helps <span>→</span></button><button type="button" class="secondary-button" data-share-product="${product.slug}" aria-label="Share ${esc(product.name)}">Share</button><span class="card-share-status" data-share-status role="status" aria-live="polite"></span></div>
+    <div class="product-card-foot"><span>${esc(product.price)}</span><button data-product="${esc(product.slug)}">See how it helps <span>→</span></button><button type="button" class="secondary-button" data-share-product="${esc(product.slug)}" aria-label="Share ${esc(product.name)}">Share</button><span class="card-share-status" data-share-status role="status" aria-live="polite"></span></div>
   </article>`;
 }
 
@@ -253,7 +263,7 @@ function dailyCreatorTip(now = new Date()) {
   const person=state.session?.user,initials=(person?.displayName||'You').split(/\s+/).slice(0,2).map(word=>word[0]).join('').toUpperCase();
   const identity=person?avatar({avatar:person.avatar,initials},'small'):avatar({initials:'?'},'small');
   const draft=localStorage.getItem('trymybuild-daily-comment')||'',count=commentWordCount(draft);
-  return `<section class="community-maker-question" aria-labelledby="community-maker-question-title"><p class="eyebrow" id="community-maker-question-title">Question for makers</p><blockquote>${esc(creatorTips[elapsed % creatorTips.length])}</blockquote><p>Has this happened to you?</p><form data-daily-discussion data-day="${dayKey}"><div class="daily-comment-compose"><div class="daily-comment-author">${identity}<span>${person?esc(person.displayName||'Your response'):'Your response'}</span></div><label><span class="visually-hidden">Your response</span><textarea name="message" maxlength="800" rows="3" placeholder="Share your perspective…" aria-describedby="daily-comment-guidance daily-comment-count">${esc(draft)}</textarea></label><div class="daily-comment-actions"><small id="daily-comment-count" data-daily-word-count class="word-counter ${count&&count<7?'invalid':''}">${count} / 7 words minimum</small><button type="submit" aria-label="Post response">Post</button></div></div><p id="daily-comment-guidance" class="comment-conduct"><strong>Be thoughtful. Be respectful.</strong> Discuss ideas, not people. No insults or abusive wording. <a href="/community-guidelines">Guidelines</a></p><p data-daily-status role="status"></p></form><div class="daily-comment-list">${state.dailyComments.map(dailyCommentCard).join('')}</div></section>`;
+  return `<section class="community-maker-question" aria-labelledby="community-maker-question-title"><p class="eyebrow" id="community-maker-question-title">Question for makers</p><blockquote>${esc(creatorTips[elapsed % creatorTips.length])}</blockquote><p>Has this happened to you?</p><form data-daily-discussion data-day="${dayKey}"><div class="daily-comment-compose"><div class="daily-comment-author">${identity}<span>${person?esc(person.displayName||'Your response'):'Your response'}</span></div><label><span class="visually-hidden">Your response</span><textarea name="message" maxlength="800" rows="3" placeholder="Share your perspective…" aria-describedby="daily-comment-guidance daily-comment-count">${esc(draft)}</textarea></label><div class="daily-comment-actions"><small id="daily-comment-count" data-daily-word-count class="word-counter ${count&&count<7?'invalid':''}">${count} / 7–150 words</small><button type="submit" aria-label="Post response">Post</button></div></div><p id="daily-comment-guidance" class="comment-conduct"><strong>Be thoughtful. Be respectful.</strong> Discuss ideas, not people. No insults or abusive wording. <a href="/community-guidelines">Guidelines</a></p><p data-daily-status role="status"></p></form><div class="daily-comment-list">${state.dailyComments.map(dailyCommentCard).join('')}</div></section>`;
 }
 function projectSaveCount(project) {
   const count = Number(project?.saveCount);
@@ -363,7 +373,7 @@ function communityRail() {
     ${state.discussionError?`<p role="status">${esc(state.discussionError)} <button class="text-button" data-retry-discussion>Try again</button></p>`:''}
     <form data-daily-discussion data-discussion-category="${esc(category)}" data-day="${day}">
       <div class="daily-comment-compose"><label for="category-comment">Share your experience or ask a question</label><textarea id="category-comment" name="message" maxlength="800" rows="3" placeholder="What has helped you, or what are you looking for?" aria-describedby="daily-comment-guidance daily-comment-count">${esc(draft)}</textarea>
-      <div class="daily-comment-actions"><small id="daily-comment-count" data-daily-word-count class="word-counter">${count} / 7 words minimum</small><button type="submit">${state.session?.authenticated?'Post comment':'Sign up to post'}</button></div></div>
+      <div class="daily-comment-actions"><small id="daily-comment-count" data-daily-word-count class="word-counter">${count} / 7–150 words</small><button type="submit">${state.session?.authenticated?'Post comment':'Sign up to post'}</button></div></div>
       <p class="comment-conduct">${state.session?.authenticated?'Your comment will appear after moderation review.':'Write first. Your draft stays private in this browser. Create an account or sign in, then return here to post. Comments appear after moderation review.'}</p>
       <p id="daily-comment-guidance" class="comment-conduct"><strong>Be thoughtful. Be respectful.</strong> Discuss ideas, not people. <a href="/community-guidelines">Guidelines</a></p><p data-daily-status role="status"></p>
     </form>
@@ -380,7 +390,7 @@ function homeCommunity() {
 function catalogRow(product) {
   const saved = state.saved.has(product.slug);
   const count = experienceCount(product);
-  return `<article class="catalog-row"><div class="row-media"><button class="row-preview" data-product="${product.slug}" aria-label="View ${esc(product.name)} details"><img src="${product.preview}" alt="Preview of the ${product.name} website" loading="lazy" /></button><button class="save-button-row ${saved ? "is-saved" : ""}" data-save="${product.slug}" aria-label="${saved ? "Remove" : "Save"} ${esc(product.name)}">${saved ? "♥ Saved" : "♡ Save"}</button></div><div class="row-copy"><div class="product-meta"><span>${product.category}</span><span>${product.stage}</span></div><button class="row-title" data-product="${product.slug}">${product.name}</button><p>${product.summary}</p>${creatorLink(product, true)}<div class="row-facts"><strong>${product.price}</strong><small>${count} ${count === 1 ? "experience" : "experiences"} shared</small></div><button class="project-review-action" data-product="${esc(product.slug)}">Try &amp; give feedback <span aria-hidden="true">→</span></button><section class="card-comments" aria-label="Comments on ${esc(product.name)}">${state.communityPosts.filter(post=>post.projectSlug===product.slug).slice(0,2).map(post=>experienceCard(post)).join('')}${projectCommentComposer(product, true)}</section></div></article>`;
+  return `<article class="catalog-row"><div class="row-media"><button class="row-preview" data-product="${esc(product.slug)}" aria-label="View ${esc(product.name)} details"><img src="${esc(product.preview)}" alt="Preview of the ${esc(product.name)} website" loading="lazy" /></button><button class="save-button-row ${saved ? "is-saved" : ""}" data-save="${esc(product.slug)}" aria-label="${saved ? "Remove" : "Save"} ${esc(product.name)}">${saved ? "♥ Saved" : "♡ Save"}</button></div><div class="row-copy"><div class="product-meta"><span>${esc(product.category)}</span><span>${esc(product.stage)}</span></div><button class="row-title" data-product="${esc(product.slug)}">${esc(product.name)}</button><p>${esc(product.summary)}</p>${creatorLink(product, true)}<div class="row-facts"><strong>${esc(product.price)}</strong><small>${count} ${count === 1 ? "experience" : "experiences"} shared</small></div><button class="project-review-action" data-product="${esc(product.slug)}">Try &amp; give feedback <span aria-hidden="true">→</span></button><section class="card-comments" aria-label="Comments on ${esc(product.name)}">${state.communityPosts.filter(post=>post.projectSlug===product.slug).slice(0,2).map(post=>experienceCard(post)).join('')}${projectCommentComposer(product, true)}</section></div></article>`;
 }
 
 const projectPresentation = {
@@ -477,7 +487,7 @@ function projectCommentComposer(product, compact = false) {
   const id = (compact ? 'card-' : 'detail-') + product.slug;
   const empty = !state.communityPosts.some(post=>post.projectSlug===product.slug);
   const placeholder = compact && empty ? 'Be the first one to review this project' : 'What is the first thing you liked? Was the price right? What was confusing? Mention one or two improvements.';
-  return `<form class="detail-comment-form compact-comment" data-project-comment="${esc(product.slug)}"><div class="comment-input-wrap"><label class="visually-hidden" for="comment-${esc(id)}">Add your comment</label><textarea id="comment-${esc(id)}" name="comment" maxlength="800" rows="2" required data-project-comment-field placeholder="${placeholder}">${esc(draft)}</textarea><button class="comment-send" type="submit" aria-label="Send comment" ${draft.trim()?'':'hidden'}>➤</button></div><details class="inline-help"><summary aria-label="Comment guidelines">?</summary><p><strong>Be thoughtful. Be respectful.</strong> Discuss the project, not the person. Use clear, considerate language. <a href="/community-guidelines">Guidelines</a>. Write 7–150 words.</p></details><small data-project-comment-count class="visually-hidden">${count} / 7 words minimum</small><p data-comment-status role="status" aria-live="polite"></p></form>`;
+  return `<form class="detail-comment-form compact-comment" data-project-comment="${esc(product.slug)}"><div class="comment-input-wrap"><label class="visually-hidden" for="comment-${esc(id)}">Add your comment</label><textarea id="comment-${esc(id)}" name="comment" maxlength="800" rows="2" required aria-describedby="comment-count-${esc(id)}" data-project-comment-field placeholder="${placeholder}">${esc(draft)}</textarea><button class="comment-send" type="submit" aria-label="Send comment" ${draft.trim()?'':'hidden'}>➤</button></div><details class="inline-help"><summary aria-label="Comment guidelines">?</summary><p><strong>Be thoughtful. Be respectful.</strong> Discuss the project, not the person. Use clear, considerate language. <a href="/community-guidelines">Guidelines</a>. Write 7–150 words.</p></details><small id="comment-count-${esc(id)}" data-project-comment-count class="${draft.trim()?'word-counter':'visually-hidden'}">${count} / 7–150 words</small><p data-comment-status role="status" aria-live="polite"></p></form>`;
 }
 
 function detailDrawer(product) {
@@ -485,11 +495,11 @@ function detailDrawer(product) {
   const saved = state.saved.has(product.slug);
   return `<div class="detail-overlay" data-detail-overlay>
     <button class="detail-backdrop" data-detail-close aria-label="Close product details"></button>
-    <section class="detail-dialog mealmap-detail" role="dialog" aria-modal="true" aria-labelledby="detail-title-${product.slug}" tabindex="-1">
+    <section class="detail-dialog mealmap-detail" role="dialog" aria-modal="true" aria-labelledby="detail-title-${esc(product.slug)}" tabindex="-1">
       <div class="detail-scroll">
-        <header class="mealmap-top"><span class="mealmap-wordmark">${esc(product.name)} <span class="project-byline">by <button class="text-button" data-profile="${esc(creatorFor(product).slug)}">${esc(creatorFor(product).name)}</button></span><small>${esc(product.category)} · ${esc(product.stage)} · ${esc(product.price)}</small></span><div class="detail-header-controls"><button class="detail-save ${saved ? "is-saved" : ""}" data-save="${product.slug}">${saved ? "♥ Saved" : "♡ Save"}</button><details class="save-explainer"><summary aria-label="What saving does">?</summary><p>Save this project to find it later. This won’t save any work you do inside the app.</p></details><button type="button" class="detail-share" data-share-product="${product.slug}" aria-label="Share ${esc(product.name)}">Share</button><span class="detail-share-status" data-share-status role="status"></span><button class="detail-close" data-detail-close aria-label="Close ${esc(product.name)} details">×</button></div></header>
-        <div class="mealmap-intro"><div class="project-intro-copy"><p class="eyebrow">${esc(copy[0])}</p><h2 id="detail-title-${product.slug}">${esc(copy[2])}</h2></div><img class="project-screenshot" src="${esc(product.preview)}" alt="Screenshot of ${esc(product.name)}" /></div>
-        <section class="mealmap-answers" aria-label="About ${esc(product.name)}"><div class="mealmap-action"><a class="primary-button" href="${product.url}" target="_blank" rel="noopener">Open ${esc(product.name)} <span aria-hidden="true">↗</span></a><details class="inline-help"><summary aria-label="About opening this app">?</summary><div><p>${projectDestination(product.url)}</p><p>${esc(product.accessNote || (product.slug === "afterschooltogether" ? "No sign-in needed to try it" : product.slug === "mealmap" ? "ChatGPT sign-in required" : "Opens a separate site; sign-in may be required"))}</p></div></details></div><div class="mealmap-answer-grid"><article><h3>How does it help me?</h3><p>${esc(copy[3])}</p></article><article><h3>What feature should I try first?</h3><p>${esc(copy[4])}</p></article></div></section>
+        <header class="mealmap-top"><span class="mealmap-wordmark">${esc(product.name)} <span class="project-byline">by <button class="text-button" data-profile="${esc(creatorFor(product).slug)}">${esc(creatorFor(product).name)}</button></span><small>${esc(product.category)} · ${esc(product.stage)} · ${esc(product.price)}</small></span><div class="detail-header-controls"><button class="detail-save ${saved ? "is-saved" : ""}" data-save="${esc(product.slug)}">${saved ? "♥ Saved" : "♡ Save"}</button><details class="save-explainer"><summary aria-label="What saving does">?</summary><p>Save this project to find it later. This won’t save any work you do inside the app.</p></details><button type="button" class="detail-share" data-share-product="${esc(product.slug)}" aria-label="Share ${esc(product.name)}">Share</button><span class="detail-share-status" data-share-status role="status"></span><button class="detail-close" data-detail-close aria-label="Close ${esc(product.name)} details">×</button></div></header>
+        <div class="mealmap-intro"><div class="project-intro-copy"><p class="eyebrow">${esc(copy[0])}</p><h2 id="detail-title-${esc(product.slug)}">${esc(copy[2])}</h2></div><img class="project-screenshot" src="${esc(product.preview)}" alt="Screenshot of ${esc(product.name)}" /></div>
+        <section class="mealmap-answers" aria-label="About ${esc(product.name)}"><div class="mealmap-action"><a class="primary-button" href="${esc(safeProjectUrl(product.url))}" target="_blank" rel="noopener">Open ${esc(product.name)} <span aria-hidden="true">↗</span></a><details class="inline-help"><summary aria-label="About opening this app">?</summary><div><p>${projectDestination(product.url)}</p><p>${esc(product.accessNote || (product.slug === "afterschooltogether" ? "No sign-in needed to try it" : product.slug === "mealmap" ? "ChatGPT sign-in required" : "Opens a separate site; sign-in may be required"))}</p></div></details></div><div class="mealmap-answer-grid"><article><h3>How does it help me?</h3><p>${esc(copy[3])}</p></article><article><h3>What feature should I try first?</h3><p>${esc(copy[4])}</p></article></div></section>
         ${videoPlayer(product.video)}<div class="mealmap-after"><section class="mealmap-feedback">${projectCommentComposer(product)}<div class="mealmap-comments">${state.communityPosts.filter(post => post.projectSlug === product.slug).length ? state.communityPosts.filter(post => post.projectSlug === product.slug).map(post => experienceCard(post)).join('') : '<p>No reviews yet. Start the conversation.</p>'}</div></section></div>${similarSection(product)}
       </div>
     </section>
@@ -498,13 +508,13 @@ function detailDrawer(product) {
 
 document.addEventListener('input', event => {
   const projectField=event.target.closest('[data-project-comment-field]');
-  if(projectField){const form=projectField.closest('[data-project-comment]'),count=commentWordCount(projectField.value),counter=form.querySelector('[data-project-comment-count]');saveProjectCommentDraft(form.dataset.projectComment,projectField.value);form.querySelector('[type="submit"]').hidden=!projectField.value.trim();counter.textContent=`${count} / 7 words minimum`;counter.classList.toggle('invalid',count>0&&(count<7||count>150));projectField.setCustomValidity(count>=7&&count<=150?'':'Write 7–150 words.');return;}
+  if(projectField){const form=projectField.closest('[data-project-comment]'),count=commentWordCount(projectField.value),counter=form.querySelector('[data-project-comment-count]');saveProjectCommentDraft(form.dataset.projectComment,projectField.value);form.querySelector('[type="submit"]').hidden=!projectField.value.trim();counter.textContent=`${count} / 7–150 words`;counter.classList.toggle('visually-hidden',!projectField.value.trim());counter.classList.toggle('invalid',count>0&&(count<7||count>150));projectField.setCustomValidity(count>=7&&count<=150?'':'Write 7–150 words.');return;}
   const field=event.target.closest('[data-daily-discussion] textarea');if(!field)return;
   saveDiscussionDraft(field.closest('form').dataset.discussionCategory,field.value);const count=commentWordCount(field.value),counter=field.closest('form').querySelector('[data-daily-word-count]');
-  counter.textContent=`${count} / 7 words minimum`;counter.classList.toggle('invalid',count>0&&count<7);field.setCustomValidity(count>=7&&count<=150?'':'Write 7–150 words.');
+  counter.textContent=`${count} / 7–150 words`;counter.classList.toggle('invalid',count>0&&(count<7||count>150));field.setCustomValidity(count>=7&&count<=150?'':'Write 7–150 words.');
 });
 document.addEventListener('input',event=>{
-  const field=event.target.closest('[data-feedback-response]');if(!field)return;const count=commentWordCount(field.value),output=field.closest('.feedback-card').querySelector('[data-feedback-word-count]');if(output){output.textContent=`${count} / 7 words minimum`;output.classList.toggle('invalid',count>0&&count<7);}
+  const field=event.target.closest('[data-feedback-response]');if(!field)return;const count=commentWordCount(field.value),output=field.closest('.feedback-card').querySelector('[data-feedback-word-count]');if(output){output.textContent=`${count} / 7–150 words`;output.classList.toggle('invalid',count>0&&count<7);}
 });
 document.addEventListener('submit', async event => {
   const daily=event.target.closest('[data-daily-discussion]');
@@ -540,7 +550,7 @@ document.addEventListener('submit', async event => {
     const data=await response.json();if (!response.ok) throw new Error(data.error||'Unable to send');
     saveProjectCommentDraft(form.dataset.projectComment,'');status.textContent = data.message||'Your comment was sent for review.';
     form.reset();field.value='';button.hidden=true;
-    form.querySelector('[data-project-comment-count]').textContent='0 / 7 words minimum';field.setCustomValidity('');
+    form.querySelector('[data-project-comment-count]').textContent='0 / 7–150 words';field.setCustomValidity('');
   } catch(error) { status.textContent = error.message||'Your comment could not be sent. Please try again.'; }
   finally { button.disabled = false; }
 });
@@ -573,7 +583,7 @@ function closeProductDetail(restoreFocus = true) {
 function experienceCard(post, showProject = false) {
   const project = projects.find(item => item.slug === post.projectSlug);
   if (!project) return "";
-  return `<article class="experience-card"><div class="experience-person">${avatar({avatar:post.avatar,initials:post.initials||'G'},'small')}<span><strong>${esc(post.author || "Guest participant")}</strong><small>${esc(post.label || "TryMyBuild participant")}</small></span></div>${showProject ? `<button class="experience-project" data-product="${project.slug}">Tried ${project.name} <span>→</span></button>` : ""}<p>${esc(post.response)}</p>${post.signals?.length ? `<div class="experience-signals">${post.signals.map(signal => `<span>${esc(signal)}</span>`).join("")}</div>` : ""}<small class="experience-time">Shared from this prototype · ${esc(post.createdAt || "Recently")}</small></article>`;
+  return `<article class="experience-card"><div class="experience-person">${avatar({avatar:post.avatar,initials:post.initials||'G'},'small')}<span><strong>${esc(post.author || "Guest participant")}</strong><small>${esc(post.label || "TryMyBuild participant")}</small></span></div>${showProject ? `<button class="experience-project" data-product="${esc(project.slug)}">Tried ${esc(project.name)} <span>→</span></button>` : ""}<p>${esc(post.response)}</p>${post.signals?.length ? `<div class="experience-signals">${post.signals.map(signal => `<span>${esc(signal)}</span>`).join("")}</div>` : ""}<small class="experience-time">Shared from this prototype · ${esc(post.createdAt || "Recently")}</small></article>`;
 }
 
 function dailyCommentCard(post) {
@@ -591,8 +601,8 @@ function profilePage() {
 function feedbackPage() {
   const product = state.selected || projects[0];
   const creator = creatorFor(product);
-  if (window.CW_SERVER) return `<section class="page-shell feedback-page"><div class="feedback-card">${creatorLink(product, true)}<p class="eyebrow">Your experience with ${product.name}</p><h1>What happened when you tried it?</h1><p>Anyone who tries a project can respond. No invitation needed.</p>${state.session?.authenticated ? `<p>Sharing as ${esc(state.session.user.displayName)}.</p><div class="feedback-choices"><button data-feedback-choice>It helped me finish the task</button><button data-feedback-choice>I understood how it worked</button><button data-feedback-choice>I got stuck somewhere</button><button data-feedback-choice>I would use it again</button></div><label>Your observation<textarea data-feedback-response maxlength="800" placeholder="What worked? What could be better?"></textarea></label><p class="comment-conduct"><strong>Be thoughtful. Be respectful.</strong> Discuss the project, not the person. Insults, harassment, and abusive wording aren’t welcome. <a href="/community-guidelines">Guidelines</a></p><small data-feedback-word-count class="word-counter">0 / 7 words minimum</small><p class="feedback-error" data-feedback-error aria-live="polite"></p><button class="primary-button" data-feedback-submit>Share my experience</button><p class="prototype-disclosure">Your name and observation will be public once reviewed. This feedback goes to TryMyBuild Studio.</p>` : '<p>Sign in so your observation has a person behind it.</p><a class="primary-button" href="/auth/sign-in">Sign in to respond</a>'}</div></section>`;
-  return `<section class="page-shell feedback-page"><div class="feedback-card">${creatorLink(product, true)}<p class="eyebrow">Your experience with ${product.name}</p><h1>What happened when you tried it?</h1><p>You do not need an invitation. Share something useful with ${esc(creator.name.split(" ")[0])} and with people considering this project.</p><div class="feedback-identity"><label>Name to show<input data-feedback-name maxlength="60" placeholder="Your name or public nickname" /></label><label>How you describe yourself<input data-feedback-label maxlength="60" placeholder="For example: Musician or Parent" /></label></div><div class="feedback-choices"><button data-feedback-choice>It helped me finish the task</button><button data-feedback-choice>I understood how it worked</button><button data-feedback-choice>I got stuck somewhere</button><button data-feedback-choice>I would use it again</button></div><label>What should the creator understand?<textarea data-feedback-response maxlength="800" placeholder="Tell them what worked, what surprised you, or what got in your way."></textarea></label><p class="comment-conduct"><strong>Be thoughtful. Be respectful.</strong> Discuss the project, not the person. Insults, harassment, and abusive wording aren’t welcome. <a href="/community-guidelines">Guidelines</a></p><small data-feedback-word-count class="word-counter">0 / 7 words minimum</small><p class="feedback-error" data-feedback-error aria-live="polite"></p><div class="form-actions"><button class="secondary-button" data-product="${product.slug}">Not now</button><button class="primary-button" data-feedback-submit>Share my experience</button></div><p class="prototype-disclosure">Prototype note: this is not a verified account yet. Your response is saved only in this browser and can be cleared with browser data.</p></div></section>`;
+  if (window.CW_SERVER) return `<section class="page-shell feedback-page"><div class="feedback-card">${creatorLink(product, true)}<p class="eyebrow">Your experience with ${esc(product.name)}</p><h1>What happened when you tried it?</h1><p>Anyone who tries a project can respond. No invitation needed.</p>${state.session?.authenticated ? `<p>Sharing as ${esc(state.session.user.displayName)}.</p><div class="feedback-choices"><button data-feedback-choice>It helped me finish the task</button><button data-feedback-choice>I understood how it worked</button><button data-feedback-choice>I got stuck somewhere</button><button data-feedback-choice>I would use it again</button></div><label>Your observation<textarea data-feedback-response maxlength="800" placeholder="What worked? What could be better?"></textarea></label><p class="comment-conduct"><strong>Be thoughtful. Be respectful.</strong> Discuss the project, not the person. Insults, harassment, and abusive wording aren’t welcome. <a href="/community-guidelines">Guidelines</a></p><small data-feedback-word-count class="word-counter">0 / 7–150 words</small><p class="feedback-error" data-feedback-error aria-live="polite"></p><button class="primary-button" data-feedback-submit>Share my experience</button><p class="prototype-disclosure">Your name and observation will be public once reviewed. This feedback goes to TryMyBuild Studio.</p>` : '<p>Sign in so your observation has a person behind it.</p><a class="primary-button" href="/auth/sign-in">Sign in to respond</a>'}</div></section>`;
+  return `<section class="page-shell feedback-page"><div class="feedback-card">${creatorLink(product, true)}<p class="eyebrow">Your experience with ${esc(product.name)}</p><h1>What happened when you tried it?</h1><p>You do not need an invitation. Share something useful with ${esc(creator.name.split(" ")[0])} and with people considering this project.</p><div class="feedback-identity"><label>Name to show<input data-feedback-name maxlength="60" placeholder="Your name or public nickname" /></label><label>How you describe yourself<input data-feedback-label maxlength="60" placeholder="For example: Musician or Parent" /></label></div><div class="feedback-choices"><button data-feedback-choice>It helped me finish the task</button><button data-feedback-choice>I understood how it worked</button><button data-feedback-choice>I got stuck somewhere</button><button data-feedback-choice>I would use it again</button></div><label>What should the creator understand?<textarea data-feedback-response maxlength="800" placeholder="Tell them what worked, what surprised you, or what got in your way."></textarea></label><p class="comment-conduct"><strong>Be thoughtful. Be respectful.</strong> Discuss the project, not the person. Insults, harassment, and abusive wording aren’t welcome. <a href="/community-guidelines">Guidelines</a></p><small data-feedback-word-count class="word-counter">0 / 7–150 words</small><p class="feedback-error" data-feedback-error aria-live="polite"></p><div class="form-actions"><button class="secondary-button" data-product="${esc(product.slug)}">Not now</button><button class="primary-button" data-feedback-submit>Share my experience</button></div><p class="prototype-disclosure">Prototype note: this is not a verified account yet. Your response is saved only in this browser and can be cleared with browser data.</p></div></section>`;
 }
 
 function readListingDraft() {
@@ -642,6 +652,12 @@ function invalidateListingCapture() {
 async function ensureListingScreenshot(force = false) {
   const url = listingUrl(listingDraft.url);
   if (!url || (!force && (listingImage() || listingCapture.attempted === url)) || listingCapture.state === 'loading') return;
+  if (window.CW_SERVER && !state.session?.authenticated) {
+    if(listingCapture.state==='sign-in-required')return;
+    listingCapture.state='sign-in-required';
+    listingCapture.message = 'Automatic screenshots are available after sign-in. You can upload your own screenshot or continue without one.';
+    refreshListingPreview(); return;
+  }
   const revision = ++listingCapture.revision;
   listingCapture.attempted = url; listingCapture.state = 'loading'; listingCapture.message = 'Capturing your website… You can keep going while it loads.';
   listingCapture.controller?.abort(); const controller = new AbortController(); listingCapture.controller = controller;
@@ -689,7 +705,8 @@ async function useListingScreenshot(file) {
 }
 function listingImageControls() {
   const busy = ['loading','uploading'].includes(listingCapture.state);
-  return `<section class="listing-image-tools" aria-label="Website screenshot"><p role="status" aria-live="polite">${esc(listingCapture.message || (listingImage() ? 'Your website preview is ready.' : 'Add a screenshot of the page people will try.'))}</p><div class="listing-image-drop" data-listing-image-drop><label> ${listingImage() ? 'Replace screenshot' : 'Upload a screenshot'}<input type="file" data-listing-image-upload accept="image/png,image/jpeg,image/webp"></label><span>Or drop it here · PNG, JPG, WebP · up to 5 MB</span></div><button type="button" class="secondary-button" data-listing-capture ${busy?'disabled':''}>${busy?'Preparing image…':listingImage()?'Recapture website':'Retry website capture'}</button><p class="listing-image-note">Automatic capture uses the public page, without your sign-in. If it shows a login screen or misses interactive content, upload your own screenshot. Your draft stays on this device.</p></section>`;
+  const guest = window.CW_SERVER && !state.session?.authenticated;
+  return `<section class="listing-image-tools" aria-label="Website screenshot"><p role="status" aria-live="polite">${esc(listingCapture.message || (listingImage() ? 'Your website preview is ready.' : 'Add a screenshot of the page people will try.'))}</p><div class="listing-image-drop" data-listing-image-drop><label> ${listingImage() ? 'Replace screenshot' : 'Upload a screenshot'}<input type="file" data-listing-image-upload accept="image/png,image/jpeg,image/webp"></label><span>Or drop it here · PNG, JPG, WebP · up to 5 MB</span></div><button type="button" class="secondary-button" data-listing-capture ${guest?'hidden':''} ${busy?'disabled':''}>${busy?'Preparing image…':listingImage()?'Recapture website':'Retry website capture'}</button><p class="listing-image-note">Automatic capture reads only the public website, never a page signed in to your app. If it shows a login screen or misses interactive content, upload your own screenshot. Your draft stays on this device.</p></section>`;
 }
 document.addEventListener('click', event => { if(event.target.closest('[data-listing-capture]')) void ensureListingScreenshot(true); });
 document.addEventListener('change', event => { if(event.target.matches('[data-listing-image-upload]')) void useListingScreenshot(event.target.files?.[0]); });
@@ -1003,6 +1020,8 @@ function render(preserveScroll = false) {
     if(state.session) window.CWAccountMenu?.mount(state.session);
     if(state.session?.preferences) { state.personalization=state.session.preferences.personalization!==false;if(!state.preferencesHydrated){state.interests = new Set(state.session.preferences.interests || []);state.preferencesHydrated=true;} document.body.classList.toggle('hide-guidance', state.session.preferences.tips === false); }
   }
+  const guestControls=document.querySelector('[data-guest-discovery]');
+  if(guestControls){guestControls.hidden=!!state.session?.authenticated;guestControls.querySelector('input').checked=state.personalization;}
   if (focusedSearch) { const input = document.querySelector('[data-catalog-search]'); input?.focus({preventScroll:true}); input?.setSelectionRange(focusedSearch.start, focusedSearch.end); }
   else if (!preserveScroll) window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -1032,7 +1051,7 @@ document.addEventListener("click", async event => {
   if (profile) { state.profileSlug = profile.dataset.profile; state.route = "profile"; render(); return; }
   const route = event.target.closest("[data-route]");
   if (route?.dataset.route === 'account' && window.CW_SERVER && state.session?.authenticated) { location.assign('/dashboard'); return; }
-  if (route) { event.preventDefault(); state.route = route.dataset.route; if (state.route === 'share') homeView = 'test'; render(); return; }
+  if (route) { event.preventDefault(); state.route = route.dataset.route; if (state.route === 'share') homeView = 'test'; render(); app.focus({preventScroll:true}); return; }
   const productButton = event.target.closest("[data-product]");
   if (productButton) {
     const product = projects.find(item => item.slug === productButton.dataset.product);
@@ -1106,7 +1125,7 @@ document.addEventListener("click", async event => {
     const initials = words.slice(0, 2).map(word => word[0]).join("").toUpperCase() || "G";
     state.communityPosts.unshift({ id: String(Date.now()), projectSlug: state.selected.slug, author, initials, label: card.querySelector("[data-feedback-label]").value.trim() || "TryMyBuild participant", response: response || signals[0], signals, createdAt: "Just now" });
     localStorage.setItem("creatorworks-community-posts", JSON.stringify(state.communityPosts));
-    card.innerHTML = `<div class="thank-you"><span>✓</span><h1>Your experience is now part of this project’s story.</h1><p>It will appear in the local community prototype on this device.</p><div class="form-actions"><button class="secondary-button" data-product="${state.selected.slug}">Return to ${state.selected.name}</button><button class="primary-button" data-route="community">See the community</button></div></div>`;
+    card.innerHTML = `<div class="thank-you"><span>✓</span><h1>Your experience is now part of this project’s story.</h1><p>It will appear in the local community prototype on this device.</p><div class="form-actions"><button class="secondary-button" data-product="${esc(state.selected.slug)}">Return to ${esc(state.selected.name)}</button><button class="primary-button" data-route="community">See the community</button></div></div>`;
     return;
   }
   const creatorChoice = event.target.closest("[data-creator-choice]");
@@ -1228,7 +1247,6 @@ document.addEventListener('click',event=>{
   if(event.target.closest('[data-more-conversations]')){state.discussionExpanded=!state.discussionExpanded;render(true);}
   if(event.target.closest('[data-retry-discussion]'))void loadDailyComments();
 });
-let discussionRequest=0;
 async function loadDailyComments(){
   const category=state.category,request=++discussionRequest;if(category==='All')return;
   const now=new Date(),day=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
@@ -1337,7 +1355,21 @@ document.addEventListener('input',event=>{
 function trackCategoryInterest(category){
  if(!category||category==='All'||state.personalization===false)return;
  storedCategoryClicks[category]=(Number(storedCategoryClicks[category])||0)+1;
- localStorage.setItem('trymybuild-category-clicks-v1',JSON.stringify(storedCategoryClicks));
- state.interests=new Set(Object.entries(storedCategoryClicks).sort((a,b)=>b[1]-a[1]).map(([name])=>name));
+ try{localStorage.setItem('trymybuild-category-clicks-v1',JSON.stringify(storedCategoryClicks));}catch{}
+ state.interests=new Set([...(state.session?.preferences?.selected_interests||[]),...Object.entries(storedCategoryClicks).sort((a,b)=>b[1]-a[1]).map(([name])=>name)]);
  if(window.CW_SERVER&&state.session?.authenticated)fetch('/api/category-interest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({category})}).catch(()=>{});
 }
+
+document.addEventListener('change',event=>{
+ if(!event.target.matches('[data-guest-personalization]')||state.session?.authenticated)return;
+ state.personalization=event.target.checked;
+ try{localStorage.setItem('trymybuild-guest-personalization',state.personalization?'on':'off');}catch{}
+ state.interests=new Set(state.personalization?Object.keys(storedCategoryClicks):[]);
+});
+document.addEventListener('click',event=>{
+ if(!event.target.closest('[data-guest-reset]')||state.session?.authenticated)return;
+ for(const key of Object.keys(storedCategoryClicks))delete storedCategoryClicks[key];
+ try{localStorage.removeItem('trymybuild-category-clicks-v1');}catch{}
+ state.interests.clear();
+ document.querySelector('[data-guest-status]').textContent='Category history cleared from this browser.';
+});

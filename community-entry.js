@@ -1,7 +1,10 @@
 /* Homepage journeys. Drafts remain on this device until explicitly submitted. */
 let communityWishes = [];
 let wishesLoaded = false;
+let wishCategory = 'All';
+let wishSubmissionNotice = '';
 function sharingPreferenceFields() {
+ if(['published','in_review'].includes(listingDraft.serverStatus))return `<fieldset class="sharing-preference"><legend>Listing visibility</legend><p>${listingDraft.serverStatus==='published'?'Your listing is public.':'Your listing is awaiting public review.'} To change this, use ${listingDraft.serverStatus==='published'?'Unpublish':'Withdraw from review'} in project settings below.</p></fieldset>`;
  const preference=listingDraft.sharingPreference || 'not_sure';
  return `<fieldset class="sharing-preference"><legend>How would you like to share your app?</legend><div>${[['private','Privately'],['public','Publicly'],['not_sure','Not sure yet']].map(([value,label])=>`<label><input type="radio" name="sharingPreference" data-sharing-preference value="${value}" ${preference===value?'checked':''}>${label}</label>`).join('')}</div><p data-sharing-note>${sharingPreferenceNote(preference)}</p></fieldset>`;
 }
@@ -79,13 +82,13 @@ function welcomeAccountPage() {
 }
 function wishListSection() {
  let draft={};try{draft=JSON.parse(localStorage.getItem('trymybuild-wish-draft')||'{}');}catch{}
- const category=state.category==='All'?(draft.category||categoryCatalog[0].name):state.category;
+ const category=wishCategory==='All'?(draft.category||categoryCatalog[0].name):wishCategory;
  const description=draft.description||state.query||'';
- const wishes=communityWishes.filter(w=>state.category==='All'||w.category===state.category);
- return `<section class="wish-list" id="wish-list"><h2>${state.category==='All'?'Community':esc(state.category)} wish list</h2><p>Real needs. Ideas worth building. What do you wish an app could do?</p><label>Explore wishes by category<select data-wish-category-filter><option value="All">All categories</option>${categoryCatalog.map(c=>`<option ${state.category===c.name?'selected':''}>${esc(c.name)}</option>`).join('')}</select></label><div class="wish-items">${wishes.map(w=>`<article><small>${esc(w.category)}</small><p>${esc(w.description)}</p></article>`).join('')||`<p>${wishesLoaded?'No wishes here yet. Share the first idea.':(window.CW_SERVER?'Wish lists are temporarily unavailable. Please try again later.':'Community wishes are not connected in this preview yet.')}</p>`}</div><form data-wish-form><label>Category<select name="category" required>${categoryCatalog.map(c=>`<option ${category===c.name?'selected':''}>${esc(c.name)}</option>`).join('')}</select></label><label>What should the app do?<textarea name="description" rows="2" maxlength="180" required placeholder="Describe your wish in 4–11 words">${esc(description)}</textarea></label><small data-wish-count>${commentWordCount(description)} / 4–11 words</small><button class="primary-button">Submit my wish</button><p data-wish-status role="status"></p></form></section>`;
+ const wishes=communityWishes.filter(w=>wishCategory==='All'||w.category===wishCategory);
+ return `<section class="wish-list" id="wish-list"><h2>${wishCategory==='All'?'Community':esc(wishCategory)} wish list</h2><p>Real needs. Ideas worth building. What do you wish an app could do?</p><label>Explore wishes by category<select data-wish-category-filter><option value="All">All categories</option>${categoryCatalog.map(c=>`<option ${wishCategory===c.name?'selected':''}>${esc(c.name)}</option>`).join('')}</select></label><div class="wish-items">${wishes.map(w=>`<article><small>${esc(w.category)}</small><p>${esc(w.description)}</p><a class="wish-report" href="mailto:hello@trymybuild.com?subject=Report%20wish%20${encodeURIComponent(w.id)}">Report this wish</a></article>`).join('')||`<p>${wishesLoaded?'No wishes here yet. Share the first idea.':(window.CW_SERVER?'Wish lists are temporarily unavailable. Please try again later.':'Community wishes are not connected in this preview yet.')}</p>`}</div><form data-wish-form><label>Category<select name="category" required>${categoryCatalog.map(c=>`<option ${category===c.name?'selected':''}>${esc(c.name)}</option>`).join('')}</select></label><label>What should the app do?<textarea name="description" rows="2" maxlength="180" required placeholder="Describe your wish in 4–11 words">${esc(description)}</textarea></label><small data-wish-count>${commentWordCount(description)} / 4–11 words</small><button class="primary-button">Submit my wish</button><p class="privacy-note">Wishes are reviewed before publication. Up to 10 pending or published wishes per account. <a href="mailto:hello@trymybuild.com?subject=Wish%20list%20report">Report a wish or request removal</a>.</p><p data-wish-status role="status">${esc(wishSubmissionNotice)}</p></form></section>`;
 }
 document.addEventListener('click',event=>{if(event.target.closest('[data-wish-focus]')){document.querySelector('[data-wish-form] textarea')?.focus();}});
-document.addEventListener('change',event=>{if(event.target.matches('[data-wish-category-filter]')){state.category=event.target.value;renderMenuChange('[data-wish-category-filter]');}});
+document.addEventListener('change',event=>{if(event.target.matches('[data-wish-category-filter]')){wishCategory=event.target.value;refreshWishResults();}});
 
 document.addEventListener('change',event=>{
  const form=event.target.closest('[data-welcome-signup]');
@@ -119,9 +122,16 @@ document.addEventListener('submit',async event=>{
  if(!window.CW_SERVER){status.textContent='Your wish is saved as a local draft. Public submission is available on the connected site.';return;}
  if(!state.session?.authenticated){location.href='/auth/sign-in?signup=1&next='+encodeURIComponent('/?wish=1#wish-list');return;}
  const button=form.querySelector('button');button.disabled=true;
- try{const response=await fetch('/api/wishes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({category,description})});const data=await response.json();if(!response.ok)throw Error(data.error||'Unable to submit wish.');localStorage.removeItem('trymybuild-wish-draft');form.reset();status.textContent='Your wish is published. Thank you for sharing a real need.';await loadCommunityWishes();}catch(error){status.textContent=error.message;}finally{button.disabled=false;}
+ try{const response=await fetch('/api/wishes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({category,description})});const data=await response.json();if(!response.ok)throw Error(data.error||'Unable to submit wish.');localStorage.removeItem('trymybuild-wish-draft');form.reset();wishSubmissionNotice=data.outcome==='duplicate'?(data.status==='published'?'You already shared this wish. It is published.':data.status==='hidden'?'This wish is hidden after review. Contact us if you would like to appeal.':'This wish is already awaiting review.'):'Your wish was submitted for review. Thank you for sharing a real need.';status.textContent=wishSubmissionNotice;form.querySelector('[data-wish-count]').textContent='0 / 4–11 words';await loadCommunityWishes();}catch(error){status.textContent=error.message;}finally{button.disabled=false;}
 });
-async function loadCommunityWishes(){if(!window.CW_SERVER)return;try{const r=await fetch('/api/wishes');if(!r.ok)return;const data=await r.json();communityWishes=data.wishes;wishesLoaded=true;const section=document.getElementById('wish-list');if(section){const template=document.createElement('template');template.innerHTML=wishListSection();section.replaceWith(template.content.firstElementChild);}}catch{}}
+// Update only the results, leaving the composer, focus, and catalog filters intact.
+function refreshWishResults(){
+ const section=document.getElementById('wish-list');if(!section)return;
+ const template=document.createElement('template');template.innerHTML=wishListSection();
+ section.querySelector('h2').textContent=template.content.querySelector('h2').textContent;
+ section.querySelector('.wish-items').replaceWith(template.content.querySelector('.wish-items'));
+}
+async function loadCommunityWishes(){if(!window.CW_SERVER)return;try{const r=await fetch('/api/wishes');if(!r.ok)return;const data=await r.json();communityWishes=data.wishes;wishesLoaded=true;refreshWishResults();}catch{}}
 document.addEventListener('DOMContentLoaded',async()=>{
  await loadCommunityWishes();
  const page=new URLSearchParams(location.search).get('page');if(['about','contact'].includes(page)){state.route=page;render();}

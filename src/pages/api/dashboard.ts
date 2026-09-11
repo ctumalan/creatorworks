@@ -1,3 +1,4 @@
+import {selectedInterests} from '../../server/interest-policy.mjs';
 import {notificationKey} from '../../server/notifications';
 import type { APIRoute } from 'astro';
 import { memberContext } from '../../server/workspace';
@@ -13,11 +14,11 @@ export const POST:APIRoute=async context=>{
   const m=await memberContext(context);if(!m||!m.user.emailVerified)return new Response('Sign in with a verified email',{status:401});
   if(!await allowRequest(m.user.id,'dashboard',20))return new Response('Please wait a minute',{status:429});
   const raw=await context.request.text();if(raw.length>20000)return new Response('Too large',{status:413});
-  const f=Object.fromEntries(new URLSearchParams(raw));section=['preferences','notifications','help','verification'].includes(f.section)?f.section:'overview';const {db,member}=m;let r:any;
+  const fields=new URLSearchParams(raw),f=Object.fromEntries(fields);section=['preferences','notifications','help','verification'].includes(f.section)?f.section:'overview';const {db,member}=m;let r:any;
   if(f.action==='preferences'||f.action==='alerts'){
    const p=preferences(f);if(!p)return back(false);
-   let interests:any[]=[];if(f.action==='preferences'&&p.personalization){const ranked=await db.from('category_engagement').select('category').eq('user_id',member.id).order('clicks',{ascending:false}).order('updated_at',{ascending:false}).limit(10);if(ranked.error)return back(false);interests=ranked.data.map((x:any)=>x.category);}
-   r=await db.from('account_preferences').upsert({user_id:member.id,...(f.action==='alerts'?{feedback_alerts:p.feedback_alerts,publication_alerts:p.publication_alerts}:{tips:p.tips,personalization:p.personalization,interests}),updated_at:new Date().toISOString()});
+   const interests=selectedInterests(fields.getAll('interest'));if(f.action==='preferences'&&!interests)return back(false);
+   r=await db.from('account_preferences').upsert({user_id:member.id,...(f.action==='alerts'?{feedback_alerts:p.feedback_alerts,publication_alerts:p.publication_alerts}:{tips:p.tips,personalization:p.personalization,selected_interests:interests}),updated_at:new Date().toISOString()});
   if(!r.error&&f.action==='alerts')r=await db.from('site_settings').upsert({key:notificationKey(member.id),value:{review_opportunities:f.reviewOpportunities==='on',saved_updates:f.savedUpdates==='on',recommendations:f.recommendations==='on',activity_digest:f.activityDigest==='on',draft_reminders:f.draftReminders==='on'},updated_at:new Date().toISOString()});
   }else if(f.action==='preferences-reset'){
    r=await db.from('category_engagement').delete().eq('user_id',member.id);if(!r.error)r=await db.from('account_preferences').upsert({user_id:member.id,interests:[],updated_at:new Date().toISOString()});

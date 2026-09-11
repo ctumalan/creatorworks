@@ -57,8 +57,17 @@ test('existing draft answers and image survive reload without 2000-character tru
 });
 test('late automatic results cannot overwrite a changed URL or manually chosen image',async()=>{
  const source=readFileSync(new URL('../app.js',import.meta.url),'utf8');let finish;
- const context=vm.createContext({CWPreviewUtils:utils,listingDraft:{url:'https://public.site',image:'',imageSourceUrl:'',imageData:''},listingUrl:v=>v,document:{querySelector:()=>null},saveListingDraft:()=>true,fetch:()=>new Promise(resolve=>finish=resolve),AbortController,setTimeout,clearTimeout});
+ const context=vm.createContext({window:{CW_SERVER:true},state:{session:{authenticated:true}},CWPreviewUtils:utils,listingDraft:{url:'https://public.site',image:'',imageSourceUrl:'',imageData:''},listingUrl:v=>v,document:{querySelector:()=>null},saveListingDraft:()=>true,fetch:()=>new Promise(resolve=>finish=resolve),AbortController,setTimeout,clearTimeout});
  vm.runInContext(source.slice(source.indexOf('let listingCapture ='),source.indexOf('async function useListingScreenshot')),context);
  const pending=context.ensureListingScreenshot();context.invalidateListingCapture();context.listingDraft.imageData='chosen-image';
  finish({ok:true,json:async()=>({image:'data:image/jpeg;base64,AAAA'})});await pending;assert.equal(context.listingDraft.imageData,'chosen-image');
+});
+test('guest preview renders its sign-in note once without a refresh loop and resumes after sign-in',async()=>{
+ const source=readFileSync(new URL('../app.js',import.meta.url),'utf8');let refreshes=0,captures=0;
+ const context=vm.createContext({window:{CW_SERVER:true},state:{session:{authenticated:false}},CWPreviewUtils:utils,listingDraft:{url:'https://public.site',image:'',imageSourceUrl:'',imageData:''},listingUrl:v=>v,document:{querySelector:()=>null},saveListingDraft:()=>true,fetch:async()=>{captures++;return {ok:true,json:async()=>({image:'data:image/jpeg;base64,AAAA'})};},AbortController,setTimeout,clearTimeout});
+ vm.runInContext(source.slice(source.indexOf('let listingCapture ='),source.indexOf('async function useListingScreenshot')),context);
+ context.refreshListingPreview=()=>{refreshes++;if(refreshes>5)throw Error('Recursive preview refresh');void context.ensureListingScreenshot();};
+ await context.ensureListingScreenshot();assert.equal(refreshes,1);assert.equal(captures,0);
+ context.state.session.authenticated=true;await context.ensureListingScreenshot();
+ assert.equal(captures,1);assert.equal(context.listingDraft.imageData,'data:image/jpeg;base64,AAAA');
 });

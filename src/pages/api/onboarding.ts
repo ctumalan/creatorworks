@@ -14,7 +14,7 @@ export const POST: APIRoute = async context => {
   const body=JSON.parse(raw);
   if(!Array.isArray(body.interests)||body.interests.length>33||body.interests.some((x:unknown)=>typeof x!=='string'||!wishCategories.includes(x))||typeof body.alerts!=='boolean')return json({error:'Invalid preferences.'},400);
   const interests=[...new Set(body.interests)];
-  const r=await m.db.from('account_preferences').upsert({user_id:m.member.id,interests},{onConflict:'user_id'});if(r.error)throw r.error;
+  const r=await m.db.from('account_preferences').upsert({user_id:m.member.id,selected_interests:interests},{onConflict:'user_id'});if(r.error)throw r.error;
   const preferences=await notificationPreferences(m.db,m.member.id);
   const n=await m.db.from('site_settings').upsert({key:notificationKey(m.member.id),value:{...preferences,recommendations:body.alerts}},{onConflict:'key'});if(n.error)throw n.error;
   return json({saved:true});

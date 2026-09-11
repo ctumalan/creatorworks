@@ -32,5 +32,5 @@ test('daily discussion is profile-bound, moderated, and cannot earn project cred
 });
 test('all community writing surfaces show conduct guidance and seven-word counters',async()=>{
  const sources=await Promise.all(['../app.js','../src/pages/tell/[slug].ts','../src/server/conversation.ts'].map(path=>readFile(new URL(path,import.meta.url),'utf8')));
- for(const source of sources){assert.match(source,/Be thoughtful\. Be respectful\./);assert.match(source,/7 words minimum|Minimum: 7 words/);assert.match(source,/community-guidelines/);}
+ for(const source of sources){assert.match(source,/Be thoughtful\. Be respectful\./);assert.match(source,/7–150 words|Minimum: 7 words/);assert.match(source,/community-guidelines/);}
 });

@@ -187,7 +187,11 @@
 @media(prefers-reduced-motion:reduce){.creator-quote{animation:none}}
 .creator-quote blockquote{font:1.2rem/1.4 "Newsreader",serif;margin:10px 0;color:#493064}
 .creator-quote>a{font-size:.75rem}.creator-quote .text-button{display:block;margin-top:12px;font-size:.8rem}
-.quote-dismiss{position:absolute;right:8px;top:6px;border:0;background:transparent;cursor:pointer;font-size:1.2rem}
+.quote-dismiss{position:absolute;right:8px;top:6px;border:0;background:transparent;cursor:pointer;font-size:1.2rem;min-width:32px;min-height:32px}
+@media(pointer:coarse){
+ .inline-help summary,.save-explainer summary,.quote-dismiss{min-width:44px;min-height:44px}
+ .inline-help[open]>p,.inline-help[open]>div{top:46px}
+}
 .public-info{max-width:740px;margin:30px auto;padding:30px;border:1px solid var(--line);border-radius:20px;background:white}
 .public-info h1{font-size:2.2rem}.public-info h2{font-size:1.2rem}.public-info p{line-height:1.7}
 @media(max-width:600px){.creator-quote{top:76px;right:16px;padding:16px;max-height:calc(100dvh - 92px)}}

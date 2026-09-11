@@ -1,5 +1,6 @@
 // Local-only visual fixtures. No authentication bypass is added to the application.
 import http from 'node:http';
+import {contentSecurityPolicy} from '../src/server/content-security-policy.mjs';
 import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {stripTypeScriptTypes} from 'node:module';
@@ -31,8 +32,8 @@ http.createServer(async(req,res)=>{
    const path=url.pathname==='/'?'index.html':url.pathname.slice(1);
    if(path.includes('..')||!(/^(assets\/|projects\/)/.test(path)||/^[\w-]+\.(html|js|css)$/.test(path)))throw Error('Not found');
    body=await readFile(new URL(path,root));
-   type=path.endsWith('.js')?'text/javascript':path.endsWith('.css')?'text/css':path.endsWith('.svg')?'image/svg+xml':path.endsWith('.png')?'image/png':path.endsWith('.jpg')?'image/jpeg':'text/html';
+   type=path.endsWith('.woff2')?'font/woff2':path.endsWith('.js')?'text/javascript':path.endsWith('.css')?'text/css':path.endsWith('.svg')?'image/svg+xml':path.endsWith('.png')?'image/png':path.endsWith('.jpg')?'image/jpeg':'text/html';
   }
-  res.writeHead(200,{'Content-Type':type,'Cache-Control':'no-store'});res.end(body);
+  res.writeHead(200,{'Content-Type':type,'Cache-Control':'no-store','Content-Security-Policy':contentSecurityPolicy});res.end(body);
  }catch{res.writeHead(404);res.end('Not found');}
-}).listen(4323,'127.0.0.1',()=>console.log('Local visual fixtures: http://127.0.0.1:4323'));
+}).listen(Number(process.env.CW_QA_PORT||4323),'127.0.0.1',()=>console.log('Local visual fixtures ready.'));

@@ -1,3 +1,5 @@
+@import url('/assets/fonts/fonts.css');
+
 :root {
   --ink: #17332a;
   --muted: #66736e;
@@ -25,7 +27,9 @@ body.is-dialog-open { overflow: hidden; }
 button, input, select, textarea { font: inherit; }
 button { color: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
-button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid rgba(23,106,80,.24); outline-offset: 3px; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 3px solid #7145a8; outline-offset: 3px; }
+.skip-link { position: fixed; top: 8px; left: 8px; z-index: 1000; padding: 12px 18px; background: white; color: #17332a; transform: translateY(-200%); }
+.skip-link:focus { transform: translateY(0); }
 h1, h2, h3, p { margin-top: 0; }
 h1, h2, h3 { font-family: "Newsreader", Georgia, serif; font-weight: 600; letter-spacing: -.03em; }
 img { display: block; max-width: 100%; }
