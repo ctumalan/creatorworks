@@ -1,9 +1,11 @@
 // In-place reading uses the same protected routes as full pages; no client grants access.
 (() => {
  let dialog,opener,loadVersion=0;
+ function closePanel(){const target=dialog;if(!target||target.dataset.closing)return;loadVersion++;if(matchMedia('(prefers-reduced-motion: reduce)').matches){target.close();return;}target.dataset.closing='true';target.animate([{opacity:1,transform:'translateX(0)'},{opacity:0,transform:`translateX(${target.classList.contains('profile-panel')?'-':''}65px)`}],{duration:200,easing:'ease-in',fill:'forwards'}).finished.then(()=>target.isConnected&&target.dataset.closing==='true'&&target.close(),()=>{});}
  const allowed=url=>url.origin===location.origin&&(/^\/people\/[a-z0-9-]+$/.test(url.pathname)||['/admin/project','/dashboard/project'].includes(url.pathname));
  function show(content,kind='project'){
-  if(!dialog){opener=document.activeElement;dialog=document.createElement('dialog');dialog.className='cw-overlay';dialog.setAttribute('aria-label','Details');dialog.innerHTML='<header class="overlay-toolbar"><span>TryMyBuild</span><button type="button" aria-label="Close detail window">×</button></header><div class="overlay-content"></div>';document.body.append(dialog);dialog.querySelector('button').onclick=()=>dialog.close();dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();}});dialog.addEventListener('close',()=>{loadVersion++;dialog.remove();dialog=null;opener?.isConnected&&opener.focus({preventScroll:true});});dialog.showModal();}
+  if(dialog?.dataset.closing){delete dialog.dataset.closing;dialog.getAnimations().forEach(animation=>animation.cancel());}
+  if(!dialog){opener=document.activeElement;dialog=document.createElement('dialog');dialog.className='cw-overlay';dialog.setAttribute('aria-label','Details');dialog.innerHTML='<header class="overlay-toolbar"><span>TryMyBuild</span><button type="button" aria-label="Close detail window">×</button></header><div class="overlay-content"></div>';document.body.append(dialog);dialog.querySelector('button').onclick=closePanel;dialog.addEventListener('cancel',event=>{event.preventDefault();closePanel();});dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)closePanel();}});dialog.addEventListener('close',()=>{loadVersion++;dialog.remove();dialog=null;opener?.isConnected&&opener.focus({preventScroll:true});});dialog.showModal();}
   dialog.classList.toggle('profile-panel',kind==='profile');dialog.querySelector('.overlay-content').replaceChildren(content);return dialog;
  }
  async function open(href,kind='project'){
@@ -24,17 +26,26 @@
  document.addEventListener('keydown',event=>{if(event.key==='Escape'){const opened=[...document.querySelectorAll('.inline-help[open],.project-actions[open]')];if(opened.length){event.preventDefault();opened.forEach(el=>el.open=false);opened.at(-1).querySelector('summary').focus();}}});
  function composer(form){const field=form.querySelector('textarea[name="message"]');if(!field)return;const count=(field.value.match(/[\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*/gu)||[]).length;form.querySelector('.send-arrow').hidden=!field.value.trim();const output=form.querySelector('[data-inline-count]');if(output){output.textContent=`${count} / 7–150 words`;output.hidden=!field.value.trim();}field.setCustomValidity(count>=7&&count<=150?'':'Write 7–150 words.');}
  document.addEventListener('input',event=>{const form=event.target.closest('[data-inline-compose]');if(form)composer(form);});
+ document.addEventListener('input',event=>{const form=event.target.closest('[data-direct-compose]');if(form)form.querySelector('.send-arrow').hidden=!form.elements.message.value.trim();});
  // Native validation must be able to focus required controls inside collapsed details.
  document.addEventListener('invalid',event=>{const detail=event.target.closest('details');if(detail)detail.open=true;},true);
  async function loadConversation(details){
   const region=details.querySelector('.message-body');if(!region||region.dataset.loaded==='true')return;
   region.textContent='Loading conversation…';
-  try{const r=await fetch('/dashboard/thread/'+encodeURIComponent(details.dataset.conversation)+'?fragment=1');if(!r.ok)throw Error();const doc=new DOMParser().parseFromString(await r.text(),'text/html'),section=doc.querySelector('[data-conversation-content]');if(!section)throw Error();region.replaceChildren(section);region.dataset.loaded='true';
-   const read=region.querySelector('[data-mark-thread-read]');if(read)fetch(read.action,{method:'POST',body:new URLSearchParams(new FormData(read))}).catch(()=>{});
+  try{const r=await fetch('/dashboard/'+(details.dataset.conversationKind==='direct'?'direct/':'thread/')+encodeURIComponent(details.dataset.conversation)+'?fragment=1');if(!r.ok)throw Error();const doc=new DOMParser().parseFromString(await r.text(),'text/html'),section=doc.querySelector('[data-conversation-content]');if(!section)throw Error();region.replaceChildren(section);region.dataset.loaded='true';
+   markVisibleReads();
   }catch{region.innerHTML='<p role="alert">This conversation could not be loaded. Close and reopen to retry.</p>';}
  }
+ function markVisibleReads(){document.querySelectorAll('[data-mark-thread-read]').forEach(form=>{if(form.dataset.marked||!form.getClientRects().length&&form.closest('details')&&!form.closest('details').open)return;form.dataset.marked='true';fetch(form.action,{method:'POST',body:new URLSearchParams(new FormData(form))}).then(r=>{if(!r.ok)delete form.dataset.marked;}).catch(()=>delete form.dataset.marked);});}
+ new MutationObserver(markVisibleReads).observe(document.body,{childList:true,subtree:true});markVisibleReads();
  document.addEventListener('toggle',event=>{const details=event.target;if(details.matches?.('[data-conversation]')&&details.open)loadConversation(details);},true);
  document.addEventListener('submit',async event=>{
+  const block=event.target.closest('[data-direct-block]');if(block){if(!confirm(block.elements.action.value==='block'?'Block messages between you and this person?':'Allow messages between you and this person again?'))event.preventDefault();return;}
+  const direct=event.target.closest('[data-direct-compose]');if(direct){event.preventDefault();const field=direct.elements.message,status=direct.querySelector('[data-direct-status]'),button=direct.querySelector('.send-arrow');if(!direct.reportValidity())return;button.disabled=true;status.textContent='Sending…';
+   try{const r=await fetch(direct.action,{method:'POST',body:new URLSearchParams(new FormData(direct))}),data=await r.json();if(!r.ok)throw Error(data.error);field.value='';direct.reset();direct.elements.requestId.value=crypto.randomUUID();button.hidden=true;status.textContent=data.message;const detail=direct.closest('[data-conversation]');if(detail){detail.querySelector('.message-body').dataset.loaded='false';await loadConversation(detail);}else{const link=document.createElement('a');link.href=data.href;link.textContent=' Open in Messages';status.append(link);}}
+   catch(error){status.textContent=error.message||'Unable to send. Your text is still here.';}finally{button.disabled=false;}return;
+  }
+  const credit=event.target.closest('[data-credit-request]');if(credit){if(!confirm(credit.elements.action.value==='cancel'?'Cancel this request and return its reserved credit?':'Reserve 1 credit to request feedback on this published project? A response is not guaranteed.'))event.preventDefault();return;}
   const form=event.target.closest('[data-inline-compose]');if(!form)return;event.preventDefault();composer(form);if(!form.reportValidity())return;
   const button=form.querySelector('.send-arrow'),status=form.querySelector('[data-inline-status]');button.disabled=true;status.textContent='Sending…';
   try{const r=await fetch(form.action,{method:'POST',headers:{Accept:'application/json'},body:new URLSearchParams(new FormData(form))});const data=await r.json();if(!r.ok)throw Error(data.error||'Your message was not sent.');

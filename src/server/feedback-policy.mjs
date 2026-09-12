@@ -18,6 +18,7 @@ export function feedbackInput(data) {
 }
 export function threadAccess(memberId, authorId, ownerId) { return !!memberId && (memberId === authorId || memberId === ownerId); }
 export function feedbackDestination(value) {
+  if(typeof value==='string'&&/^\/people\/[a-z0-9-]{1,80}$/.test(value))return value;
   if(value==='/dashboard/messages' || typeof value==='string' && /^\/dashboard\/messages\?thread=[0-9a-f-]{36}$/.test(value))return value;
   // Only a local category return path is accepted; never an arbitrary redirect.
   if (typeof value === 'string' && value.startsWith('/?category=')) {

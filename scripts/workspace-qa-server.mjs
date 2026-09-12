@@ -4,11 +4,12 @@ import {readFile} from 'node:fs/promises';
 import {workspaceFixtures} from './workspace-fixtures.mjs';
 import {contentSecurityPolicy} from '../src/server/content-security-policy.mjs';
 const {routes,scope,id}=workspaceFixtures(),root=new URL('../',import.meta.url);
+const port=Number(process.argv[2]||4325);if(!Number.isInteger(port)||port<1024||port>65535)throw Error('Invalid preview port');
 http.createServer(async(req,res)=>{
  try{
-  const url=new URL(req.url,'http://127.0.0.1:4325');
+  const url=new URL(req.url,'http://127.0.0.1:'+port);
   if(req.method!=='GET'){res.writeHead(503,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'Local preview: sending is disabled. Your text is still here.'}));return;}
-  const context={url,params:{section:url.pathname.split('/').at(-1),id},cookies:{get(){}},redirect:(href,status)=>new Response(null,{status,headers:{Location:href}})};
+  const context={url,params:{section:url.pathname.split('/').at(-1),slug:url.pathname.split('/').at(-1),id},cookies:{get(){}},redirect:(href,status)=>new Response(null,{status,headers:{Location:href}})};
   let response;
   if(routes[url.pathname])response=await routes[url.pathname](context);
   else if(url.pathname.startsWith('/people/'))response=scope.surface('Sample Creator','<div data-panel-content><h1>Sample Creator</h1><p>Local profile preview. All interactions remain inside TryMyBuild.</p><a href="/dashboard/profile">Edit my profile</a></div>');
@@ -18,4 +19,4 @@ http.createServer(async(req,res)=>{
   else{const path=url.pathname==='/'?'index.html':url.pathname.slice(1);if(path.includes('..')||!(/^(assets\/|projects\/)/.test(path)||/^[\w-]+\.(html|js|css)$/.test(path)))throw Error('Not found');const type=path.endsWith('.js')?'text/javascript':path.endsWith('.css')?'text/css':path.endsWith('.svg')?'image/svg+xml':path.endsWith('.png')?'image/png':'text/html';response=new Response(await readFile(new URL(path,root)),{headers:{'Content-Type':type}});}
   res.writeHead(response.status,{...Object.fromEntries(response.headers),'Content-Security-Policy':contentSecurityPolicy,'Cache-Control':'no-store'});res.end(Buffer.from(await response.arrayBuffer()));
  }catch(error){console.error(error.message);res.writeHead(500);res.end('Local fixture unavailable');}
-}).listen(4325,'127.0.0.1',()=>console.log('Workspace preview: http://127.0.0.1:4325/dashboard/overview'));
+}).listen(port,'127.0.0.1',()=>console.log('Workspace preview: http://127.0.0.1:'+port+'/dashboard/community'));

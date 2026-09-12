@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro';
 import { authReady, authMessage, cookieOptions, env, SESSION_COOKIE, workos } from '../../server/auth';
 import { equalState } from '../../server/security.mjs';
-import { ensureMember, databaseReady } from '../../server/database';
+import { ensureMember, databaseReady,database } from '../../server/database';
+import {claimGuestComments} from '../../server/guest-comments';
 import { feedbackDestination } from '../../server/feedback-policy.mjs';
 import { signProof, validProof } from '../../server/account-security.mjs';
 
@@ -27,7 +28,7 @@ export const GET: APIRoute = async context => {
     });
     if (!result.user.emailVerified) return authMessage('Please verify your email on the sign-in page before continuing.',403);
     if (!result.sealedSession) return authMessage('We could not complete sign-in. Please try again.', 502);
-    if (databaseReady()) await ensureMember(result.user);
+    if (databaseReady()) {const member=await ensureMember(result.user);await claimGuestComments(context,database(),member.id);}
     context.cookies.set(SESSION_COOKIE, result.sealedSession, cookieOptions(context));
     if (validProof(securityChallenge,result.user.id,'challenge',env('WORKOS_COOKIE_PASSWORD'))) {
       context.cookies.set('cw_security_fresh',signProof(result.user.id,'fresh',env('WORKOS_COOKIE_PASSWORD')), {...cookieOptions(context),maxAge:300});

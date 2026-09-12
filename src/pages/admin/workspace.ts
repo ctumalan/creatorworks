@@ -22,6 +22,15 @@ export const GET:APIRoute=async context=>{
    if(id&&/^[0-9a-f-]{36}$/.test(id)){
     const r=await db.from('support_cases').select('*').eq('id',id).single();if(r.error)throw r.error;const c=r.data;
     const reported=c.kind==='report'?String(c.message).match(/^Conversation ([0-9a-f-]{36})(?: · Reply ([0-9a-f-]{36}))?/):null;
+    const privateReport=c.kind==='report'?String(c.message).match(/^Private conversation ([0-9a-f-]{36})/):null;
+    if(privateReport){
+     const page=Math.max(0,Math.min(10000,Number(context.url.searchParams.get('messagesPage'))||0));
+     const thread=await db.from('direct_threads').select('id,member_a,member_b').eq('id',privateReport[1]).maybeSingle();if(thread.error)throw thread.error;
+     if(thread.data&&[thread.data.member_a,thread.data.member_b].includes(c.user_id)){
+      const messages=await db.from('direct_messages').select('sender_id,message,created_at',{count:'exact'}).eq('thread_id',thread.data.id).order('created_at',{ascending:false}).order('id').range(page*25,page*25+24);if(messages.error)throw messages.error;
+      body+=`<section class="cw-panel"><h2>Reported private conversation</h2><p>Private evidence for this report only. Criticism alone is not abuse.</p>${messages.data.map(message=>`<article class="cw-reply"><small>${e(message.sender_id===c.user_id?'Reporter':'Other participant')} · ${e(message.created_at)}</small><p class="cw-message">${e(message.message)}</p></article>`).join('')}<nav>${page?`<a href="?tab=cases&amp;case=${id}&amp;messagesPage=${page-1}">Newer</a>`:''}${(page+1)*25<(messages.count||0)?`<a href="?tab=cases&amp;case=${id}&amp;messagesPage=${page+1}">Older</a>`:''}</nav></section>`;
+     }
+    }
     if(reported){
      const review=await db.from('creator_feedback').select('id,author_user_id,project_slug,message').eq('id',reported[1]).maybeSingle();if(review.error)throw review.error;
      const owner=review.data?await db.from('projects').select('owner_user_id').eq('slug',review.data.project_slug).maybeSingle():{data:null,error:null};if(owner.error)throw owner.error;

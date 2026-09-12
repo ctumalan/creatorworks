@@ -13,6 +13,12 @@ export const GET:APIRoute=async context=>{
   output.notificationPreferences=await notificationPreferences(m.db,m.member.id);
   for(const [t,k] of tables)output[t]=await read(t,k);
   output.feedbackRecognitionGiven=await read('feedback_ratings','creator_user_id');
+  output.guestComments=(await read('project_experiences','guest_subscriber')).map(({guest_hash,...row}:any)=>row);
+  const mine=[...await read('direct_threads','member_a'),...await read('direct_threads','member_b')];
+  output.directThreads=[...new Map(mine.map((t:any)=>[t.id,t])).values()];
+  output.directMessages=[];
+  for(const thread of output.directThreads){for(let page=0;;page++){const r=await m.db.from('direct_messages').select('id,thread_id,sender_id,message,created_at').eq('thread_id',thread.id).order('created_at').order('id').range(page*500,page*500+499);if(r.error)throw r.error;output.directMessages.push(...r.data);if(r.data.length<500)break;}}
+  output.blockedMembers=await read('direct_blocks','blocker');
   output.feedbackRecognitionReceived=await read('feedback_ratings','reviewer_user_id');
   output.projectBuilds=await Promise.all(output.projects.map(async(p:any)=>({project:p.slug,...await readBuilds(m.db,p.id)})));
   return new Response(JSON.stringify(output,null,2),{headers:{'Content-Type':'application/json','Content-Disposition':'attachment; filename="trymybuild-my-data.json"','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});

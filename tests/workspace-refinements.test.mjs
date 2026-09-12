@@ -49,7 +49,7 @@ test('saved project review is directly accessible and cannot silently invent qua
 test('messages use server-side sorting and inline conversations, with one empty state',async()=>{
  const f=workspaceFixtures(),html=await (await f.routes['/dashboard/messages'](context('/dashboard/messages?sort=oldest&unread=1&thread='+f.id))).text();
  assert.match(html,/class="cw-message-toolbar"/);assert.match(html,/data-conversation-content/);assert.match(html,/data-inline-compose/);assert.match(html,/aria-label="Send reply" hidden/);
- assert.equal(f.db.calls.find(c=>c[0]==='cw_workspace_inbox')[1].p_sort,'oldest');
+ assert.equal(f.db.calls.find(c=>c[0]==='cw_combined_inbox')[1].p_sort,'oldest');
  const privateRoute=moduleFixture('src/pages/dashboard/thread/[id].ts',['GET'],{...f.scope,memberContext:async()=>null}).GET;
  assert.equal((await privateRoute(context('/dashboard/thread/'+f.id+'?fragment=1',{id:f.id}))).status,401);
  assert.equal(await f.scope.conversation(f.db,'unrelated-user',f.id,new URL('https://example.invalid')),null);

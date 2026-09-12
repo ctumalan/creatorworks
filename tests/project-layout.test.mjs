@@ -4,11 +4,11 @@ import {readFileSync} from 'node:fs';
 const app=readFileSync(new URL('../app.js',import.meta.url),'utf8');
 const css=readFileSync(new URL('../launch-refinements.css',import.meta.url),'utf8');
 const drawer=app.slice(app.indexOf('function detailDrawer(product)'),app.indexOf("document.addEventListener('input'",app.indexOf('function detailDrawer(product)')));
-test('detail view uses a real uncropped screenshot and contextual information',()=>{
- assert.match(drawer,/class="project-screenshot"/);
+test('detail view uses the invitation screenshot layout and relevant information',()=>{
+ assert.match(drawer,/class="recipient-art"/);
  assert.doesNotMatch(drawer,/--project-wallpaper|Good to know/);
- assert.match(drawer,/What saving does/);
- assert.match(drawer,/projectDestination\(product\.url\)/);
+ assert.doesNotMatch(drawer,/What saving does|About opening this app/);
+ assert.match(drawer,/Try this project ↗/);
  assert.match(drawer,/No reviews yet/);
  assert.match(drawer,/videoPlayer\(product.video\)/);
  assert.match(css,/\.mealmap-detail \.project-screenshot\{[^}]*object-fit:contain/);

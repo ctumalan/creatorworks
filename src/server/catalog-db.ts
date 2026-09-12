@@ -80,7 +80,8 @@ export function toClientProject(row: any, attributedBy: (row: any) => any, index
     ownershipStatus: row.ownership_status || 'unverified',
     creator: attributedBy(row),
     recentOrder: 1000 - index,
-    reviewCount: 0,
+    reviewCount: Number(row.publicComments)||0,
+    recentCommentCount: Number(row.recentComments)||0,
     saveCount,
   };
 }
@@ -92,7 +93,9 @@ export async function listPublished() {
     .eq('listing_status', 'published').order('published_at', { ascending: false }).order('updated_at', { ascending: false }).limit(500);
   if (error) throw error;
   const attributedBy = await attributions(db, data || []);
-  return (data || []).map((row: any, i: number) => toClientProject(row, attributedBy, i));
+  const activity=await db.rpc('cw_public_activity');if(activity.error)throw activity.error;
+  const counts=new Map((activity.data||[]).map((r:any)=>[r.slug,r]));
+  return (data || []).map((row: any, i: number) => {const a:any=counts.get(row.slug);return toClientProject({...row,publicComments:a?.comments,recentComments:a?.recent_comments}, attributedBy, i);});
 }
 
 // One published listing by slug, or null. Used for shareable /?project=slug and detail hydration.
@@ -102,7 +105,8 @@ export async function getPublishedProject(slug: string) {
   if (error) throw error;
   if (!data) return null;
   const attributedBy = await attributions(db, [data]);
-  return toClientProject(data, attributedBy);
+  const activity=await db.rpc('cw_public_activity');if(activity.error)throw activity.error;const a=activity.data?.find((r:any)=>r.slug===slug);
+  return toClientProject({...data,publicComments:a?.comments,recentComments:a?.recent_comments}, attributedBy);
 }
 
 // The raw project row for a slug (any status), for ownership-aware server logic.

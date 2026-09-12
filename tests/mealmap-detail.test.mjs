@@ -15,8 +15,8 @@ test('All eleven projects use the approved presentation with their own action ta
   const product = { slug: 'mealmap', url: 'https://meal-map-cw.tumalanct.chatgpt.site', preview: 'assets/previews/mealmap.png', note: 'New listing', benefits: [] };
   const markup = context.detailDrawer(product);
   assert.doesNotMatch(markup, /What does it do\?/);
-  assert.match(markup, /How does it help me\?/);
-  assert.match(markup, /What feature should I try first\?/);
+  assert.match(markup, /How it helps/);
+  assert.match(markup, /One thing to try first/);
   assert.doesNotMatch(markup, /Illustrative plan|mealmap-screenshot|mealmap-lead/);
   assert.match(markup, /data-project-comment="mealmap"/);
   assert.match(markup, /data-project-comment-field/);
@@ -34,6 +34,7 @@ test('All eleven projects use the approved presentation with their own action ta
     assert.ok(html.includes(`data-save="${slug}"`));
     assert.ok(html.includes(`assets/previews/${slug}.png`));
     assert.ok(html.includes(`https://example.com/${slug}`));
-    assert.ok(html.indexOf('mealmap-action') < html.indexOf('mealmap-answer-grid'));
+    assert.ok(html.indexOf('recipient-art') < html.indexOf('Try this project ↗'));
+    assert.ok(html.indexOf('Try this project ↗') < html.indexOf('recipient-answers'));
   }
 });

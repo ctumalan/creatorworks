@@ -1,0 +1,4 @@
+export const creditExplainer = `<figure class="credit-explainer">
+<img src="/assets/community-credits-explainer.png" width="1536" height="1024" alt="Community credits, made simple: Give feedback and Receive Feedback. The benefits are also available in the text version below." decoding="async">
+<figcaption><details><summary>Read the benefits in text</summary><div class="credit-explainer-text"><section><h3>Give feedback</h3><ul><li>Earn <strong>1 credit</strong> per qualifying review.</li><li>Discover useful apps.</li><li>Help creators improve their projects.</li></ul></section><section><h3>Receive Feedback</h3><ul><li>Request feedback with <strong>1 credit</strong>.</li><li>Learn what works and what needs fixing.</li><li>Find ideas for your next update.</li></ul><p>For published projects. Responses aren’t guaranteed.</p></section></div><p>You can do both. More rewards and milestones are explained below.</p></details></figcaption>
+</figure>`;
