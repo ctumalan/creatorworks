@@ -46,7 +46,7 @@ Also fixed overlapping creator/Share controls on narrow project headers and ensu
 
 ## Release requirements
 
-Review/apply `database/019_launch_safety.sql`, `database/020_workspace_refinements.sql`, and `database/021_wish_categories.sql` in order to the intended database before deploying this working tree. The overview and inbox depend on the workspace functions; the wish category menu depends on the published-category function. None of these migrations was applied to production in these passes. Confirm the actual production migration state before release rather than replaying an already-applied migration.
+Migrations `database/019_launch_safety.sql`, `database/020_workspace_refinements.sql`, and `database/021_wish_categories.sql` were applied and verified in production on September 12 after the owner reconnected Supabase. See `RELEASE_2026-09-12.md` for backup, access-control, and data-preservation checks. Do not replay these migrations. The overview and inbox depend on the workspace functions; the wish category menu depends on the published-category function.
 
 The earlier identity/indexing launch hold remains unchanged. This UI pass is not confirmation that production authentication or official launch readiness has been cleared.
 
@@ -54,7 +54,7 @@ Local sample-data preview, while its development server is running: `http://127.
 
 ## Quick corrections: wish categories
 
-Implemented after the second **DONE**, locally only:
+Implemented after the second **DONE**:
 
 - One category selector both filters wishes and assigns the submission category. All categories is browse-only and cannot be submitted.
 - Other… reveals a matching-width text field with existing-category suggestions. Typed names use consistent casing/spacing and reuse familiar aliases, such as Finance → Money.
@@ -62,4 +62,4 @@ Implemented after the second **DONE**, locally only:
 - The public menu includes categories from older published wishes beyond the newest 200 records. Selecting a category filters on the server; stale responses cannot overwrite a later selection.
 - Changing categories, reloading, returning from sign-in, and failed submissions preserve the draft. Successful submission clears only the wish text, retaining the selected category.
 
-Verification: 176 automated tests, type checking, and production build pass. Disposable PostgreSQL tests cover case/spacing duplicates, pending → published → hidden categories, more than 200 wishes, server-only function access, and account erasure. Browser checks confirm one selector, conditional Other field, retained drafts after switching/reload, and equal widths for selector, custom input, and wish text. No production wish or category was created, and nothing was committed or deployed.
+Verification: 176 automated tests, type checking, and production build pass. Disposable PostgreSQL tests cover case/spacing duplicates, pending → published → hidden categories, more than 200 wishes, server-only function access, and account erasure. Browser checks confirm one selector, conditional Other field, retained drafts after switching/reload, and equal widths for selector, custom input, and wish text. No production wish or category was created during testing. Application changes were committed and pushed as `0bad027`; the live database migration checkpoint is documented in the release record.
