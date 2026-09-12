@@ -20,6 +20,12 @@ export function signInDescription(method) {
   const labels = { Password: 'Email and password', GoogleOAuth: 'Google', GitHubOAuth: 'GitHub', MicrosoftOAuth: 'Microsoft', AppleOAuth: 'Apple', MagicAuth: 'Email sign-in code', SSO: 'Organization single sign-on', Passkey: 'Passkey' };
   return labels[method] || 'Managed sign-in';
 }
+export function sessionLabel(agent) {
+ const ua=String(agent||'');
+ const browser=/Edg\//.test(ua)?'Edge':/Firefox\//.test(ua)?'Firefox':/(Chrome|CriOS)\//.test(ua)?'Chrome':/Safari\//.test(ua)?'Safari':'Browser';
+ const device=/iPhone/.test(ua)?'iPhone':/iPad/.test(ua)?'iPad':/Android/.test(ua)?'Android':/Macintosh|Mac OS X/.test(ua)?'Mac':/Windows/.test(ua)?'Windows':/Linux/.test(ua)?'Linux':'';
+ return device?`${browser} on ${device}`:ua?browser:'Device unavailable';
+}
 export async function revokeAllSessions(api, userId) {
   const sessions = await (await api.listSessions(userId)).autoPagination();
   let failures = 0;

@@ -6,7 +6,7 @@ import vm from 'node:vm';
 import {contentSecurityPolicy} from '../src/server/content-security-policy.mjs';
 import {selectedInterests,recommendationInterests} from '../src/server/interest-policy.mjs';
 import {previewUrl} from '../src/server/preview-network.mjs';
-import {validWish} from '../src/server/wish-policy.mjs';
+import {validWish,normalizeWishCategory,wishCategories} from '../src/server/wish-policy.mjs';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const source=read('app.js');
 function fn(name) {
@@ -71,9 +71,9 @@ test('automatic capture rejects guests, unverified accounts and exhausted or una
 test('wish feed filters published only and submissions use the atomic capped procedure',async()=>{
  const filters=[];let rpcCall;
  const query={select(){return this;},eq(...args){filters.push(args);return this;},order(){return this;},limit:async()=>({data:[],error:null})};
- const db={from:()=>query,rpc:async(...args)=>{rpcCall=args;return {data:{outcome:'submitted',status:'pending'},error:null};}};
- const api=route('src/pages/api/wishes.ts',{json,origin:()=>'',sameOrigin:()=>true,database:()=>db,databaseReady:()=>true,memberContext:async()=>({user:{id:'auth',emailVerified:true},member:{id:'member'},db}),allowRequest:async()=>true,validWish});
- assert.equal((await api.GET()).status,200);
+ const db={from:()=>query,rpc:async(...args)=>{rpcCall=args;return {data:args[0]==='cw_wish_categories'?[]:{outcome:'submitted',status:'pending'},error:null};}};
+ const api=route('src/pages/api/wishes.ts',{json,origin:()=>'',sameOrigin:()=>true,database:()=>db,databaseReady:()=>true,memberContext:async()=>({user:{id:'auth',emailVerified:true},member:{id:'member'},db}),allowRequest:async()=>true,validWish,normalizeWishCategory,wishCategories});
+ assert.equal((await api.GET({url:new URL('https://trymybuild.test/api/wishes')})).status,200);
  assert.deepEqual(filters,[['moderation_status','published']]);
  const result=await api.POST(request({category:'Technology',description:'Help me organize useful bookmarks'}));
  assert.equal(result.status,200);assert.equal((await result.json()).status,'pending');

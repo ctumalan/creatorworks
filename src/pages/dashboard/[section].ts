@@ -1,12 +1,12 @@
 import {wishCategories} from '../../server/wish-policy.mjs';
-import {verificationCard} from '../../server/verification';
+import {OWNED_CARD_FIELDS,performancePanel} from '../../server/dashboard-cards';
 import {notificationPreferences,prepareNotifications} from '../../server/notifications';
 import type { APIRoute } from 'astro';
 import { memberContext, workspace, notice, empty } from '../../server/workspace';
 import { signIn, e, unavailable } from '../../server/feedback-ui';
 import { randomUUID } from 'node:crypto';
 import { creditSummary } from '../../server/community-credits';
-import { communityProgress } from '../../server/community-progress';
+
 const field=(name:string,value:string)=>`<input type="hidden" name="${name}" value="${e(value)}">`;
 const start=(action:string,section:string)=>`<form method="post" action="/api/dashboard">${field('action',action)}${field('section',section)}`;
 const check=(name:string,label:string,on:boolean)=>`<label class="cw-choice"><input type="checkbox" name="${name}" ${on?'checked':''}>${label}</label>`;
@@ -22,7 +22,8 @@ export const GET:APIRoute=async context=>{
    const results=await Promise.all([db.from('projects').select('id',{head:true,count:'exact'}).eq('owner_user_id',member.id),db.from('saved_projects').select('project_slug',{head:true,count:'exact'}).eq('user_id',member.id),db.from('notifications').select('id',{head:true,count:'exact'}).eq('user_id',member.id).is('read_at',null),db.from('support_cases').select('id',{head:true,count:'exact'}).eq('user_id',member.id).neq('status','resolved')]);
    if(results.some(r=>r.error))throw Error();
    const credit=await creditSummary(db,member.id);
-   body+=`<div class="cw-stat-grid">${results.map((r,i)=>`<a class="cw-panel" href="${['/dashboard?view=creator','/dashboard?view=visitor','/dashboard/notifications','/dashboard/help'][i]}"><strong>${r.count}</strong><span>${['My projects','Saved projects','Unread notifications','Open requests'][i]}</span></a>`).join('')}</div>${communityProgress(credit)}${verificationCard(credit.verification)}<section class="cw-panel"><h2>Make something worth discovering.</h2><p>Add a project, pick up a draft, or see what people thought after trying your work.</p><div class="cw-row"><a class="primary-button" href="/?listing=settings&new=1">Add a project</a><a class="secondary-button" href="/dashboard?view=creator">Manage my projects</a></div></section>`;
+   const [projects,comments]=await Promise.all([db.from('projects').select(OWNED_CARD_FIELDS).eq('owner_user_id',member.id).order('updated_at',{ascending:false}).order('id').limit(8),db.rpc('cw_workspace_inbox',{p_user:member.id})]);if(projects.error||comments.error)throw Error();
+   body+=`<div class="workspace-summary">${results.map((r,i)=>`<a href="${['/dashboard?view=creator','/dashboard?view=visitor','/dashboard/notifications','/dashboard/help'][i]}"><strong>${r.count}</strong><span>${['My projects','Saved projects','Unread notifications','Open requests'][i]}</span></a>`).join('')}<a href="/dashboard/messages"><strong>${Number(comments.data?.[0]?.total_count)||0}</strong><span>Conversations</span></a><a href="/dashboard/community"><strong>${credit.balance}</strong><span>Community credits</span></a></div>${performancePanel(projects.data,results[0].count||0)}`;
   }else if(section==='preferences'||section==='notifications'){
    const pref=await db.from('account_preferences').select('*').eq('user_id',member.id).maybeSingle();if(pref.error)throw Error();const p={feedback_alerts:true,publication_alerts:true,tips:true,personalization:true,interests:[],selected_interests:[],...pref.data,...await notificationPreferences(db,member.id)};
    title=section==='preferences'?'Your preferences':'Notifications';

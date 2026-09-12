@@ -136,15 +136,17 @@
 .catalog-row .creator-link.is-compact .creator-verified{font-size:.62rem;white-space:nowrap}
 .catalog-row .creator-link.is-compact small{display:none}
 .card-comments{border-top:1px solid var(--line);margin-top:10px;padding-top:10px}
-.card-comments .inline-help[open]{flex-basis:100%}
+.card-comments .inline-help[open]{grid-column:1/-1}
 .card-comments .inline-help[open]>p{position:static;width:auto;box-shadow:none;margin-top:6px}
 .card-comments .experience-card{padding:8px;font-size:.8rem}
-.compact-comment.detail-comment-form{display:flex;gap:6px;flex-wrap:wrap;align-items:start;background:transparent;border:0;padding:0;margin:8px 0}
-.comment-input-wrap{position:relative;flex:1;min-width:0}
-.compact-comment textarea{box-sizing:border-box;width:100%;min-height:58px;border-radius:18px;background:#f4f4f4;padding:12px 38px 12px 12px;font:inherit;font-size:.85rem;resize:vertical}
+.compact-comment.detail-comment-form{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:6px;align-items:start;width:100%;max-width:none;background:transparent;border:0;padding:0;margin:8px 0}
+.comment-input-wrap{position:relative;min-width:0}
+.compact-comment textarea{box-sizing:border-box;display:block;width:100%;min-height:58px;margin:0;border:1px solid var(--line);border-radius:18px;background:#f4f4f4;padding:12px 38px 12px 12px;font:inherit;font-size:.85rem;resize:vertical}
 .comment-send{position:absolute;right:7px;bottom:10px;border:0;background:transparent;color:#7547ac;cursor:pointer;padding:6px;font-size:1.1rem}
 .comment-send[hidden]{display:none}
-.compact-comment [data-comment-status]{flex-basis:100%;margin:0;font-size:.8rem}
+/* Counters and status messages must never compete with the input for row width. */
+.compact-comment [data-project-comment-count],.compact-comment [data-comment-status]{grid-column:1/-1;max-width:none;margin:0;font-size:.8rem}
+.compact-comment [data-comment-status]:empty{display:none}
 .inline-help{position:relative;display:inline-block;vertical-align:middle}
 .inline-help summary{display:grid;place-items:center;width:23px;height:23px;border:1px solid #aaa;border-radius:50%;cursor:pointer;list-style:none;font:600 .8rem sans-serif}
 .inline-help summary::-webkit-details-marker{display:none}

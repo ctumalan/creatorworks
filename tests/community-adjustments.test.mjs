@@ -9,7 +9,7 @@ const app=read('app.js'),entry=read('community-entry.js');
 test('wish word limits are enforced at both boundaries',()=>{
  for(const n of [0,1,3,12,20])assert.equal(validWish('Technology',Array(n).fill('word').join(' ')),false);
  for(const n of [4,5,10,11])assert.equal(validWish('Technology',Array(n).fill('word').join(' ')),true);
- assert.equal(validWish('Invented category','Help me plan my meals'),false);
+ assert.equal(validWish('Invented category','Help me plan my meals'),true);
  assert.equal(validWish('Technology',null),false);
  assert.equal(validWish('Technology','!!! ... --- ???'),false);
 });
@@ -32,8 +32,19 @@ test('compact comments have unique labels, contextual placeholders and hidden em
  ctx.esc=s=>String(s).replaceAll('<','&lt;');
  assert.doesNotMatch(ctx.projectCommentComposer(p),/<script>/);
 });
+test('comment input has its own flexible grid track; counters and status cannot squeeze it',()=>{
+ const css=read('launch-refinements.css');
+ const form=css.match(/\.compact-comment\.detail-comment-form\{([^}]+)\}/)?.[1];
+ assert.match(form,/display:grid/);
+ assert.match(form,/grid-template-columns:minmax\(0,1fr\) 44px/);
+ assert.match(form,/width:100%/);
+ assert.match(form,/max-width:none/);
+ assert.match(css,/\.compact-comment \[data-project-comment-count\],\.compact-comment \[data-comment-status\]\{[^}]*grid-column:1\/-1/);
+ assert.match(css,/\.compact-comment \[data-comment-status\]:empty\{display:none\}/);
+ assert.match(css,/\.card-comments \.inline-help\[open\]\{grid-column:1\/-1\}/);
+});
 test('listing journey presents core fields together and keeps tab navigation',()=>{
- const ctx=vm.createContext({document:{addEventListener(){}},listingCategoryPicker:()=>'<select></select>',listingField:(name)=>`FIELD:${name}`,categoryCatalog:[{name:'Technology'}],listingDraft:{category:'Technology'},esc:String});
+ const ctx=vm.createContext({document:{addEventListener(){}},listingPricingField:()=>'<select>Free + paid options</select>',listingCategoryPicker:()=>'<select></select>',listingField:(name)=>`FIELD:${name}`,categoryCatalog:[{name:'Technology'}],listingDraft:{category:'Technology'},esc:String});
  vm.runInContext(entry,ctx);
  const html=ctx.inlineListingForm();
  for(const field of ['title','url','does','helps','firstTry'])assert.match(html,new RegExp('FIELD:'+field));

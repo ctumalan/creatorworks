@@ -1,5 +1,7 @@
 import '../../project-media.js';
 import '../../listing-rules.js';
+import '../../pricing.js';
+export const pricingKind = globalThis.CWPricing.kind;
 // Pure listing rules — no I/O, unit-testable. Ownership and authority are enforced by the caller
 // using the authenticated server session; nothing here trusts a client-supplied owner id.
 
@@ -70,6 +72,10 @@ export function normalizeDraft(body) {
     first_try: paragraph(body.firstTry ?? body.first_try, 500),
     summary: text(body.summary ?? body.does ?? body.headline, 160),
   };
+  if(body.pricing !== undefined){
+    if(!Object.hasOwn(globalThis.CWPricing.labels,body.pricing))return {error:'Choose Free, Paid, or Free + paid options.'};
+    value.price_label=globalThis.CWPricing.labels[body.pricing];value.is_free=body.pricing==='free';
+  }
   if(body.sharingPreference !== undefined){
     if(!['private','public','not_sure'].includes(body.sharingPreference))return {error:'Choose how you would like to share your app.'};
     value.sharing_preference=body.sharingPreference;

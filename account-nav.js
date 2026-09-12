@@ -13,8 +13,7 @@ window.CWAccountMenu = {
    if(session.user.avatar){const img=document.createElement('img');img.src=session.user.avatar;img.alt='';summary.append(img);}else summary.textContent=(session.user.displayName||'M').slice(0,1).toUpperCase();
    const panel=document.createElement('div');panel.className='account-menu-panel';
    const name=document.createElement('strong');name.textContent=session.user.displayName;panel.append(name);
-   const links=[['View profile',session.user.isPublic?'/people/'+encodeURIComponent(session.user.slug):'/dashboard/profile'],['My dashboard','/dashboard/overview'],['Account settings','/dashboard/security'],['Contact us','/dashboard/help'],['Help','/dashboard/help']];
-   if(session.isAdmin)links.push(['Administration','/admin/workspace']);
+   const links=[['View profile','/people/me'],['My dashboard','/dashboard/overview']];
    for(const [text,href] of links){const a=document.createElement('a');a.href=href;a.textContent=text;panel.append(a);}
    const form=document.createElement('form');form.method='post';form.action='/auth/sign-out';const button=document.createElement('button');button.textContent='Log out';form.append(button);panel.append(form);
    root.append(summary,panel);
@@ -36,7 +35,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape')document.que
         const notice = document.createElement('p'); notice.className = 'cw-notice'; notice.setAttribute('role','status'); notice.textContent = 'Saving your project draft to your account…'; document.querySelector('main')?.prepend(notice);
         try {
           draft.clientToken ||= crypto.randomUUID(); localStorage.setItem('creatorworks-listing-draft-v1', JSON.stringify(draft));
-          const saved = await fetch('/api/projects', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'save',clientToken:draft.clientToken,title:draft.title,url:draft.url,does:draft.does,helps:draft.helps,firstTry:draft.firstTry,category:draft.category,stage:draft.stage,video:draft.video,sharingPreference:draft.sharingPreference||'not_sure'})});
+          const saved = await fetch('/api/projects', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'save',clientToken:draft.clientToken,title:draft.title,url:draft.url,does:draft.does,helps:draft.helps,firstTry:draft.firstTry,category:draft.category,stage:draft.stage,pricing:draft.pricing||'free',video:draft.video,sharingPreference:draft.sharingPreference||'not_sure'})});
           const result = await saved.json(); if(!saved.ok || !result.project) throw new Error();
           Object.assign(draft,{serverId:result.project.id,serverSlug:result.project.slug,serverStatus:result.project.status,accountOwner:session.user.id,imported:'yes'});
           localStorage.setItem('creatorworks-listing-draft-v1',JSON.stringify(draft));

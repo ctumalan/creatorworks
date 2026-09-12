@@ -1,3 +1,9 @@
 import type {APIRoute} from 'astro';
+import {memberContext} from '../../../server/workspace';
 import {validId} from '../../../server/feedback-policy.mjs';
-export const GET:APIRoute=context=>validId(context.params.id)?context.redirect('/dashboard/messages?thread='+context.params.id+(context.url.searchParams.has('sent')?'&sent=1':context.url.searchParams.has('error')?'&error=save':''),302):new Response('Conversation not found',{status:404});
+import {conversation} from '../../../server/conversation';
+export const GET:APIRoute=async context=>{
+ if(!validId(context.params.id))return new Response('Conversation not found',{status:404});
+ if(context.url.searchParams.get('fragment')!=='1')return context.redirect('/dashboard/messages?thread='+context.params.id+(context.url.searchParams.has('sent')?'&sent=1':context.url.searchParams.has('error')?'&error=save':''),302);
+ try{const m=await memberContext(context);if(!m)return new Response('Sign in required',{status:401});const html=await conversation(m.db,m.member.id,context.params.id!,context.url);return new Response(html||'Conversation not found',{status:html?200:404,headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'private, no-store'}});}catch{return new Response('Conversation unavailable',{status:503});}
+};

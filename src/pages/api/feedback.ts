@@ -22,9 +22,12 @@ export const POST:APIRoute=async context=>{
   const result=await db.from('creator_feedback').insert({...input,author_user_id:member.id,moderation_status:'pending'}).select('id').single();
   if(result.error?.code==='23505'){
    const existing=await db.from('creator_feedback').select('id').eq('project_slug',slug).eq('author_user_id',member.id).single();
-   if(existing.error)throw existing.error;return context.redirect(`/dashboard/messages?thread=${existing.data.id}`,303);
+   if(existing.error)throw existing.error;
+   if(context.request.headers.get('accept')?.includes('application/json'))return json({ok:true,duplicate:true,href:`/dashboard/messages?thread=${existing.data.id}`});
+   return context.redirect(`/dashboard/messages?thread=${existing.data.id}`,303);
   }
   if(result.error)throw result.error;
+  if(context.request.headers.get('accept')?.includes('application/json'))return json({ok:true,message:'Your review was sent. Credit eligibility is assessed separately.',href:`/dashboard/messages?thread=${result.data.id}`});
   return context.redirect(`/dashboard/messages?thread=${result.data.id}&sent=1`,303);
- }catch{return context.redirect(slug?`/tell/${slug}?error=1`:'/dashboard?error=1',303);}
+ }catch{if(context.request.headers.get('accept')?.includes('application/json'))return json({error:'Your review could not be confirmed. Your text is still here; check Messages before retrying.'},503);return context.redirect(slug?`/tell/${slug}?error=1`:'/dashboard?error=1',303);}
 };

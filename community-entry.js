@@ -3,6 +3,12 @@ let communityWishes = [];
 let wishesLoaded = false;
 let wishCategory = 'All';
 let wishSubmissionNotice = '';
+let publicWishCategories = [];
+let customWishCategory = '';
+let wishSelectionReady = false;
+let wishesLoading = false;
+let wishesHaveMore = false;
+let wishLoadVersion = 0;
 function sharingPreferenceFields() {
  if(['published','in_review'].includes(listingDraft.serverStatus))return `<fieldset class="sharing-preference"><legend>Listing visibility</legend><p>${listingDraft.serverStatus==='published'?'Your listing is public.':'Your listing is awaiting public review.'} To change this, use ${listingDraft.serverStatus==='published'?'Unpublish':'Withdraw from review'} in project settings below.</p></fieldset>`;
  const preference=listingDraft.sharingPreference || 'not_sure';
@@ -54,7 +60,7 @@ function showCreatorQuote(index){
  quoteTimer=setTimeout(()=>{
   card.remove();activeQuoteCard=null;
   if(pendingQuotes.length&&!quoteDismissed&&quoteFormActive)showCreatorQuote(pendingQuotes.shift());
- },10000);
+ },8000);
 }
 function requestCreatorQuote(index){
  if(quoteDismissed||shownQuoteIndexes.has(index))return;
@@ -74,27 +80,80 @@ document.addEventListener('click',event=>{
  if(event.target.closest('[data-quote-dismiss]')){quoteDismissed=true;clearTimeout(quoteTimer);pendingQuotes.length=0;activeQuoteCard?.remove();activeQuoteCard=null;}
 });
 function inlineListingForm() {
- return `<section class="inline-listing"><h1>Get your app tested by close friends or community members.</h1><p>Listing your project is free. Your drafts stay private until you’re ready to publish.</p><form data-listing-step data-inline-listing>${sharingPreferenceFields()}${listingField('title','Project name','Your app name')}${listingField('url','Project link','https://your-project.com')}<details class="listing-details" open><summary>Tell people what to try</summary>${listingField('does','What does your project do?','Describe it in 4–10 words',true)}${listingField('helps','How does it help people?','Describe the benefit in 4–10 words',true)}${listingField('firstTry','What should someone try first?','Suggest a task in 4–10 words',true)}${listingCategoryPicker()}<label>Project stage<select data-listing-field="stage">${['Still taking shape','Ready for a first try','Being tested by early users','Finished and launched'].map(stage=>`<option ${listingDraft.stage===stage?'selected':''}>${stage}</option>`).join('')}</select></label></details><button type="submit" class="primary-button">Preview my listing</button><p data-listing-status role="status"></p><p>Nothing is published until you submit it for review.</p></form></section>`;
+ return `<section class="inline-listing"><h1>Get your app tested by close friends or community members.</h1><p>Listing your project is free. Your drafts stay private until you’re ready to publish.</p><form data-listing-step data-inline-listing>${sharingPreferenceFields()}${listingField('title','Project name','Your app name')}${listingField('url','Project link','https://your-project.com')}<details class="listing-details" open><summary>Tell people what to try</summary>${listingField('does','What does your project do?','Describe it in 4–10 words',true)}${listingField('helps','How does it help people?','Describe the benefit in 4–10 words',true)}${listingField('firstTry','What should someone try first?','Suggest a task in 4–10 words',true)}${listingCategoryPicker()}${listingPricingField()}<label>Project stage<select data-listing-field="stage">${['Still taking shape','Ready for a first try','Being tested by early users','Finished and launched'].map(stage=>`<option ${listingDraft.stage===stage?'selected':''}>${stage}</option>`).join('')}</select></label></details><button type="submit" class="primary-button">Preview my listing</button><p data-listing-status role="status"></p><p>Nothing is published until you submit it for review.</p></form></section>`;
 }
 function welcomeAccountPage() {
  let selected=[],alerts=false;try{selected=JSON.parse(localStorage.getItem('trymybuild-signup-interests')||'[]');alerts=localStorage.getItem('trymybuild-signup-alerts')==='true';}catch{}
  return `<section class="page-shell">${homeViewTabs(homeView)}<section class="welcome-account"><h1>Welcome to TryMyBuild.</h1><p>Create your account to save useful projects and receive notifications when new apps match your interests.</p><form data-welcome-signup><fieldset><legend>What interests you? <small>Click as many as you want</small></legend><div class="interest-options">${categoryCatalog.map(c=>`<label><input type="checkbox" name="interest" value="${esc(c.name)}" ${selected.includes(c.name)?'checked':''}>${esc(c.name)}</label>`).join('')}</div></fieldset><label><input type="checkbox" name="alerts" ${alerts?'checked':''}> Notify me about new apps matching these interests</label><label class="legal-agreement"><input type="checkbox" required><span>I agree to the <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>.</span></label><button class="primary-button">Create my account</button><a href="/auth/sign-in">Already a member? Sign in</a><p data-signup-status role="status"></p></form><p>Are you a creator? <button class="text-button" data-home-view="test">List your project—it’s free!</button></p></section></section>`;
 }
+function canonicalWishCategory(value) {
+ if(typeof value!=='string')return '';
+ const clean=value.normalize('NFKC').replace(/\s+/g,' ').trim();
+ if(clean.length>48||/^(all(?: categories)?|other(?:\.{3}|…)?|__other__)$/i.test(clean)||/:\/\//.test(clean))return '';
+ return normalizeCategory(clean.toLocaleLowerCase());
+}
+function wishCategoryNames() {
+ return [...new Set([...categoryCatalog.map(c=>c.name),...publicWishCategories.map(canonicalWishCategory).filter(Boolean)])];
+}
+function readWishDraft() {
+ try{const draft=JSON.parse(localStorage.getItem('trymybuild-wish-draft')||'{}');return draft&&typeof draft==='object'?draft:{};}catch{return {};}
+}
+function restoreWishSelection() {
+ if(wishSelectionReady)return;
+ wishSelectionReady=true;
+ const draft=readWishDraft(),category=canonicalWishCategory(draft.category);
+ customWishCategory=typeof draft.customCategory==='string'?draft.customCategory:'';
+ if(draft.category==='__other__'){wishCategory='__other__';return;}
+ if(category){wishCategory=wishCategoryNames().includes(category)?category:'__other__';if(wishCategory==='__other__')customWishCategory=category;}
+}
+function wishCategoryOptions() {
+ const names=wishCategoryNames();
+ // Keep the current selection even if a category is withdrawn while this form is open.
+ if(!['All','__other__'].includes(wishCategory)&&!names.includes(wishCategory))names.push(wishCategory);
+ return `<option value="All" ${wishCategory==='All'?'selected':''}>All categories</option>${names.map(name=>`<option value="${esc(name)}" ${wishCategory===name?'selected':''}>${esc(name)}</option>`).join('')}<option value="__other__" ${wishCategory==='__other__'?'selected':''}>Other…</option>`;
+}
+function wishResults() {
+ if(wishCategory==='__other__')return '';
+ if(wishesLoading)return '<p role="status">Loading wishes…</p>';
+ const wishes=communityWishes.filter(w=>wishCategory==='All'||canonicalWishCategory(w.category)===wishCategory);
+ return wishes.map(w=>`<article><small>${esc(w.category)}</small><p>${esc(w.description)}</p><a class="wish-report" href="mailto:hello@trymybuild.com?subject=Report%20wish%20${encodeURIComponent(w.id)}">Report this wish</a></article>`).join('')+(wishesHaveMore?'<small>Showing the latest 200 wishes. Choose a category to narrow the list.</small>':'')||`<p>${wishesLoaded?'No wishes here yet. Share the first idea.':(window.CW_SERVER?'Wish lists are temporarily unavailable. Please try again later.':'Community wishes are not connected in this preview yet.')}</p>`;
+}
 function wishListSection() {
- let draft={};try{draft=JSON.parse(localStorage.getItem('trymybuild-wish-draft')||'{}');}catch{}
- const category=wishCategory==='All'?(draft.category||categoryCatalog[0].name):wishCategory;
- const description=draft.description||state.query||'';
- const wishes=communityWishes.filter(w=>wishCategory==='All'||w.category===wishCategory);
- return `<section class="wish-list" id="wish-list"><h2>${wishCategory==='All'?'Community':esc(wishCategory)} wish list</h2><p>Real needs. Ideas worth building. What do you wish an app could do?</p><label>Explore wishes by category<select data-wish-category-filter><option value="All">All categories</option>${categoryCatalog.map(c=>`<option ${wishCategory===c.name?'selected':''}>${esc(c.name)}</option>`).join('')}</select></label><div class="wish-items">${wishes.map(w=>`<article><small>${esc(w.category)}</small><p>${esc(w.description)}</p><a class="wish-report" href="mailto:hello@trymybuild.com?subject=Report%20wish%20${encodeURIComponent(w.id)}">Report this wish</a></article>`).join('')||`<p>${wishesLoaded?'No wishes here yet. Share the first idea.':(window.CW_SERVER?'Wish lists are temporarily unavailable. Please try again later.':'Community wishes are not connected in this preview yet.')}</p>`}</div><form data-wish-form><label>Category<select name="category" required>${categoryCatalog.map(c=>`<option ${category===c.name?'selected':''}>${esc(c.name)}</option>`).join('')}</select></label><label>What should the app do?<textarea name="description" rows="2" maxlength="180" required placeholder="Describe your wish in 4–11 words">${esc(description)}</textarea></label><small data-wish-count>${commentWordCount(description)} / 4–11 words</small><button class="primary-button">Submit my wish</button><p class="privacy-note">Wishes are reviewed before publication. Up to 10 pending or published wishes per account. <a href="mailto:hello@trymybuild.com?subject=Wish%20list%20report">Report a wish or request removal</a>.</p><p data-wish-status role="status">${esc(wishSubmissionNotice)}</p></form></section>`;
+ restoreWishSelection();
+ const draft=readWishDraft(),description=typeof draft.description==='string'?draft.description:(state.query||''),other=wishCategory==='__other__';
+ return `<section class="wish-list" id="wish-list"><h2>Community wish list</h2><p>Real needs. Ideas worth building. What do you wish an app could do?</p>
+ <form data-wish-form>
+ <label>Category<select name="category" data-wish-category-filter aria-describedby="wish-category-hint">${wishCategoryOptions()}</select></label>
+ <small id="wish-category-hint">Browse wishes here, or choose a category for your own wish.</small>
+ <label class="wish-custom-category" data-wish-custom-wrap ${other?'':'hidden'}>Name your category<input name="customCategory" type="text" minlength="2" maxlength="48" list="wish-category-suggestions" placeholder="For example, Pet care" aria-describedby="wish-custom-hint" value="${esc(customWishCategory)}" ${other?'required':'disabled'}><small id="wish-custom-hint">Existing matches are reused. New categories become available to everyone after your wish is approved.</small></label>
+ <datalist id="wish-category-suggestions">${wishCategoryNames().map(name=>`<option value="${esc(name)}"></option>`).join('')}</datalist>
+ <div class="wish-items" aria-live="polite">${wishResults()}</div>
+ <label>What should the app do?<textarea name="description" rows="2" maxlength="180" required placeholder="Describe your wish in 4–11 words">${esc(description)}</textarea></label><small data-wish-count>${commentWordCount(description)} / 4–11 words</small><button class="primary-button">Submit my wish</button><p class="privacy-note">Wishes are reviewed before publication. Up to 10 pending or published wishes per account. <a href="mailto:hello@trymybuild.com?subject=Wish%20list%20report">Report a wish or request removal</a>.</p><p data-wish-status role="status">${esc(wishSubmissionNotice)}</p></form></section>`;
+}
+function saveWishDraft(form) {
+ localStorage.setItem('trymybuild-wish-draft',JSON.stringify({category:form.elements.category.value,customCategory:form.elements.customCategory.value,description:form.elements.description.value}));
+}
+function updateWishCategoryForm(form) {
+ const other=wishCategory==='__other__',input=form.elements.customCategory;
+ form.querySelector('[data-wish-custom-wrap]').hidden=!other;
+ input.required=other;input.disabled=!other;input.setCustomValidity('');
+ form.elements.category.setCustomValidity('');
 }
 document.addEventListener('click',event=>{if(event.target.closest('[data-wish-focus]')){document.querySelector('[data-wish-form] textarea')?.focus();}});
-document.addEventListener('change',event=>{if(event.target.matches('[data-wish-category-filter]')){wishCategory=event.target.value;refreshWishResults();}});
+document.addEventListener('change',event=>{
+ if(!event.target.matches('[data-wish-category-filter]'))return;
+ const form=event.target.closest('[data-wish-form]');
+ wishCategory=event.target.value;wishSubmissionNotice='';form.querySelector('[data-wish-status]').textContent='';
+ updateWishCategoryForm(form);refreshWishResults();
+ if(wishCategory==='__other__'){wishLoadVersion++;wishesLoading=false;form.elements.customCategory.focus();}
+ else void loadCommunityWishes();
+});
 
 document.addEventListener('change',event=>{
  const form=event.target.closest('[data-welcome-signup]');
  if(form){try{localStorage.setItem('trymybuild-signup-interests',JSON.stringify(new FormData(form).getAll('interest')));localStorage.setItem('trymybuild-signup-alerts',String(form.elements.alerts.checked));}catch{}}
  const wish=event.target.closest('[data-wish-form]');
- if(wish){try{localStorage.setItem('trymybuild-wish-draft',JSON.stringify({category:wish.elements.category.value,description:wish.elements.description.value}));}catch{}}
+ if(wish){try{saveWishDraft(wish);}catch{}}
 });
 document.addEventListener('cw:account-ready',async event=>{
  if(!event.detail?.authenticated)return;
@@ -108,30 +167,44 @@ document.addEventListener('cw:account-ready',async event=>{
 document.addEventListener('input',event=>{
  const form=event.target.closest('[data-wish-form]');if(!form)return;
  const description=form.elements.description.value,count=commentWordCount(description);
+ customWishCategory=form.elements.customCategory.value;
+ if(event.target===form.elements.customCategory)event.target.setCustomValidity('');
  form.querySelector('[data-wish-count]').textContent=`${count} / 4–11 words`;
- form.elements.description.setCustomValidity(count>=4&&count<=11?'':'Use 4–11 words.');
- try{localStorage.setItem('trymybuild-wish-draft',JSON.stringify({category:form.elements.category.value,description}));}catch{}
+ if(event.target===form.elements.description)form.elements.description.setCustomValidity(count>=4&&count<=11?'':'Use 4–11 words.');
+ try{saveWishDraft(form);}catch{}
 });
 document.addEventListener('submit',async event=>{
  const signup=event.target.closest('[data-welcome-signup]');
  if(signup){event.preventDefault();try{localStorage.setItem('trymybuild-signup-interests',JSON.stringify(new FormData(signup).getAll('interest')));localStorage.setItem('trymybuild-signup-alerts',String(signup.elements.alerts.checked));localStorage.setItem('trymybuild-signup-pending','1');}catch{}if(!window.CW_SERVER){signup.querySelector('[data-signup-status]').textContent='Account creation is available on the connected site. Your choices are saved locally.';return;}location.href='/auth/sign-in?signup=1&next='+encodeURIComponent('/?welcome=1');return;}
  const form=event.target.closest('[data-wish-form]');if(!form)return;event.preventDefault();
- const category=form.elements.category.value,description=form.elements.description.value.trim(),status=form.querySelector('[data-wish-status]'),count=commentWordCount(description);
+ const selection=form.elements.category.value,category=canonicalWishCategory(selection==='__other__'?form.elements.customCategory.value:selection),description=form.elements.description.value.trim(),status=form.querySelector('[data-wish-status]'),count=commentWordCount(description);
+ if(!category){status.textContent=selection==='All'?'Choose a category for your wish, or select Other… to add one.':'Enter a clear category name using 2–48 characters.';const field=selection==='__other__'?form.elements.customCategory:form.elements.category;field.setCustomValidity(status.textContent);field.reportValidity();return;}
  if(count<4||count>11){status.textContent='Describe your wish in 4–11 words.';return;}
- try{localStorage.setItem('trymybuild-wish-draft',JSON.stringify({category,description}));}catch{status.textContent='Your draft could not be saved. Enable browser storage before continuing.';return;}
+ try{saveWishDraft(form);}catch{status.textContent='Your draft could not be saved. Enable browser storage before continuing.';return;}
  if(!window.CW_SERVER){status.textContent='Your wish is saved as a local draft. Public submission is available on the connected site.';return;}
  if(!state.session?.authenticated){location.href='/auth/sign-in?signup=1&next='+encodeURIComponent('/?wish=1#wish-list');return;}
  const button=form.querySelector('button');button.disabled=true;
- try{const response=await fetch('/api/wishes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({category,description})});const data=await response.json();if(!response.ok)throw Error(data.error||'Unable to submit wish.');localStorage.removeItem('trymybuild-wish-draft');form.reset();wishSubmissionNotice=data.outcome==='duplicate'?(data.status==='published'?'You already shared this wish. It is published.':data.status==='hidden'?'This wish is hidden after review. Contact us if you would like to appeal.':'This wish is already awaiting review.'):'Your wish was submitted for review. Thank you for sharing a real need.';status.textContent=wishSubmissionNotice;form.querySelector('[data-wish-count]').textContent='0 / 4–11 words';await loadCommunityWishes();}catch(error){status.textContent=error.message;}finally{button.disabled=false;}
+ try{const response=await fetch('/api/wishes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({category,description})});const data=await response.json();if(!response.ok)throw Error(data.error||'Unable to submit wish.');localStorage.removeItem('trymybuild-wish-draft');form.elements.description.value='';form.elements.description.setCustomValidity('');wishSubmissionNotice=data.outcome==='duplicate'?(data.status==='published'?'You already shared this wish. It is published.':data.status==='hidden'?'This wish is hidden after review. Contact us if you would like to appeal.':'This wish is already awaiting review.'):`Your wish in ${category} was submitted for review. Thank you for sharing a real need.`;status.textContent=wishSubmissionNotice;form.querySelector('[data-wish-count]').textContent='0 / 4–11 words';await loadCommunityWishes();}catch(error){status.textContent=error.message;}finally{button.disabled=false;}
 });
 // Update only the results, leaving the composer, focus, and catalog filters intact.
 function refreshWishResults(){
  const section=document.getElementById('wish-list');if(!section)return;
- const template=document.createElement('template');template.innerHTML=wishListSection();
- section.querySelector('h2').textContent=template.content.querySelector('h2').textContent;
- section.querySelector('.wish-items').replaceWith(template.content.querySelector('.wish-items'));
+ section.querySelector('.wish-items').innerHTML=wishResults();
 }
-async function loadCommunityWishes(){if(!window.CW_SERVER)return;try{const r=await fetch('/api/wishes');if(!r.ok)return;const data=await r.json();communityWishes=data.wishes;wishesLoaded=true;refreshWishResults();}catch{}}
+async function loadCommunityWishes(){
+ if(!window.CW_SERVER)return;
+ restoreWishSelection();
+ const version=++wishLoadVersion;
+ wishesLoading=true;wishesLoaded=false;communityWishes=[];wishesHaveMore=false;refreshWishResults();
+ try{
+  const selected=['All','__other__'].includes(wishCategory)?'':wishCategory;
+  const r=await fetch('/api/wishes'+(selected?'?category='+encodeURIComponent(selected):''));if(!r.ok)throw Error();
+  const data=await r.json();if(version!==wishLoadVersion)return;
+  communityWishes=Array.isArray(data.wishes)?data.wishes:[];publicWishCategories=Array.isArray(data.categories)?data.categories:[];wishesHaveMore=Boolean(data.hasMore);wishesLoaded=true;
+  const form=document.querySelector('[data-wish-form]');
+  if(form){form.elements.category.innerHTML=wishCategoryOptions();form.querySelector('datalist').innerHTML=wishCategoryNames().map(name=>`<option value="${esc(name)}"></option>`).join('');}
+ }catch{}finally{if(version===wishLoadVersion){wishesLoading=false;refreshWishResults();}}
+}
 document.addEventListener('DOMContentLoaded',async()=>{
  await loadCommunityWishes();
  const page=new URLSearchParams(location.search).get('page');if(['about','contact'].includes(page)){state.route=page;render();}

@@ -77,7 +77,7 @@ test('inspiration keeps the feedback quote and remains dismissible',()=>{
  assert.match(read('launch-refinements.css'),/position:fixed;top:88px;right:24px/);
  assert.doesNotMatch(ctx.quoteCardContent(),/Next quote|A little encouragement/);
 });
-test('quote automatically disappears after ten seconds without repeating on input',()=>{
+test('quote automatically disappears after eight seconds without repeating on input',()=>{
  const listeners=[],timers=[];let removed=false,appended=0;
  const card={setAttribute(){},remove(){removed=true;}};
  const ctx=vm.createContext({document:{addEventListener(type,fn){listeners.push({type,fn});},createElement(){return card;},body:{append(){appended++;}}},setTimeout(fn,delay){timers.push({fn,delay});}});
@@ -85,7 +85,7 @@ test('quote automatically disappears after ten seconds without repeating on inpu
  const input=listeners.find(l=>l.type==='input').fn;
  const event={target:{matches:()=>true,value:'My app',dataset:{listingField:'title'}}};
  input(event);assert.equal(appended,1);assert.equal(removed,false);
- assert.equal(timers[0].delay,10000);timers[0].fn();assert.equal(removed,true);
+ assert.equal(timers[0].delay,8000);timers[0].fn();assert.equal(removed,true);
  input(event);assert.equal(appended,1);
 });
 test('old session dismissal cannot block a fresh visit and returning resets the quote',()=>{
@@ -105,10 +105,10 @@ test('help-field quote waits for the first quote and shows only once per visit',
  const type=field=>input({target:{matches:()=>true,value:'Some useful words',dataset:{listingField:field}}});
  type('title');type('helps');type('helps');
  assert.equal(cards.length,1);assert.match(cards[0].innerHTML,/Paul Graham/);
- assert.equal(timers[0].delay,10000);timers[0].fn();
+ assert.equal(timers[0].delay,8000);timers[0].fn();
  assert.equal(cards[0].removed,true);assert.equal(cards.length,2);
  assert.match(cards[1].innerHTML,/GOV.UK Service Manual/);
- assert.equal(timers[1].delay,10000);timers[1].fn();
+ assert.equal(timers[1].delay,8000);timers[1].fn();
  assert.equal(cards[1].removed,true);type('helps');type('title');assert.equal(cards.length,2);
 });
 test('stage selection queues Gretzky after both earlier quotes without repeats',()=>{
@@ -121,6 +121,6 @@ test('stage selection queues Gretzky after both earlier quotes without repeats',
  assert.match(cards[1].innerHTML,/GOV.UK/);timers[1].fn();assert.equal(cards.length,3);
  assert.match(cards[2].innerHTML,/You miss 100% of the shots you don't take/);
  assert.match(cards[2].innerHTML,/Wayne Gretzky/);assert.doesNotMatch(cards[2].innerHTML,/undefined/);
- assert.equal(timers[2].delay,10000);timers[2].fn();assert.equal(cards[2].removed,true);
+ assert.equal(timers[2].delay,8000);timers[2].fn();assert.equal(cards[2].removed,true);
  dispatch('change','stage');assert.equal(cards.length,3);
 });

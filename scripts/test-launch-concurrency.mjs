@@ -2,7 +2,7 @@
 // node scripts/test-launch-concurrency.mjs /absolute/path/to/temporary-dependency-directory
 import {spawn,execFile} from 'node:child_process';
 import {promisify} from 'node:util';
-import {mkdtemp,mkdir,rm} from 'node:fs/promises';
+import {mkdtemp,mkdir,rm,readFile} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {randomUUID} from 'node:crypto';
@@ -93,8 +93,22 @@ try{
  assert.equal(await scalar(admin,'select count(*)::int from community_wishes where user_id=$1',[removed]),0);
  await assert.rejects(submit(a,removed,'Find another useful app for musicians'),/Active account required/);
  console.log('PASS: deletion racing a submission leaves no orphan wish, and later submissions are rejected.');
+ await admin.query(await readFile(new URL('../database/020_workspace_refinements.sql',import.meta.url),'utf8'));
+ const draft=async()=>scalar(admin,"insert into projects(slug,title,owner_user_id,visibility,listing_status) values($1,'Race fixture',$2,'draft','draft') returning id",['race-'+randomUUID(),capped]);
+ const buildFirst=await draft();
+ await a.query('begin');await a.query("insert into site_settings(key,value) values($1,'{}')",['project-builds:'+buildFirst]);
+ const deleteAfterBuild=b.query('select cw_delete_unused_draft($1,$2,0)',[capped,buildFirst]).then(()=>null,error=>error);
+ await blocked(b);await a.query('commit');assert.match((await deleteAfterBuild).message,/history must be retained/);
+ assert.equal(await scalar(admin,'select count(*)::int from projects where id=$1',[buildFirst]),1);
+ console.log('PASS: draft deletion waits for a concurrent build save, then preserves the project and its history.');
+ const deleteFirst=await draft();
+ await a.query('begin');await a.query('select cw_delete_unused_draft($1,$2,0)',[capped,deleteFirst]);
+ const buildAfterDelete=b.query("insert into site_settings(key,value) values($1,'{}')",['project-builds:'+deleteFirst]).then(()=>null,error=>error);
+ await blocked(b);await a.query('commit');assert.match((await buildAfterDelete).message,/Project no longer exists/);
+ assert.equal(await scalar(admin,'select count(*)::int from site_settings where key=$1',['project-builds:'+deleteFirst]),0);
+ console.log('PASS: a concurrent build save waits for deletion, then fails without creating orphan metadata.');
  success=true;
- console.log('SUCCESS: native migration suite and five cross-connection checks passed.');
+ console.log('SUCCESS: native migration suite and seven cross-connection checks passed.');
 }catch(error){console.error('FAIL:',error.message);if(logs)console.error(logs);process.exitCode=1;}
 finally{
  await Promise.all(clients.map(client=>client.end().catch(()=>{})));

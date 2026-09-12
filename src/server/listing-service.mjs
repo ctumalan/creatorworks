@@ -1,15 +1,15 @@
 // Listing lifecycle logic, decoupled from Supabase so it can be driven by an in-memory store in tests.
 // The API routes are thin wrappers that build a Supabase-backed `store` (see listing-store.ts) and pass
 // the authenticated owner id. Ownership is ALWAYS the caller-provided session id — never a client field.
-import { publishReadiness } from './listing-policy.mjs';
+import { publishReadiness, pricingKind } from './listing-policy.mjs';
 
 // Fields whose change is "material" — a change to any editable public-facing field on a public/in-review
 // listing must return it to a nonpublic draft so it cannot silently bypass founder review. This must
 // cover EVERY field normalizeDraft accepts and shows publicly (summary and stage included).
-const MATERIAL_FIELDS = ['video_url', 'title', 'external_url', 'category', 'stage', 'summary', 'headline', 'help_text', 'first_try'];
+const MATERIAL_FIELDS = ['price_label', 'is_free', 'video_url', 'title', 'external_url', 'category', 'stage', 'summary', 'headline', 'help_text', 'first_try'];
 
 export function isMaterialChange(row, input) {
-  return MATERIAL_FIELDS.some(f => (input[f] ?? '') !== (row[f] ?? ''));
+  return MATERIAL_FIELDS.some(f => (['price_label','is_free'].includes(f) && input[f] === undefined) ? false : (input[f] ?? '') !== (row[f] ?? ''));
 }
 const nonpublicNext = status => (status === 'published' || status === 'in_review') ? 'draft' : status;
 const visForStatus = status => status === 'published' ? 'public' : 'draft';
@@ -25,6 +25,8 @@ export async function saveDraft(store, { ownerId, id, clientToken, input }, deps
   if (id) {
     const row = await store.findOwnedById(ownerId, id);
     if (!row) return { status: 404, error: 'That project was not found in your account.' };
+    // Choosing the existing category must not erase a legacy price amount.
+    if(input.price_label && row.price_label && pricingKind(input.price_label)===pricingKind(row.price_label))input={...input,price_label:row.price_label};
     const material = isMaterialChange(row, input);
     const next = material ? nonpublicNext(row.listing_status) : row.listing_status;
     const reviewReset = material && next !== row.listing_status;

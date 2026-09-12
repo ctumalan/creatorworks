@@ -4,7 +4,7 @@ import { randomBytes } from 'node:crypto';
 import { currentUser, json, origin } from '../../server/auth';
 import { database, databaseReady, ensureMember } from '../../server/database';
 import { sameOrigin } from '../../server/security.mjs';
-import { normalizeDraft, publishReadiness, slugify, PROJECT_STATUS_LABELS } from '../../server/listing-policy.mjs';
+import { normalizeDraft, publishReadiness, slugify, pricingKind, PROJECT_STATUS_LABELS } from '../../server/listing-policy.mjs';
 import { saveDraft, submit, unpublish } from '../../server/listing-service.mjs';
 import { projectStore } from '../../server/listing-store';
 import { PROJECT_FIELDS } from '../../server/catalog-db';
@@ -12,7 +12,7 @@ import { publicationAccess } from '../../server/community-credits';
 
 function ownedView(row: any) {
   return {
-    sharingPreference: row.sharing_preference || 'not_sure', video: row.video_url || '', id: row.id, slug: row.slug, title: row.title, category: row.category, stage: row.stage,
+    price: row.price_label || 'Free', pricing: pricingKind(row.price_label || 'Free'), sharingPreference: row.sharing_preference || 'not_sure', video: row.video_url || '', id: row.id, slug: row.slug, title: row.title, category: row.category, stage: row.stage,
     status: row.listing_status, statusLabel: (PROJECT_STATUS_LABELS as Record<string, string>)[row.listing_status] || row.listing_status,
     headline: row.headline, help: row.help_text, firstTry: row.first_try, url: row.external_url,
     preview: row.preview_public_url || '', hasImage: !!row.preview_path,
@@ -52,6 +52,18 @@ export const POST: APIRoute = async context => {
     const member = await ensureMember(user);
     const store = projectStore(database());
 
+    if(body.action==='delete'){
+      if(body.confirm!=='DELETE'||!Number.isSafeInteger(body.version))return json({error:'Confirm deletion of this private draft.'},400);
+      const result=await database().rpc('cw_delete_unused_draft',{p_user:member.id,p_id:body.id,p_version:body.version});
+      if(result.error)return json({error:'This draft could not be deleted. Reload it; only unused private drafts without project activity can be deleted.'},409);
+      // Only remove the owned, now-unreferenced preview after the database confirms deletion.
+      let cleanupPending=false;
+      if(typeof result.data==='string'&&result.data.startsWith(`previews/${member.id}/${body.id}/`)){
+        try{const removed=await database().storage.from('project-previews').remove([result.data]);cleanupPending=!!removed.error;}catch{cleanupPending=true;}
+        if(cleanupPending){console.warn('Deleted draft preview needs cleanup',body.id);await database().from('operations_log').insert({actor_id:member.id,target_id:body.id,action:'project.preview_cleanup_pending',reason:result.data}).then(()=>{},()=>{});}
+      }
+      return json({ok:true,deleted:true,cleanupPending});
+    }
     if (body.action === 'save') {
       const clientToken = typeof body.clientToken === 'string' ? body.clientToken.trim() : '';
       if (!body.id && !(clientToken.length >= 8 && clientToken.length <= 100)) {

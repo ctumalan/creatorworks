@@ -28,7 +28,7 @@
   }
   fetch('/api/analytics-config').then(r => r.json()).then(data => {
     config = data; if (!config.measurementId) return;
-    const footer = document.createElement('div'); footer.className = 'privacy-controls'; const button = document.createElement('button'); button.className = 'share-browse-link'; button.textContent = 'Analytics preferences'; button.onclick = choice; footer.append(button); document.body.append(footer);
+    const footer = document.createElement('div'); footer.className = 'privacy-controls'; const button = document.createElement('button'); button.className = 'share-browse-link'; button.textContent = 'Analytics preferences'; button.onclick = choice; footer.append(button); (document.querySelector('.site-footer,.cw-legal-footer')||document.body).append(footer);
     if (!read()) choice(); else start();
   }).catch(() => {});
   document.addEventListener('click', e => {

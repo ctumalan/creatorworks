@@ -22,6 +22,7 @@ export const POST:APIRoute=async context=>{
   if(!item.data||!project.data||!threadAccess(member.id,item.data.author_user_id,project.data.owner_user_id))return json({error:'Conversation not found.'},404);
   const result=await db.rpc('cw_feedback_reply',{p_actor:member.id,p_id:id,p_message:body.message.trim(),p_request:body.requestId});
   if(result.error)throw result.error;
+  if(context.request.headers.get('accept')?.includes('application/json'))return json({ok:true,message:'Reply sent.'});
   return context.redirect(`/dashboard/messages?thread=${id}&sent=1`,303);
- }catch{return context.redirect(id?`/dashboard/messages?thread=${id}&error=1`:'/dashboard?error=1',303);}
+ }catch{if(context.request.headers.get('accept')?.includes('application/json'))return json({error:'Your reply could not be confirmed. Your text is still here; you can retry safely.'},503);return context.redirect(id?`/dashboard/messages?thread=${id}&error=1`:'/dashboard?error=1',303);}
 };
