@@ -2,7 +2,7 @@
 
 ## Status
 
-Implemented and validated. The owner approved adding the final two-column credit illustration and committing, deploying, and publishing this batch. Publication is in progress; production database migration 022 has **not yet** been applied. Existing public hosting, framework, and no-index settings are unchanged.
+Published and verified on September 12, 2026. The owner approved the final two-column credit illustration and publication of this batch. Production database migration 022 is applied and verified. Existing public hosting, framework, and no-index settings are unchanged.
 
 ## Approved batch
 
@@ -48,7 +48,7 @@ Public profile statistics include only published projects, approved public contr
 - Existing workspace database suite passes, including 29-thread pagination and draft ownership/history protections.
 - Existing wish/category database suite passes, including 200+ wishes and category normalization.
 - Local fixture preview responds successfully at `http://127.0.0.1:4326/dashboard/community`. Sample content only; sending is deliberately disabled. Preview pages also exist at `/people/sample-creator` and `/projects/sample-0`.
-- No browser visual or click-through testing was performed for this batch. Database tests use a disposable local PostgreSQL-compatible runtime, not production.
+- No application browser visual or signed-in click-through testing was performed for this batch. Behavioral database tests use a disposable local PostgreSQL-compatible runtime; production schema, permissions, preserved data, and read-only functions were subsequently verified in the Supabase SQL Editor.
 
 ## Publication sequence
 
@@ -61,5 +61,18 @@ Do not replay the previous September 12 backup script. Do not include unrelated 
 - The approved two-column image is stored at `assets/community-credits-explainer.png`, directly below the Community credits page heading and before the live progress card. Responsive sizing preserves the complete illustration. An expandable HTML text equivalent provides the same benefits without relying on text in an image.
 - The image is the owner's selected Give feedback / Receive Feedback version, with three benefit bullets under each character. It is copied unchanged from the generated original.
 - Production preflight in the Supabase SQL Editor confirmed that 022's five principal functions and three guest columns are absent, there are two existing public-comment records and zero notifications, and no `release_backup_20260912_022` snapshot exists.
-- The separate one-time `database/release-backup-20260912-022.sql` snapshot procedure and subsequent migration sequence pass locally. No production snapshot or 022 migration has been executed at this checkpoint.
-- Vercel account access is working. Supabase browser navigation stalled while checking managed backup availability; the live app remains unchanged until the database checkpoint is complete.
+- The separate one-time `database/release-backup-20260912-022.sql` snapshot procedure and subsequent migration sequence pass locally. Production execution and verification are recorded below. Do not replay either migration or snapshot.
+
+## Production release evidence
+
+- Source: `51cddac1e6bf7b2e20860ac6ca36bb3d3809f689` (`Polish community experience and add profile messaging`), committed and pushed to `origin/main`. Deployment used a clean archive of this exact commit; unrelated untracked notes and output were excluded.
+- Supabase production project: `creatorworks`, reference `nkrkmfszuntvzjonrznb`. Supplemental private recovery snapshot `release_backup_20260912_022` captured at **2026-09-12 21:40:10.464995 UTC**. Both existing comments were copied and verified bidirectionally before migration; snapshot access is denied to browser roles and service_role.
+- Migration 022 completed successfully in its transaction. Verified: three guest columns, nullable author, two guest constraints and unique index, four RLS-protected direct-message tables, seven server-only routines, two protected trigger routines, and two enabled triggers. All existing comment fields exactly match the recovery snapshot. Counts remained two comments, zero direct messages, and zero notifications.
+- Read-only production checks returned 11 published projects and 11 public-activity rows; an anonymous combined inbox returned zero rows. PostgREST schema reload completed successfully.
+- Vercel deployment: `dpl_FtnrUbEL2yDzEKpdGPMaYVyxaECc`, **Ready**, production; created September 12, 2026 at 14:47:47 PDT. Build and dependency installation succeeded (zero reported dependency vulnerabilities).
+- Deployment URL: https://trymybuild-pmqjfvik8-christian-s-team3.vercel.app. Verified aliases: https://trymybuild.com, https://www.trymybuild.com, https://creatorworks.vercel.app, and https://trymybuild-christian-s-team3.vercel.app.
+- Live HTTP checks verified configured health, connected catalog with 11 projects, public comments, compact profile activity/share/message entry, project invitation layout with inline comments, and canonical profile invitations.
+- The approved illustration and all five changed interaction/style assets exactly match the committed files by SHA-256. The illustration is served successfully at `/assets/community-credits-explainer.png`; its placement before the progress card is covered by the application tests.
+- Anonymous dashboard access is denied. Unsupported admin GET returns 404; unsigned admin POST returns 403. Unsigned direct-message POST returns 401, guest-update opt-in without a guest token returns 400, and cross-origin requests return 403. These checks created no comments, messages, subscriptions, or notifications. Private environment, migration, and release-note paths return 404.
+- Fresh sign-in, real comment submission, message sending, notification delivery, and visual animation behavior were not exercised against production accounts. These are not implied by the read-only release checks.
+- Rollback reference retained: `dpl_6x9PmBSW3r92gMGRcQw2kmNpQswh` / https://trymybuild-b0x9cb6zr-christian-s-team3.vercel.app. Do not remove the additive database objects or recovery snapshot without a separate reviewed recovery plan.
